@@ -7,7 +7,9 @@ RDMExplorer is an R shiny app that enables users to generate human footprint or 
   3. Explore the effects of anthropogenic disturbances on the distribution and abundance of terrestrial ecosystems; and
   4. Explore the effects of anthropogenic disturbances on indicators of hydrological integrity and connectivity.
 
-The app can be run from a local machine using the following steps:
+The app is located at: https::/beaconsproject.shinyapps.io/RDMExplorer
+
+The app can also be run from a local machine using the following steps:
 
   1. Install R (download from r-project.org and follow instructions)
   2. Install the following additional packages:
