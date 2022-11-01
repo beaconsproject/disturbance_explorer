@@ -1,0 +1,11 @@
+name: rdmexplorer
+title:
+username:
+account: beaconsproject
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7491748
+bundleId: 6464980
+url: https://beaconsproject.shinyapps.io/rdmexplorer/
+when: 1667343387.8151
+lastSyncTime: 1667343387.81511
