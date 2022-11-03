@@ -23,7 +23,7 @@ ui = dashboardPage(skin="blue",
     br(),
     actionButton("goButton", "Generate intactness map"),
     br(),
-    sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 1, step=0.05, ticks=FALSE),
+    sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 0.5, step=0.05, ticks=FALSE),
     hr(),
     downloadButton("downloadMap","Download intactness map")
   ),
@@ -70,7 +70,7 @@ ui = dashboardPage(skin="blue",
                 ),
                 tabBox(
                     id = "two", width="4",
-                    tabPanel("Intact", tableOutput("tab4"))
+                    tabPanel("Percent intact", tableOutput("tab4"))
                 ),
             )
         ),
@@ -83,7 +83,7 @@ ui = dashboardPage(skin="blue",
                 ),
                 tabBox(
                     id = "two", width="4",
-                    tabPanel("Percent within disturbed area", tableOutput("tab5"))
+                    tabPanel("Percent intact", tableOutput("tab5"))
                 ),
             )
         )
@@ -160,6 +160,11 @@ server = function(input, output) {
         ifl <- st_difference(bnd(), vv())
     })
 
+    ####################################################################################################
+    # FOOTPRINT/INTACTNESS
+    ####################################################################################################
+
+    # Map viewer
     output$map <- renderLeaflet({
         bnd <- st_transform(bnd(), 4326)
         ifl2000 <- st_transform(ifl2000(), 4326)
@@ -201,6 +206,49 @@ server = function(input, output) {
         m
     })
 
+    # Intactness table
+    dta1 <- reactive({
+        x <- tibble(Map=c("FDA (km2)","IFL 2000 (%)","IFL 2020 (%)","Intactness (%)","Footprint (%)"), Area=NA)
+        x$Area[x$Map=="FDA (km2)"] <- round(st_area(bnd())/1000000,0)
+        x$Area[x$Map=="IFL 2000 (%)"] <- round(sum(st_area(ifl2000()))/st_area(bnd())*100,1)
+        x$Area[x$Map=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020()))/st_area(bnd())*100,1)
+        if (input$goButton) {
+            x$Area[x$Map=="Intactness (%)"] <- round(sum(st_area(v()))/st_area(bnd())*100,1)
+            x$Area[x$Map=="Footprint (%)"] <- round(sum(st_area(vv()))/st_area(bnd())*100,1)
+        }
+        x
+    })
+
+	output$tab1 <- renderTable({
+        dta1()
+    })
+
+    # Linear disturbances table
+    dta2 <- reactive({
+        km <- group_by(linear(), TYPE_DISTURBANCE) %>%
+            summarize(Length_km = sum(Length_km))
+        x <- tibble(Disturbance_type=km$TYPE_DISTURBANCE, Length_km=km$Length_km, Length_pct=Length_km/sum(Length_km)*100)
+    })
+
+	output$tab2 <- renderTable({
+        dta2()
+    })
+
+    # Areal disturbances table
+    dta3 <- reactive({
+        ha <- group_by(areal(), TYPE_DISTURBANCE) %>%
+            summarize(Area_ha = sum(Area_ha)/100)
+        x <- tibble(Disturbance_type=ha$TYPE_DISTURBANCE, Area_ha=ha$Area_ha, Area_pct=Area_ha/sum(Area_ha)*100)
+    })
+
+	output$tab3 <- renderTable({
+        dta3()
+    })
+
+    ####################################################################################################
+    # LANDCOVER
+    ####################################################################################################
+
     lcc2 <- reactive({
         dir1 <- substr(fda(),1,nchar(fda())-5)
         lcc <- rast(paste0(dir1,'/','lc_2019.tif'))
@@ -233,6 +281,36 @@ server = function(input, output) {
         }
     })
 
+    lcc_intact <- reactive({
+        v <- vect(vv())
+        r2 <- crop(lcc2(), v)
+        r2 <- mask(r2, v)
+    })
+
+    lcc_all <- reactive({
+        r_freq <- freq(lcc2())
+        cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
+        if (input$goButton) {
+            x <- tibble(Class=cls, value=r_freq$value, count_fda=r_freq$count)
+            r2 <- lcc_intact()
+            r2_freq <- freq(r2)[,2:3] %>%
+                rename(count_2019=count)
+            xx <- left_join(x, r2_freq) %>%
+                mutate(Area_ha=round(count_fda*30*30/10000,2),
+                    Intact_pct=round((count_fda-count_2019)/count_fda*100,2),
+                    count_fda=NULL, count_2019=NULL, value=NULL)
+        } else {
+            xx <- tibble(Class=cls, Count=r_freq$count) %>%
+                mutate(Area_km2=round(Count*30*30/1000000,2),
+                Count=NULL)
+        }
+        xx
+    })
+
+	  output$tab4 <- renderTable({
+        lcc_all()
+    })
+
     output$map2 <- renderLeaflet({
         bnd <- st_transform(bnd(), 4326)
         areal <- st_transform(areal(), 4326)
@@ -248,21 +326,32 @@ server = function(input, output) {
             cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
             df <- data.frame(ID=val, CAT=cls)
             levels(r) <- df
-            #set.cats(r, layer=1, value=df)
-            m <- m %>% addRasterImage(r, colors=lcc_cols(), opacity=input$alpha, group=input$type) %>%
+            m <- m %>% addRasterImage(r, colors=lcc_cols(), opacity=1, group=input$type) %>%
          	    addLegend(colors=lcc_cols(), labels=cls, position=c("bottomleft"), title="Landcover 2019", opacity=1)
        } else {
             r <- aggregate(lcc_rcl(), fact=3, fun='modal')
             r <- subst(r, 0, NA)
             r <- raster(r)
-            m <- m %>% addRasterImage(r, colors='darkgreen', opacity=input$alpha, group=input$type)
+            m <- m %>% addRasterImage(r, colors='darkgreen', opacity=1, group=input$type)
+        }
+        m <- m %>% addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
+            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha)
+        if (input$goButton) {
+            v <- st_transform(v(), 4326)
+            vv <- st_transform(vv(), 4326)
+            m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
+              addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
         }
         m <- m %>% addLayersControl(position = "topright",
-            baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-            overlayGroups = c("FDA", input$type),
+                                    baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+            overlayGroups = c("FDA", input$type,"Linear features", "Areal features","Intactness","Footprint"),
             options = layersControlOptions(collapsed = FALSE)) %>%
-            hideGroup("")
+            hideGroup(c("Linear features","Areal features","Intactness","Footprint"))
     })
+
+    ####################################################################################################
+    # HYDROLOGY
+    ####################################################################################################
 
     output$map3 <- renderLeaflet({
        bnd <- st_transform(bnd(), 4326)
@@ -291,123 +380,35 @@ server = function(input, output) {
                 hideGroup(c("Streams","Linear features","Areal features","Intactness","Footprint"))
     })
 
-    dta1 <- reactive({
-        x <- tibble(Map=c("FDA (km2)","IFL 2000 (%)","IFL 2020 (%)","Intactness (%)","Footprint (%)"), Area=NA)
-        x$Area[x$Map=="FDA (km2)"] <- round(st_area(bnd())/1000000,0)
-        x$Area[x$Map=="IFL 2000 (%)"] <- round(sum(st_area(ifl2000()))/st_area(bnd())*100,1)
-        x$Area[x$Map=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020()))/st_area(bnd())*100,1)
-        if (input$goButton) {
-            x$Area[x$Map=="Intactness (%)"] <- round(sum(st_area(v()))/st_area(bnd())*100,1)
-            x$Area[x$Map=="Footprint (%)"] <- round(sum(st_area(vv()))/st_area(bnd())*100,1)
-        }
-        x
-    })
-
-	output$tab1 <- renderTable({
-        dta1()
-    })
-
-    dta2 <- reactive({
-        km <- group_by(linear(), TYPE_DISTURBANCE) %>%
-            #mutate(Length_km = st_length(linear())) %>%
-            #summarize(Length_km = sum(Shape_Length))
-            summarize(Length_km = sum(Length_km))
-        #x <- tibble(Disturbance_type=km$TYPE_DISTURBANCE, Length_km=round(km$Length_km/1000,1), Buffer_size=input$buffer1)
-        x <- tibble(Disturbance_type=km$TYPE_DISTURBANCE, Length_km=km$Length_km, Buffer_size=input$buffer1)
-        x
-    })
-
-	output$tab2 <- renderTable({
-        dta2()
-    })
-
-    dta3 <- reactive({
-        ha <- group_by(areal(), TYPE_DISTURBANCE) %>%
-            #summarize(Area_m2 = sum(Shape_Area))
-            summarize(Area_ha = sum(Area_ha))
-        #x <- tibble(Disturbance_type=m2$TYPE_DISTURBANCE, Area_ha=round(m2$Area_m2/10000,1), Buffer_size=input$buffer1)
-        x <- tibble(Disturbance_type=ha$TYPE_DISTURBANCE, Area_ha=ha$Area_ha, Buffer_size=input$buffer1)
-        x
-    })
-
-	output$tab3 <- renderTable({
-        dta3()
-    })
-
-    #lcc_intact <- eventReactive(input$goButton, {
-    lcc_intact <- reactive({
-        if (input$type=="all classes") {
-            v <- vect(vv())
-            r2 <- crop(lcc2(), v)
-            r2 <- mask(r2, v)
-        } else {
-            v <- vect(vv())
-            r2 <- crop(lcc_rcl(), v)
-            r2 <- mask(r2, v)
-        }
-    })
-
-    lcc_one <- reactive({
-        r_freq <- freq(lcc_rcl())
-        if (input$goButton) {
-            x <- tibble(value=input$type, count_fda=r_freq$count[2])
-            r2 <- lcc_intact()
-            r2_freq <- freq(r2)[2,2:3] %>%
-                rename(count_2019=count)
-            xx <- left_join(x, r2_freq) %>%
-                mutate(Area_ha=round(count_fda*30*30/10000,1),
-                    Intact_pct=round((count_fda-count_2019)/count_fda*100,1),
-                    count_fda=NULL, count_2019=NULL) %>%
-                rename(Class=value)
-            xx
-        } else {
-            xx <- tibble(Class=input$type, Count=r_freq$count[2]) %>%
-                mutate(Area_ha=round(Count*30*30/10000,1),
-                Count=NULL)
-        }
-        xx
-    })
-
-    lcc_all <- reactive({
-        r_freq <- freq(lcc2())
-        if (input$goButton) {
-            x <- tibble(value=r_freq$value, count_fda=r_freq$count)
-            r2 <- lcc_intact()
-            r2_freq <- freq(r2)[,2:3] %>%
-                rename(count_2019=count)
-            xx <- left_join(x, r2_freq) %>%
-                mutate(Area_ha=round(count_fda*30*30/10000,1),
-                    Intact_pct=round((count_fda-count_2019)/count_fda*100,1),
-                    count_fda=NULL, count_2019=NULL) %>%
-                rename(Class=value)
-        } else {
-            xx <- tibble(Class=r_freq$value, Count=r_freq$count) %>%
-                mutate(Area_ha=round(Count*30*30/10000,1),
-                Count=NULL)
-        }
-        xx
-    })
-
-	output$tab4 <- renderTable({
-        if (input$type=='all classes') {
-            lcc_all()
-        } else {
-            lcc_one()
-        }
-    })
-
     dta5 <- reactive({
-        x <- readr::read_csv(paste0('data/fda_',input$fda,'_hydro.csv'))
+        if (input$goButton) {
+            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0), Intact_pct=0)
+            streams_intact <- st_intersection(streams(), v())
+            lakesrivers_intact <- st_intersection(lakesrivers(), v())
+            x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
+            x$Area_km2[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers()))/1000000,2)
+            x$Intact_pct[x$Class=='Streams'] <- round(sum(st_length(streams_intact))/sum(st_length(streams()))*100,2)
+            x$Intact_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_intact))/sum(st_area(lakesrivers()))*100,2)
+        } else {
+            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0))
+            x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
+            x$Area_km2[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers()))/1000000,2)
+        }
+        x
     })
 
 	output$tab5 <- renderTable({
         dta5()
     })
 
-  output$downloadMap <- downloadHandler(
-    filename = function() {'fda_intactness.gpkg'},
-    content = function(file) {st_write(v(), dsn=file, layer=paste0('linear',input$buffer1,'_areal',input$buffer2,'.gpkg'))}
-  )
+    ####################################################################################################
+    # DOWNLOAD SHAPEFILE
+    ####################################################################################################
+
+    output$downloadMap <- downloadHandler(
+        filename = function() {'fda_intactness.gpkg'},
+        content = function(file) {st_write(v(), dsn=file, layer=paste0('linear',input$buffer1,'_areal',input$buffer2,'.gpkg'))}
+    )
 
 }
 
