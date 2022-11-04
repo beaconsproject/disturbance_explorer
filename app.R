@@ -70,7 +70,7 @@ ui = dashboardPage(skin="blue",
                 ),
                 tabBox(
                     id = "two", width="4",
-                    tabPanel("Percent intact", tableOutput("tab4"))
+                    tabPanel("Percent disturbed", tableOutput("tab4"))
                 ),
             )
         ),
@@ -83,7 +83,7 @@ ui = dashboardPage(skin="blue",
                 ),
                 tabBox(
                     id = "two", width="4",
-                    tabPanel("Percent intact", tableOutput("tab5"))
+                    tabPanel("Percent disturbed", tableOutput("tab5"))
                 ),
             )
         )
@@ -98,7 +98,10 @@ server = function(input, output) {
         includeMarkdown("docs/overview.md")
     })
 
-    fda <- reactive({
+    ####################################################################################################
+    # SPATIAL DATA
+    ####################################################################################################
+   fda <- reactive({
         fda <- paste0('data/fda_',input$fda,'.gpkg')
     })
 
@@ -150,6 +153,10 @@ server = function(input, output) {
         }
     })
 
+    ####################################################################################################
+    # CALCULATE FOOTPRINT AND INTACTNESS
+    ####################################################################################################
+
     vv <- eventReactive(input$goButton, {
         v1 <- st_union(st_buffer(linear(), input$buffer1))
         v2 <- st_union(st_buffer(areal(), input$buffer2))
@@ -160,8 +167,13 @@ server = function(input, output) {
         ifl <- st_difference(bnd(), vv())
     })
 
+    ifl_min <- reactive({
+        x <- mutate(v(), area_km2=st_area(v())) #%>%
+        y <- filter(x, as.numeric(area_km2) > as.numeric(input$area1)*1000000)
+    })
+
     ####################################################################################################
-    # FOOTPRINT/INTACTNESS
+    # FOOTPRINT/INTACTNESS SECTION
     ####################################################################################################
 
     # Map viewer
@@ -193,15 +205,17 @@ server = function(input, output) {
             if (input$goButton) {
                 v <- st_transform(v(), 4326)
                 vv <- st_transform(vv(), 4326)
+                ifl_min <- st_transform(ifl_min(), 4326)
                 m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-                    addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
+                    addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
+                    addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=input$alpha, group='Intact min')
             }
         #pal <- colorBin("PuOr", fires$GENERAL_FIRE_CAUSE, bins = c(0, .1, .4, .9, 1))
         m <- m %>% addLayersControl(position = "topleft",
                 baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                overlayGroups = c("IFL 2020","IFL 2000","Intactness","Footprint","Fires","Quartz","Areal features","Linear features"),
+                overlayGroups = c("IFL 2020","IFL 2000","Intactness","Footprint","Intact min","Fires","Quartz","Areal features","Linear features"),
             options = layersControlOptions(collapsed = TRUE)) %>%
-                hideGroup(c("IFL 2020","IFL 2000","Intactness","Footprint","Fires","Quartz","Areal features","Linear features"))
+                hideGroup(c("IFL 2020","IFL 2000","Intactness","Footprint","Intact min","Fires","Quartz","Areal features","Linear features"))
         #m <- m %>% addLegend(pal=pal, values=~fires$GENERAL_FIRE_CAUSE, position=c("bottomright"), title="Fire cause", opacity=0.8)
         m
     })
@@ -246,7 +260,7 @@ server = function(input, output) {
     })
 
     ####################################################################################################
-    # LANDCOVER
+    # LANDCOVER SECTION
     ####################################################################################################
 
     lcc2 <- reactive({
@@ -297,7 +311,7 @@ server = function(input, output) {
                 rename(count_2019=count)
             xx <- left_join(x, r2_freq) %>%
                 mutate(Area_ha=round(count_fda*30*30/10000,2),
-                    Intact_pct=round((count_fda-count_2019)/count_fda*100,2),
+                    Disturb_pct=round(100-((count_fda-count_2019)/count_fda*100),2),
                     count_fda=NULL, count_2019=NULL, value=NULL)
         } else {
             xx <- tibble(Class=cls, Count=r_freq$count) %>%
@@ -350,7 +364,7 @@ server = function(input, output) {
     })
 
     ####################################################################################################
-    # HYDROLOGY
+    # HYDROLOGY SECTION
     ####################################################################################################
 
     output$map3 <- renderLeaflet({
