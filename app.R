@@ -99,9 +99,9 @@ server = function(input, output) {
     })
 
     ####################################################################################################
-    # SPATIAL DATA
+    # READ SPATIAL DATA
     ####################################################################################################
-   fda <- reactive({
+    fda <- reactive({
         fda <- paste0('data/fda_',input$fda,'.gpkg')
     })
 
@@ -154,19 +154,22 @@ server = function(input, output) {
     })
 
     ####################################################################################################
-    # CALCULATE FOOTPRINT AND INTACTNESS
+    # BUFFER DISTURBANCES AND CALCULATE FOOTPRINT AND INTACTNESS
     ####################################################################################################
 
+    # Footprint
     vv <- eventReactive(input$goButton, {
         v1 <- st_union(st_buffer(linear(), input$buffer1))
         v2 <- st_union(st_buffer(areal(), input$buffer2))
         hfp <- st_union(v1, v2)
     })
 
+    # Intactness
     v <- eventReactive(input$goButton, {
         ifl <- st_difference(bnd(), vv())
     })
 
+    # Intactness using minimum patch size (not yet implemented)
     ifl_min <- reactive({
         x <- mutate(v(), area_km2=st_area(v())) #%>%
         y <- filter(x, as.numeric(area_km2) > as.numeric(input$area1)*1000000)
