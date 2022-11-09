@@ -4,6 +4,8 @@ library(terra)
 library(raster)
 library(leaflet)
 library(shinydashboard)
+library(rhandsontable)
+library(shinyjs)
 
 ui = dashboardPage(skin="blue",
   dashboardHeader(title = "Regional Disturbance"),
@@ -28,6 +30,7 @@ ui = dashboardPage(skin="blue",
     downloadButton("downloadMap","Download intactness map")
   ),
   dashboardBody(
+    useShinyjs(),
     tabItems(
        tabItem(tabName="overview",
         fluidRow(
@@ -44,6 +47,15 @@ ui = dashboardPage(skin="blue",
                 tabBox(
                     id = "one", width="8",
                     tabPanel("Map viewer", leafletOutput("map", height=750)),
+                    tabPanel("Buffers", 
+                             tags$h2("Custom buffers"),
+                             tags$p("Buffer widths can specified by disturbance type using the table below. Otherwise buffer width is set using the 
+                                    sliders on the map view."),
+                             materialSwitch("custom_buffer_switch",
+                                            label = "Use custom buffers",
+                                            value = FALSE, status = "primary",
+                                            inline = TRUE),
+                             rHandsontableOutput('buffer_table'))
                 ),
                 tabBox(
                     id = "two", width="4",
@@ -93,7 +105,7 @@ ui = dashboardPage(skin="blue",
 
 
 server = function(input, output) {
-
+  
     output$help <- renderText({
         includeMarkdown("docs/overview.md")
     })
@@ -102,71 +114,171 @@ server = function(input, output) {
     # READ SPATIAL DATA
     ####################################################################################################
     fda <- reactive({
-        fda <- paste0('data/fda_',input$fda,'.gpkg')
+        paste0('www/fda_',input$fda,'.gpkg')
     })
 
     fda_hydro <- reactive({
-        fda <- paste0('data/fda_',input$fda,'_hydro.gpkg')
+        paste0('www/fda_',input$fda,'_hydro.gpkg')
     })
 
     bnd <- reactive({
-        bnd <- st_read(fda(), 'FDA', quiet=T)
+        st_read(fda(), 'FDA', quiet=T)
     })
 
     lakesrivers <- reactive({
-        lakesrivers <- st_read(fda_hydro(), 'lakes_rivers', quiet=T)
+        st_read(fda_hydro(), 'lakes_rivers', quiet=T)
     })
 
     streams <- reactive({
-        streams <- st_read(fda_hydro(), 'streams', quiet=T)
+        st_read(fda_hydro(), 'streams', quiet=T)
     })
 
     fires <- reactive({
-        fires <- st_read(fda(), 'Fire_History', quiet=T)
+        st_read(fda(), 'Fire_History', quiet=T)
     })
 
     ifl2000 <- reactive({
-        ifl2000 <- st_read(fda(), 'IFL_2000', quiet=T)
+        st_read(fda(), 'IFL_2000', quiet=T)
     })
 
     ifl2020 <- reactive({
-        ifl2020 <- st_read(fda(), 'IFL_2020', quiet=T)
+        st_read(fda(), 'IFL_2020', quiet=T)
     })
 
     linear <- reactive({
         if (input$fda=='10AB') {
-            linear <- st_read(fda(), 'Linear_Features+', quiet=T)
+            st_read(fda(), 'Linear_Features+', quiet=T)
         } else {
-            linear <- st_read(fda(), 'Linear_Features', quiet=T)
+            st_read(fda(), 'Linear_Features', quiet=T)
         }
     })
 
     quartz <- reactive({
-        quartz <- st_read(fda(), 'Quartz_Claims', quiet=T)
+        st_read(fda(), 'Quartz_Claims', quiet=T)
     })
 
     areal <- reactive({
         if (input$fda=='10AB') {
-            areal <- st_read(fda(), 'Areal_Features+', quiet=T)
+            st_read(fda(), 'Areal_Features+', quiet=T)
         } else {
-            areal <- st_read(fda(), 'Areal_Features', quiet=T)
+            st_read(fda(), 'Areal_Features', quiet=T)
         }
     })
 
+    
+    
+    ####################################################################################################
+    # SET UP CUSTOM BUFFER TABLE
+    ####################################################################################################
+    
+    # Activate grey out sliders if button selected. Note that disable doesn't seem to work on the table. Instead we can set it to read only mode when rendering.
+    observe({
+      
+      if(input$custom_buffer_switch == TRUE){
+        shinyjs::disable("buffer1")
+        shinyjs::disable("buffer2")
+      } else{
+        shinyjs::enable("buffer1")
+        shinyjs::enable("buffer2")
+      }
+    })
+    
+    reactive_vals <- reactiveValues() # This sets up a reactive element that will store the buffer width df
+    
+    # Make table of unique disturbance types in areal linear attribute tables
+    output$buffer_table <- renderRHandsontable({
+      
+      linear_types_df <- linear() %>%
+        st_drop_geometry() %>%
+        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+        summarise(Features = "Linear") %>%
+        ungroup() %>%
+        rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
+        relocate(Features, Industry, Disturbance)
+      
+      area_types_df <- areal() %>%
+        st_drop_geometry() %>%
+        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+        summarise(Features = "Areal") %>%
+        rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
+        relocate(Features, Industry, Disturbance)
+      
+      types_df <- rbind(linear_types_df, area_types_df) %>%
+        arrange(Features, Industry, Disturbance) %>%
+        mutate(Buffer = 1000)
+      
+      if(input$custom_buffer_switch == TRUE){
+        rhandsontable(types_df)
+      } else{
+        # grey out the table and make it read_only (this is a work around because shinyjs::disable doesn't work)
+        rhandsontable(types_df, readOnly = TRUE) %>%
+          hot_cols(renderer = "
+           function (instance, td, row, col, prop, value, cellProperties) {
+             Handsontable.renderers.NumericRenderer.apply(this, arguments);
+              td.style.background = 'lightgrey';
+              td.style.color = 'grey';
+           }")
+      }
+    })
+    
+    observe({
+      reactive_vals$buffer_tab <- hot_to_r(input$buffer_table)
+    })
+    
     ####################################################################################################
     # BUFFER DISTURBANCES AND CALCULATE FOOTPRINT AND INTACTNESS
     ####################################################################################################
 
     # Footprint
-    vv <- eventReactive(input$goButton, {
-        v1 <- st_union(st_buffer(linear(), input$buffer1))
-        v2 <- st_union(st_buffer(areal(), input$buffer2))
-        hfp <- st_union(v1, v2)
+    footprint_sf <- eventReactive(input$goButton, {
+        
+        if(input$custom_buffer_switch == TRUE){
+          # If custom buffer table requested, for each unique buffer width, extract all features and buffer
+          # Then union all layers
+          unique_buffers_linear <- unique(reactive_vals$buffer_tab$Buffer[reactive_vals$buffer_tab$Features == "Linear"]) # get unique buffers
+          counter <- 1
+          for(i in unique_buffers_linear){
+            buff_sub <- reactive_vals$buffer_tab %>%
+              filter(Features == "Linear", Buffer == i)
+            linear_join <- right_join(linear(), buff_sub, by = c("TYPE_INDUSTRY" = "Industry", "TYPE_DISTURBANCE" = "Disturbance"))
+            linear_buff <- st_union(st_buffer(linear_join, i))
+            
+            if(counter == 1){
+              linear_final <- linear_buff
+            } else{
+              linear_final <- st_union(linear_final, linear_buff)
+            }
+            counter <- counter + 1
+          }
+          
+          unique_buffers_areal <- unique(reactive_vals$buffer_tab$Buffer[reactive_vals$buffer_tab$Features == "Areal"]) # get unique buffers
+          counter <- 1
+          for(i in unique_buffers_areal){
+            buff_sub <- reactive_vals$buffer_tab %>%
+              filter(Features == "Areal", Buffer == i)
+            areal_join <- right_join(areal(), buff_sub, by = c("TYPE_INDUSTRY" = "Industry", "TYPE_DISTURBANCE" = "Disturbance"))
+            areal_buff <- st_union(st_buffer(areal_join, i))
+            
+            if(counter == 1){
+              areal_final <- areal_buff
+            } else{
+              areal_final <- st_union(areal_final, areal_buff)
+            }
+            counter <- counter + 1
+          }
+          
+          st_union(linear_final, areal_final)
+          
+        } else{
+          v1 <- st_union(st_buffer(linear(), input$buffer1))
+          v2 <- st_union(st_buffer(areal(), input$buffer2))
+          st_union(v1, v2)
+        }
     })
 
     # Intactness
     v <- eventReactive(input$goButton, {
-        ifl <- st_difference(bnd(), vv())
+        ifl <- st_difference(bnd(), footprint_sf())
     })
 
     # Intactness using minimum patch size (not yet implemented)
@@ -201,13 +313,13 @@ server = function(input, output) {
               labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"), textsize = "15px", direction = "auto")) %>%
             #addLegend(pal = pal, values = ~fires$FIRE_YEAR, opacity = 0.7, title = NULL, position = "bottomright") %>%
             addPolygons(data=quartz, color='yellow', fill=F, weight=1, group="Quartz") %>%
-            addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
+            addPolylines(data=linear, color='red', weight=1, group="Linear features", popup = ~paste("Industry: ", TYPE_INDUSTRY, "<br>", "Disturbance: ", TYPE_DISTURBANCE)) %>%
+            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", popup = ~paste("Industry: ", TYPE_INDUSTRY, "<br>", "Disturbance: ", TYPE_DISTURBANCE), fillOpacity=input$alpha) %>%
             addPolygons(data=ifl2020, color='darkgreen', fillOpacity=0.5, group="IFL 2020") %>%
             addPolygons(data=ifl2000, color='darkgreen', fillOpacity=0.5, group="IFL 2000")
             if (input$goButton) {
                 v <- st_transform(v(), 4326)
-                vv <- st_transform(vv(), 4326)
+                vv <- st_transform(footprint_sf(), 4326)
                 ifl_min <- st_transform(ifl_min(), 4326)
                 m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
                     addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
@@ -231,7 +343,7 @@ server = function(input, output) {
         x$Area[x$Map=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020()))/st_area(bnd())*100,1)
         if (input$goButton) {
             x$Area[x$Map=="Intactness (%)"] <- round(sum(st_area(v()))/st_area(bnd())*100,1)
-            x$Area[x$Map=="Footprint (%)"] <- round(sum(st_area(vv()))/st_area(bnd())*100,1)
+            x$Area[x$Map=="Footprint (%)"] <- round(sum(st_area(footprint_sf()))/st_area(bnd())*100,1)
         }
         x
     })
@@ -269,11 +381,11 @@ server = function(input, output) {
     lcc2 <- reactive({
         dir1 <- substr(fda(),1,nchar(fda())-5)
         lcc <- rast(paste0(dir1,'/','lc_2019.tif'))
-        lcc <- subst(lcc, 0, NA)
+        subst(lcc, 0, NA)
     })
 
     lcc_cols <- reactive({
-        x <- read.csv('data/lc_cols.csv') %>%
+        x <- read.csv('www/lc_cols.csv') %>%
             mutate(color=rgb(red,green,blue,maxColorValue=255)) %>%
             pull(color)
     })
@@ -299,18 +411,17 @@ server = function(input, output) {
     })
 
     lcc_intact <- reactive({
-        v <- vect(vv())
+        v <- vect(footprint_sf())
         r2 <- crop(lcc2(), v)
-        r2 <- mask(r2, v)
+        mask(r2, v)
     })
 
     lcc_all <- reactive({
-        r_freq <- freq(lcc2())
+        r_freq <- as.data.frame(freq(lcc2()))
         cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
         if (input$goButton) {
             x <- tibble(Class=cls, value=r_freq$value, count_fda=r_freq$count)
-            r2 <- lcc_intact()
-            r2_freq <- freq(r2)[,2:3] %>%
+            r2_freq <- as.data.frame(freq(lcc_intact()))[,2:3] %>%
                 rename(count_2019=count)
             xx <- left_join(x, r2_freq) %>%
                 mutate(Area_ha=round(count_fda*30*30/10000,2),
@@ -355,7 +466,7 @@ server = function(input, output) {
             addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha)
         if (input$goButton) {
             v <- st_transform(v(), 4326)
-            vv <- st_transform(vv(), 4326)
+            vv <- st_transform(footprint_sf(), 4326)
             m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
               addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
         }
@@ -386,7 +497,7 @@ server = function(input, output) {
             addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha)
             if (input$goButton) {
                 v <- st_transform(v(), 4326)
-                vv <- st_transform(vv(), 4326)
+                vv <- st_transform(footprint_sf(), 4326)
                 m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
                     addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
             }
