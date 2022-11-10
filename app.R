@@ -6,6 +6,7 @@ library(leaflet)
 library(shinydashboard)
 library(rhandsontable)
 library(shinyjs)
+library(shinyWidgets)
 
 ui = dashboardPage(skin="blue",
   dashboardHeader(title = "Regional Disturbance"),
