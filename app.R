@@ -10,7 +10,7 @@ library(shinyjs)
 ui = dashboardPage(skin="blue",
   dashboardHeader(title = "Regional Disturbance"),
   dashboardSidebar(
-    sidebarMenu(
+    sidebarMenu(id = "tabs",
         menuItem("Overview", tabName = "overview", icon = icon("th")),
         menuItem("Footprint/intactness", tabName = "fri", icon = icon("th")),
         menuItem("Effects on landcover", tabName = "land", icon = icon("th")),
@@ -387,36 +387,37 @@ server = function(input, output) {
     ####################################################################################################
     # LANDCOVER SECTION
     ####################################################################################################
-
+    
+  	# load the landcover tif when the fda changes
     lcc2 <- reactive({
         dir1 <- substr(fda(),1,nchar(fda())-5)
         lcc <- rast(paste0(dir1,'/','lc_2019.tif'))
         subst(lcc, 0, NA)
     })
-
-    lcc_cols <- reactive({
-        x <- read.csv('www/lc_cols.csv') %>%
-            mutate(color=rgb(red,green,blue,maxColorValue=255)) %>%
-            pull(color)
+    
+    # Make an aggreagated version for use in Leaflet
+    lcc_agg <- reactive({
+      aggregate(lcc2(), 10, fun='modal')
     })
-
+    
+    # Reclassify the aggregated raster depending on veg type selected
     lcc_rcl <- reactive({
         if (input$type=='bryoids') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,1,0,0,0,0,0,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,1,NA,NA,NA,NA,NA,NA,NA))
         } else if (input$type=='shrubs') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,1,0,0,0,0,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,1,NA,NA,NA,NA,NA,NA))
         } else if (input$type=='wetland') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,1,0,0,0,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,1,NA,NA,NA,NA,NA))
         } else if (input$type=='wetland_treed') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,0,1,0,0,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,1,NA,NA,NA,NA))
         } else if (input$type=='herbs') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,0,0,1,0,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,1,NA,NA,NA))
         } else if (input$type=='coniferous') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,0,0,0,1,0,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,1,NA,NA))
         } else if (input$type=='broadleaf') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,0,0,0,0,1,0))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,1,NA))
         } else if (input$type=='mixedwood') {
-            r <- subst(lcc2(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(0,0,0,0,0,0,0,0,0,0,0,1))
+            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,1))
         }
     })
 
@@ -426,10 +427,11 @@ server = function(input, output) {
         mask(r2, v)
     })
 
-    lcc_all <- reactive({
+	  output$tab4 <- renderTable({
         r_freq <- as.data.frame(freq(lcc2()))
         cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
-        if (input$goButton) {
+        
+        if (input$goButton > 0) {
             x <- tibble(Class=cls, value=r_freq$value, count_fda=r_freq$count)
             r2_freq <- as.data.frame(freq(lcc_intact()))[,2:3] %>%
                 rename(count_2019=count)
@@ -445,46 +447,89 @@ server = function(input, output) {
         xx
     })
 
-	  output$tab4 <- renderTable({
-        lcc_all()
-    })
-
+	  # Set objects used in multiple places
+	  val <- c(20,31,32,33,40,50,80,81,100,210,220,230)
+	  cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
+	  lcc_cols <- read.csv('www/lc_cols.csv') %>%
+	    mutate(color=rgb(red,green,blue,maxColorValue=255)) %>%
+	    pull(color)
+	  
+	  # reactive to hold overlay groups depending on whether intactness has been added or not
+	  overlay_groups <- reactive({
+	    if(input$goButton > 0){
+	      c("FDA", input$type,"Linear features", "Areal features","Intactness","Footprint")
+	    } else{
+	      c("FDA", input$type,"Linear features", "Areal features")
+	    }
+	  })
+	  
+	  # Render the initial map
+	  # Note that there cannot be any reactive elements in the initial map, otherwise the map will redraw every time input$type changes
     output$map2 <- renderLeaflet({
-        bnd <- st_transform(bnd(), 4326)
-        areal <- st_transform(areal(), 4326)
-        linear <- st_transform(linear(), 4326)
-        m <- leaflet(bnd) %>% 
-    		addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
-	    	addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
-            addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA")
-        if (input$type=='all classes') {
-            r <- aggregate(lcc2(), 3, fun='modal')
-            r <- raster(r)
-            val <- c(20,31,32,33,40,50,80,81,100,210,220,230)
-            cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
-            df <- data.frame(ID=val, CAT=cls)
-            levels(r) <- df
-            m <- m %>% addRasterImage(r, colors=lcc_cols(), opacity=1, group=input$type) %>%
-         	    addLegend(colors=lcc_cols(), labels=cls, position=c("bottomleft"), title="Landcover 2019", opacity=1)
-       } else {
-            r <- aggregate(lcc_rcl(), fact=3, fun='modal')
-            r <- subst(r, 0, NA)
-            r <- raster(r)
-            m <- m %>% addRasterImage(r, colors='darkgreen', opacity=1, group=input$type)
-        }
-        m <- m %>% addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha)
-        if (input$goButton) {
-            v <- st_transform(intactness_sf(), 4326)
-            vv <- st_transform(footprint_sf(), 4326)
-            m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-              addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
-        }
-        m <- m %>% addLayersControl(position = "topright",
-                                    baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-            overlayGroups = c("FDA", input$type,"Linear features", "Areal features","Intactness","Footprint"),
-            options = layersControlOptions(collapsed = FALSE)) %>%
-            hideGroup(c("Linear features","Areal features","Intactness","Footprint"))
+
+      # Re-project
+      bnd <- st_transform(bnd(), 4326)
+      areal <- st_transform(areal(), 4326)
+      linear <- st_transform(linear(), 4326)
+
+      # Prep landcover raster
+      r <- raster(lcc_agg())
+      df <- data.frame(ID=val, CAT=cls)
+      levels(r) <- df
+
+      m <- leaflet() %>%
+        addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
+    	  addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
+        addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+        addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
+        addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
+        addRasterImage(r, colors=lcc_cols, opacity=1, group="all classes") %>%
+        addLayersControl(position = "topright",
+                         baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+                         overlayGroups = c("FDA", "all classes","Linear features", "Areal features"),
+                         options = layersControlOptions(collapsed = FALSE)) %>%
+        hideGroup(c("Linear features","Areal features","Intactness","Footprint")) %>%
+        addLegend(colors=lcc_cols, labels=cls, position=c("bottomleft"), title="Landcover 2019", opacity=1)
+      
+      if(input$goButton > 0){
+        v <- st_transform(intactness_sf(), 4326)
+        vv <- st_transform(footprint_sf(), 4326)
+        
+        m <- m %>%
+          hideGroup(c("Footprint","Intactness")) %>%
+          addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
+          addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
+          addLayersControl(position = "topright",
+                           baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+                           overlayGroups = c("FDA", "all classes","Linear features", "Areal features", "Intactness","Footprint"),
+                           options = layersControlOptions(collapsed = FALSE))
+      }
+      m
+    })
+    
+    # Change selected raster layer using proxy
+    observe({
+      
+      # This prevents the code running on startup. Otherwise there's a pause to load the landing page because this code runs.
+      req(input$tabs == "land")
+      
+      if (input$type=='all classes') {
+          r <- raster(lcc_agg())
+          df <- data.frame(ID=val, CAT=cls)
+          levels(r) <- df
+          selected_cols <- lcc_cols
+      } else {
+          r <- raster(lcc_rcl())
+          selected_cols <- lcc_cols[match(input$type, cls)] # get the color from the legend
+      }
+      
+      leafletProxy("map2") %>%
+        clearImages() %>%
+        addRasterImage(r, colors=selected_cols, opacity=1, group=input$type) %>%
+        addLayersControl(position = "topright",
+                         baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+                         overlayGroups = overlay_groups(),
+                         options = layersControlOptions(collapsed = FALSE))
     })
 
     ####################################################################################################
