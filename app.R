@@ -7,6 +7,8 @@ library(shinydashboard)
 library(rhandsontable)
 library(shinyjs)
 library(shinyWidgets)
+library(shiny)
+library(rgdal)
 
 ui = dashboardPage(skin="blue",
   dashboardHeader(title = "Regional Disturbance"),
@@ -115,11 +117,11 @@ server = function(input, output) {
     # READ SPATIAL DATA
     ####################################################################################################
     fda <- reactive({
-        paste0('www/fda_',input$fda,'.gpkg')
+        paste0('www/fda_',tolower(input$fda),'.gpkg')
     })
 
     fda_hydro <- reactive({
-        paste0('www/fda_',input$fda,'_hydro.gpkg')
+        paste0('www/fda_',tolower(input$fda),'_hydro.gpkg')
     })
 
     bnd <- reactive({
