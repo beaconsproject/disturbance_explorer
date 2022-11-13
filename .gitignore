@@ -1,5 +1,8 @@
+.RData
+.Rhistory
 docs/overview_new.md
 rsconnect
+app-prv.R
 test.R
 upload.R
 Rgui.lnk
