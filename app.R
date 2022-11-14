@@ -310,7 +310,7 @@ server = function(input, output) {
         #pal <- colorBin("YlOrRd", domain = fires$FIRE_YEAR, bins = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, Inf))
         labels <- sprintf("Fire year: %s<br/>Fire cause: %s", fires$FIRE_YEAR, fires$GENERAL_FIRE_CAUSE) %>% lapply(htmltools::HTML)
         
-        leaflet() %>% 
+        m <- leaflet() %>% 
           
           addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
           addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
@@ -329,34 +329,31 @@ server = function(input, output) {
           addPolygons(data=ifl2000, color='darkgreen', fillOpacity=0.5, group="IFL 2000") %>%
           
           #pal <- colorBin("PuOr", fires$GENERAL_FIRE_CAUSE, bins = c(0, .1, .4, .9, 1))
-          addLayersControl(position = "topleft",
+          addLayersControl(position = "topright",
                            baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
                            overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features"),
-                           options = layersControlOptions(collapsed = TRUE)) %>%
-          hideGroup(c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features"))
+                           options = layersControlOptions(collapsed = FALSE)) %>%
+          hideGroup(c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Intactness","Intact min"))
         #m <- m %>% addLegend(pal=pal, values=~fires$GENERAL_FIRE_CAUSE, position=c("bottomright"), title="Fire cause", opacity=0.8)
+        
+        # Add footprint if its already been made
+        if(input$goButton > 0){
+            v <- st_transform(intactness_sf(), 4326)
+            vv <- st_transform(footprint_sf(), 4326)
+            ifl_min <- st_transform(ifl_min(), 4326)
+            
+            m <- m %>%
+              addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
+              addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
+              addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=input$alpha, group='Intact min') %>%
+              addLayersControl(position = "topright",
+                               baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+                               overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Footprint","Intactness","Intact min"),
+                               options = layersControlOptions(collapsed = FALSE))
+        }
+        m
     })
     
-    # Add/update intactness, footrpint and min layers when button clicked
-    observeEvent(input$goButton, {
-      
-      v <- st_transform(intactness_sf(), 4326)
-      vv <- st_transform(footprint_sf(), 4326)
-      ifl_min <- st_transform(ifl_min(), 4326)
-      
-      leafletProxy("map") %>%
-        clearGroup("Intactness") %>%
-        clearGroup("Footprint") %>%
-        clearGroup("Intact min") %>%
-        hideGroup(c("Footprint","Intactness","Intact min")) %>%
-        addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-        addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
-        addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=input$alpha, group='Intact min') %>%
-        addLayersControl(position = "topleft",
-                         baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                         overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Footprint","Intactness","Intact min"),
-                         options = layersControlOptions(collapsed = TRUE))
-    })
 
     # Intactness table
   	output$tab1 <- renderTable({
@@ -426,14 +423,16 @@ server = function(input, output) {
 
     lcc_intact <- reactive({
         v <- vect(footprint_sf())
-        r2 <- crop(lcc2(), v)
+        #r2 <- crop(lcc2(), v)
+        r2 <- crop(lcc_agg(), v)
         mask(r2, v)
     })
 
 	  output$tab4 <- renderTable({
-        r_freq <- as.data.frame(freq(lcc2()))
+        #r_freq <- as.data.frame(freq(lcc2()))
+        r_freq <- as.data.frame(freq(lcc_agg()))
         cls <- c("water","snow_ice","rock_rubble","exposed_barren_land","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood")
-        
+
         if (input$goButton > 0) {
             x <- tibble(Class=cls, value=r_freq$value, count_fda=r_freq$count)
             r2_freq <- as.data.frame(freq(lcc_intact()))[,2:3] %>%
@@ -465,7 +464,7 @@ server = function(input, output) {
 	      c("FDA", input$type,"Linear features", "Areal features")
 	    }
 	  })
-	  
+
 	  # Render the initial map
 	  # Note that there cannot be any reactive elements in the initial map, otherwise the map will redraw every time input$type changes
     output$map2 <- renderLeaflet({
@@ -486,36 +485,26 @@ server = function(input, output) {
         addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
         addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
         addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
-        addRasterImage(r, colors=lcc_cols, opacity=1, group="all classes") %>%
-        addLayersControl(position = "topright",
-                         baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                         overlayGroups = c("FDA", "all classes","Linear features", "Areal features"),
-                         options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Linear features","Areal features","Intactness","Footprint")) %>%
+        hideGroup(c("Linear features","Areal features","Intactness")) %>%
         addLegend(colors=lcc_cols, labels=cls, position=c("bottomleft"), title="Landcover 2019", opacity=1)
-      
+
       if(input$goButton > 0){
         v <- st_transform(intactness_sf(), 4326)
         vv <- st_transform(footprint_sf(), 4326)
-        
+
         m <- m %>%
-          hideGroup(c("Footprint","Intactness")) %>%
           addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-          addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
-          addLayersControl(position = "topright",
-                           baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                           overlayGroups = c("FDA", "all classes","Linear features", "Areal features", "Intactness","Footprint"),
-                           options = layersControlOptions(collapsed = FALSE))
+          addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')# %>%
       }
       m
     })
-    
+
     # Change selected raster layer using proxy
     observe({
-      
+
       # This prevents the code running on startup. Otherwise there's a pause to load the landing page because this code runs.
       req(input$tabs == "land")
-      
+
       if (input$type=='all classes') {
           r <- raster(lcc_agg())
           df <- data.frame(ID=val, CAT=cls)
@@ -525,7 +514,7 @@ server = function(input, output) {
           r <- raster(lcc_rcl())
           selected_cols <- lcc_cols[match(input$type, cls)] # get the color from the legend
       }
-      
+
       leafletProxy("map2") %>%
         clearImages() %>%
         addRasterImage(r, colors=selected_cols, opacity=1, group=input$type) %>%
