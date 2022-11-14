@@ -1,5 +1,5 @@
-docs/overview_new.md
+.RData
+.Rhistory
 rsconnect
-test.R
-upload.R
+tmp
 Rgui.lnk

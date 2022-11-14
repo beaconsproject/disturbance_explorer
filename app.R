@@ -24,7 +24,7 @@ ui = dashboardPage(skin="blue",
     selectInput("fda", label="Select FDA:", choices=c("10AB","09EA")),
     sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
     sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-    sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=5000, value = 1000, step=500, ticks=FALSE),
+    sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
     br(),
     actionButton("goButton", "Generate intactness map"),
     br(),
@@ -274,20 +274,18 @@ server = function(input, output) {
         } else{
           v1 <- st_union(st_buffer(linear(), input$buffer1))
           v2 <- st_union(st_buffer(areal(), input$buffer2))
-          st_union(v1, v2)
+          st_intersection(st_union(v1, v2), bnd())
         }
     })
 
     # Intactness
     intactness_sf <- eventReactive(input$goButton, {
         ifl <- st_difference(bnd(), footprint_sf())
+        x <- st_cast(ifl, "POLYGON")
+        x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
+        y <- filter(x, area_km2 > input$area1)
     })
 
-    # Intactness using minimum patch size (not yet implemented)
-    ifl_min <- reactive({
-        x <- mutate(intactness_sf(), area_km2=st_area(intactness_sf())) #%>%
-        y <- filter(x, as.numeric(area_km2) > as.numeric(input$area1)*1000000)
-    })
 
     ####################################################################################################
     # FOOTPRINT/INTACTNESS SECTION
@@ -332,22 +330,20 @@ server = function(input, output) {
                            baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
                            overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features"),
                            options = layersControlOptions(collapsed = FALSE)) %>%
-          hideGroup(c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Intactness","Intact min"))
+          hideGroup(c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Intactness"))
         #m <- m %>% addLegend(pal=pal, values=~fires$GENERAL_FIRE_CAUSE, position=c("bottomright"), title="Fire cause", opacity=0.8)
         
         # Add footprint if its already been made
         if(input$goButton > 0){
             v <- st_transform(intactness_sf(), 4326)
             vv <- st_transform(footprint_sf(), 4326)
-            ifl_min <- st_transform(ifl_min(), 4326)
             
             m <- m %>%
               addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
               addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
-              addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=0.5, group='Intact min') %>%
               addLayersControl(position = "topright",
                                baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                               overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Footprint","Intactness","Intact min"),
+                               overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Footprint","Intactness"),
                                options = layersControlOptions(collapsed = FALSE))
         }
         m
