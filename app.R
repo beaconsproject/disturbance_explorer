@@ -28,7 +28,7 @@ ui = dashboardPage(skin="blue",
     br(),
     actionButton("goButton", "Generate intactness map"),
     br(),
-    sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 0.5, step=0.05, ticks=FALSE),
+    #sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 0.5, step=0.05, ticks=FALSE),
     hr(),
     downloadButton("downloadMap","Download intactness map")
   ),
@@ -324,7 +324,7 @@ server = function(input, output) {
           #addLegend(pal = pal, values = ~fires$FIRE_YEAR, opacity = 0.7, title = NULL, position = "bottomright") %>%
           addPolygons(data=quartz, color='yellow', fill=F, weight=1, group="Quartz") %>%
           addPolylines(data=linear, color='red', weight=1, group="Linear features", popup = ~paste("Industry: ", TYPE_INDUSTRY, "<br>", "Disturbance: ", TYPE_DISTURBANCE)) %>%
-          addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", popup = ~paste("Industry: ", TYPE_INDUSTRY, "<br>", "Disturbance: ", TYPE_DISTURBANCE), fillOpacity=input$alpha) %>%
+          addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", popup = ~paste("Industry: ", TYPE_INDUSTRY, "<br>", "Disturbance: ", TYPE_DISTURBANCE), fillOpacity=0.5) %>%
           addPolygons(data=ifl2020, color='darkgreen', fillOpacity=0.5, group="IFL 2020") %>%
           addPolygons(data=ifl2000, color='darkgreen', fillOpacity=0.5, group="IFL 2000") %>%
           
@@ -349,9 +349,9 @@ server = function(input, output) {
         clearGroup("Footprint") %>%
         clearGroup("Intact min") %>%
         hideGroup(c("Footprint","Intactness","Intact min")) %>%
-        addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-        addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
-        addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=input$alpha, group='Intact min') %>%
+        addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
+        addPolygons(data=ifl_min, color='darkgreen', stroke=F, fillOpacity=0.5, group='Intact min') %>%
         addLayersControl(position = "topleft",
                          baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
                          overlayGroups = c("IFL 2020","IFL 2000","Fires","Quartz","Areal features","Linear features","Footprint","Intactness","Intact min"),
@@ -485,7 +485,7 @@ server = function(input, output) {
     	  addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
         addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
         addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-        addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
+        addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=0.5) %>%
         addRasterImage(r, colors=lcc_cols, opacity=1, group="all classes") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
@@ -500,8 +500,8 @@ server = function(input, output) {
         
         m <- m %>%
           hideGroup(c("Footprint","Intactness")) %>%
-          addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-          addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint') %>%
+          addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+          addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
           addLayersControl(position = "topright",
                            baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
                            overlayGroups = c("FDA", "all classes","Linear features", "Areal features", "Intactness","Footprint"),
@@ -552,12 +552,12 @@ server = function(input, output) {
             addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
             addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
             addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha)
+            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=0.5)
             if (input$goButton) {
                 v <- st_transform(intactness_sf(), 4326)
                 vv <- st_transform(footprint_sf(), 4326)
-                m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=input$alpha, group='Intactness') %>%
-                    addPolygons(data=vv, color='black', stroke=F, fillOpacity=input$alpha, group='Footprint')
+                m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+                    addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint')
             }
             m <- m %>% addLayersControl(position = "topright",
                 baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
