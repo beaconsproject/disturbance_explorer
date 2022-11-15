@@ -1,5 +1,6 @@
 .RData
 .Rhistory
 rsconnect
-tmp
 Rgui.lnk
+test.R
+upload.R
