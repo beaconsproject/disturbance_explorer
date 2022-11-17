@@ -14,7 +14,7 @@ The app can also be run from a local machine using the following steps:
   1. Install R (download from r-project.org and follow instructions)
   2. Install the following additional packages:
 
-    install.packages(c("sf","dplyr","terra","leaflet","shiny","shinydashboard", "rhandsontable"))
+    install.packages(c("sf","dplyr","terra","leaflet","shiny","shinydashboard", "rhandsontable", "shinyWidgets", ))
 
   3. Start the Shiny app:
 
