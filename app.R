@@ -17,7 +17,8 @@ ui = dashboardPage(skin="blue",
         menuItem("Overview", tabName = "overview", icon = icon("th")),
         menuItem("Footprint/intactness", tabName = "fri", icon = icon("th")),
         menuItem("Effects on landcover", tabName = "land", icon = icon("th")),
-        menuItem("Effects on hydrology", tabName = "hydro", icon = icon("th"))
+        menuItem("Effects on hydrology", tabName = "hydro", icon = icon("th")),
+        menuItem("Upstream disturbances", tabName = "upstream", icon = icon("th"))
         #menuItem("Sensitivity analysis", tabName = "sa", icon = icon("th"))
     ),
     hr(),
@@ -25,9 +26,12 @@ ui = dashboardPage(skin="blue",
     sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
     sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
     sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
+    hr("Run in order:"),
+    actionButton("goButton", "1. Generate intactness map"),
     br(),
-    actionButton("goButton", "Generate intactness map"),
-    br(),
+    actionButton("goButton2", "2. Upstream disturbances map"),
+    #br(),
+    #sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 1, step=0.05, ticks=FALSE),
     hr(),
     downloadButton("downloadMap","Download intactness map")
   ),
@@ -100,10 +104,22 @@ ui = dashboardPage(skin="blue",
                     tabPanel("Percent disturbed", tableOutput("tab5"))
                 ),
             )
-        )
-    )
+       ),
+       tabItem(tabName="upstream",
+            fluidRow(
+                tabBox(
+                    id = "one", width="8",
+                    tabPanel("Upstream", 
+                    leafletOutput("map4", height=750))
+                ),
+                tabBox(
+                    id = "two", width="4",
+                    tabPanel("Upstream area distrubed", tableOutput("tab6"))
+                ),            
+            )
+       )
   )
-)
+))
 
 
 server = function(input, output) {
@@ -167,6 +183,18 @@ server = function(input, output) {
         }
     })
 
+    catch <- reactive({
+      catch <- paste0('www/catch_fda_',input$fda,'.gpkg')
+    })
+    catchments <- reactive({
+      catchments <- st_read(catch(), 'catchments', quiet=T) %>% st_transform(3578)
+    })
+    up_catch <- reactive({
+      catch <- paste0('www/upstream_catch_',input$fda,'.csv')
+    })
+    upstream_catchment_tbl <- reactive({
+      upstream_catchment_tbl <- read.csv(up_catch(), sep = " ", header= T)
+    })    
     
     
     ####################################################################################################
@@ -570,6 +598,85 @@ server = function(input, output) {
         dta5()
     })
 
+	####################################################################################################
+	# UPSTREAM SECTION
+	####################################################################################################
+	output$map4 <- renderLeaflet({
+	  bnd <- st_transform(bnd(), 4326)
+	  lakesrivers <- st_transform(lakesrivers(), 4326)
+	  streams <- st_transform(streams(), 4326)
+	  areal <- st_transform(areal(), 4326)
+	  linear <- st_transform(linear(), 4326)
+	  catchments <- st_transform(catchments(), 4326)
+	  m <- leaflet(bnd) %>% 
+	    addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
+	    addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
+	    addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+	    addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
+	    addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
+	    addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
+	    addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
+	    addPolygons(data=catchments, color='black', fill=F, weight=1, group="Catchments")
+	  if (input$goButton2) {
+	    
+	    # Tabulate dist area per catchment
+	    dist <- st_union(footprint_sf())
+	    i <- st_intersection(catchments(), dist)
+	    distArea <- i %>% 
+	      mutate(area_dist = st_area(.) %>% as.numeric()) %>%
+	      st_drop_geometry()
+	    
+	    
+	    catchs <- st_drop_geometry(catchments())
+	    catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
+	    feature_list <- unique({upstream_catchment_tbl()$catchments})
+	    for(col_id in feature_list){
+	      ## get list of catchments
+	      #catchments_list <- {upstream_catchment_tbl()[upstream_catchment_tbl()$catchments == col_id, "value"]}
+	      #catchments_list <- c(col_id, catchments_list)
+	      catchments_list <- c(178126, 178127)
+	      catch <- filter(catchs, catchs$CATCHNUM %in% catchments_list)
+	      ## Number of catchment included in the analysis (catchment + upstream catchments)
+	      upcount <- catch %>%
+	        dplyr::summarise(up_count = n()) %>%
+	        dplyr::mutate(id = col_id) #%>%
+	      catchs$catchfreq[catchs$CATCHNUM ==upcount$id] <- upcount$up_count
+	      
+	      # Total area upstreamn disturbed
+	      #upad <- catch %>%
+	      #  dplyr::summarise(upstream_area_dist = sum(.data$area_dist)) %>%
+	      #  dplyr::mutate(id = col_id) #%>%
+	      #catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 4)
+	      
+	      #uppd <- catch %>%
+	      #  dplyr::summarise(upstream_percent_dist = sum(.data$area_dist) / sum(.data$Area_Total)) %>%
+	      #  dplyr::mutate(id = col_id) #%>%
+	      #catchs$uppdist[catchs$CATCHNUM ==uppd$id] <- round(uppd$upstream_percent_dist, 4)
+	      
+	      #awi <- catch %>%
+	      #  dplyr::summarise(AWI = sum(.data[["intact"]] * .data$Area_Total) / sum(.data$Area_Total))  %>%
+	      #  dplyr::mutate(id = col_id) 
+	      #catchs$awi[catchs$CATCHNUM ==awi$id] <- round(awi$AWI, 4)
+	      
+	      #catch_out <- merge(catchments, catchs[,c("CATCHNUM", "catchfreq","upadist", "uppdist", "awi")], by = "CATCHNUM", all.x = TRUE)
+	      catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "catchfreq")], by = "CATCHNUM", all.x = TRUE)
+	    }  
+	    
+	    ## Create a continuous palette function
+	    catchfreq_pal <- colorNumeric(
+	      palette = "BrBG",
+	      domain = catch_out$catchfreq)
+	    
+        catch_out <- st_transform(catch_out, 4326)
+	    m <- m %>% addPolygons(data=catch_out, color=~catchfreq_pal(catchfreq), stroke=F, fillOpacity=1)  
+	  }
+	  m <- m %>% addLayersControl(position = "topright",
+	                              baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+	                              overlayGroups = c("FDA","LakesRivers","Streams","Linear features","Areal features", "Catchments"),
+	                              options = layersControlOptions(collapsed = FALSE)) %>%
+	    hideGroup(c("Streams","Linear features","Areal features", "Catchments"))
+	})	
+	
     ####################################################################################################
     # DOWNLOAD SHAPEFILE
     ####################################################################################################
