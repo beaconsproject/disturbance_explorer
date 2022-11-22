@@ -191,7 +191,8 @@ server = function(input, output) {
     })
     
     upstream_catch <- reactive({
-      upstream_catch <- readRDS(file = paste0('www/upstream_catch_',input$fda,'.rds'))
+      #upstream_catch <- readRDS(file = paste0('www/upstream_catch_',input$fda,'.rds'))
+      upstream_catch <- readr::read_csv(file = paste0('www/upstream_catch_',input$fda,'.csv'))
     })    
     
     ####################################################################################################
