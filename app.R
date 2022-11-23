@@ -114,7 +114,7 @@ ui = dashboardPage(skin="blue",
                 ),
                 tabBox(
                     id = "two", width="4",
-                    tabPanel("Upstream area distrubed", tableOutput("tab6"))
+                    tabPanel("Upstream area disturbed", tableOutput("tab6"))
                 ),            
             )
        )
@@ -191,8 +191,7 @@ server = function(input, output) {
     })
     
     upstream_catch <- reactive({
-      #upstream_catch <- readRDS(file = paste0('www/upstream_catch_',input$fda,'.rds'))
-      upstream_catch <- readr::read_csv(file = paste0('www/upstream_catch_',input$fda,'.csv'))
+      upstream_catch <- readRDS(file = paste0('www/upstream_catch_',input$fda,'.rds'))
     })    
     
     ####################################################################################################
