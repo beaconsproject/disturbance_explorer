@@ -598,16 +598,17 @@ server = function(input, output) {
 	####################################################################################################
 	# UPSTREAM SECTION
 	####################################################################################################
-	temp <- eventReactive(input$goButton2, {
+	catch_out <- eventReactive(input$goButton2, {
 	  
 	  # Tabulate dist area per catchment
 	  dist <- st_union(footprint_sf())
 	  i <- st_intersection(catchments(), dist)
 	  distArea <- i %>% 
-	    mutate(area_dist = st_area(.) %>% as.numeric()) %>%
+	    mutate(area_dist = st_area(.)/10000 %>% as.numeric()) %>%
 	    st_drop_geometry()
 	  catchs <- st_drop_geometry(catchments())
 	  catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
+	  catchs$area_dist[is.na(catchs$area_dist)] <- 0
 	  feature_list <- unique(upstream_catch()$catchments)
 	  catch_list <- unique(catchments()$CATCHNUM)
 	  for(catch_id in catch_list){
@@ -628,92 +629,63 @@ server = function(input, output) {
 	  catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist")], by = "CATCHNUM", all.x = TRUE)
 	})
 	
-	
-	
-	catch_out <- eventReactive(input$goButton2, {
-	  
-	  # Tabulate dist area per catchment
-	  dist <- st_union(footprint_sf())
-	  i <- st_intersection(catchments(), dist)
-	  distArea <- i %>% 
-	    mutate(area_dist = st_area(.) %>% as.numeric()) %>%
-	    st_drop_geometry()
-	  
-	  catchs <- st_drop_geometry(catchments())
-	  catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
-	  feature_list <- unique(upstream_catch()$catchments)
-	  for(col_id in feature_list){
-	    ## get list of catchments
-	    catchments_list <- {upstream_catch()[upstream_catch()$catchments == col_id, "value"]}
-	    catchments_list <- c(col_id, catchments_list)
-	    #catchments_list <- c(178126, 178127)
-	    catch <- filter(catchs, catchs$CATCHNUM %in% catchments_list)
-	    ## Number of catchment included in the analysis (catchment + upstream catchments)
-	    #upcount <- catch %>%
-	    #  dplyr::summarise(up_count = n()) %>%
-	    #  dplyr::mutate(id = col_id) #%>%
-	    #catchs$catchfreq[catchs$CATCHNUM ==upcount$id] <- upcount$up_count
-	    
-	    # Total area upstreamn disturbed
-	    upad <- catch %>%
-	      dplyr::summarise(upstream_area_dist = sum(.data$area_dist)) %>%
-	      dplyr::mutate(id = col_id) #%>%
-	    catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 4)
-	    
-	    #uppd <- catch %>%
-	    #  dplyr::summarise(upstream_percent_dist = sum(.data$area_dist) / sum(.data$Area_Total)) %>%
-	    #  dplyr::mutate(id = col_id) #%>%
-	    #catchs$uppdist[catchs$CATCHNUM ==uppd$id] <- round(uppd$upstream_percent_dist, 4)
-	    
-	    #awi <- catch %>%
-	    #  dplyr::summarise(AWI = sum(.data[["intact"]] * .data$Area_Total) / sum(.data$Area_Total))  %>%
-	    #  dplyr::mutate(id = col_id) 
-	    #catchs$awi[catchs$CATCHNUM ==awi$id] <- round(awi$AWI, 4)
-	    
-	    #catch_out <- merge(catchments, catchs[,c("CATCHNUM", "catchfreq","upadist", "uppdist", "awi")], by = "CATCHNUM", all.x = TRUE)
-	    catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist")], by = "CATCHNUM", all.x = TRUE)
-	  }
-	})
-	
 	output$map4 <- renderLeaflet({
 	  bnd <- st_transform(bnd(), 4326)
-	  #lakesrivers <- st_transform(lakesrivers(), 4326)
-	  #streams <- st_transform(streams(), 4326)
-	  #areal <- st_transform(areal(), 4326)
-	  #linear <- st_transform(linear(), 4326)
 	  catch_4326 <- st_transform(catchments(), 4326)
 	  
-	  m <- leaflet(bnd) %>% 
+	  m <- leaflet() %>% 
 	    addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
 	    addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
 	    addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
-	    #addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
-	    #addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
-	    #addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-	    #addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=input$alpha) %>%
-	    addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments")
+	    addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments") %>%
+	    addLayersControl(position = "topright",
+	                   baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+	                   overlayGroups = c("FDA", "Catchments"),
+	                   options = layersControlOptions(collapsed = FALSE)) %>%
+	    hideGroup(c("Catchments"))
+	  
 	  if (input$goButton) {
+	    v <- st_transform(intactness_sf(), 4326)
 	    vv <- st_transform(footprint_sf(), 4326)
-	    m <- m %>% addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint')
+	    m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+	      addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
+	      addLayersControl(position = "topright",
+	                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint"),
+	                       options = layersControlOptions(collapsed = FALSE)) %>%
+	      hideGroup(c("Catchments", "Intactness", "Footprint"))
+	    
 	  }
 	  if (input$goButton2) {
-	    
-      #catch_out <- st_transform(catch_out(), 4326)
-	    catch_out <- st_transform(temp(), 4326)
+      catch_out <- st_transform(catch_out(), 4326)
 	    ## Create a continuous palette function
-	    catchupadist <- colorNumeric(
-	      palette = "BrBG",
-	      domain = catch_out$upadist)
+      palette_rev <- rev(RColorBrewer::brewer.pal(10, "RdYlGn"))
+	    #catchupadist <- colorNumeric(
+	    #  palette = palette_rev,
+	    #  domain = catch_out$upadist)
+	    #colorBin("Blues", domain = NULL, bins = 4)
+      pal.bins <-c(0, 1, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 150000)
+	    catchupadist <- colorBin(
+	      palette = palette_rev,
+	      domain = catch_out$upadist,
+	      bins = pal.bins)
+	    # Define labels
+	    labels <- c("Not disturbed", ">0-250 ha", "250-500 ha", "500-1000 ha", "1000-2000 ha", "2000-3000 ha", "3000-4000 ha",
+	                "4000-5000 ha", "5000-6000 ha", "6000-7000 ha", ">7000 ha", "")
 	    
-	    m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1)  
-	    #m <- m %>% addPolygons(data=catch_out, color="blue", fillOpacity=1)  
-	    
+	    m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream disturbance") %>%
+	      addLayersControl(position = "topright",
+	                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
+	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream disturbance"),
+	                       options = layersControlOptions(collapsed = FALSE)) %>%
+	      hideGroup(c("Catchments", "Intactness", "Footprint"))  %>%
+	      addLegend(position = "bottomright", pal = catchupadist, values = catch_out$upadist, opacity = 1,
+	                        labFormat = function(type, cuts, p) {  # Here's the trick
+	                          paste0(labels)
+	                        }, title = "Upstream disturbed area")
+
 	  }
-	  m <- m %>% addLayersControl(position = "topright",
-	                              baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-	                              overlayGroups = c("FDA","Footprint", "Catchments"),
-	                              options = layersControlOptions(collapsed = FALSE)) %>%
-	    hideGroup(c("Streams","Linear features","Areal features", "Catchments"))
+	  m
 	})	
 	
     ####################################################################################################
