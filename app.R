@@ -673,16 +673,16 @@ server = function(input, output) {
 	    labels <- c("Not disturbed", ">0-250 ha", "250-500 ha", "500-1000 ha", "1000-2000 ha", "2000-3000 ha", "3000-4000 ha",
 	                "4000-5000 ha", "5000-6000 ha", "6000-7000 ha", ">7000 ha", "")
 	    
-	    m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream disturbance") %>%
+	    m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed") %>%
 	      addLayersControl(position = "topright",
 	                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream disturbance"),
+	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream area disturbed"),
 	                       options = layersControlOptions(collapsed = FALSE)) %>%
 	      hideGroup(c("Catchments", "Intactness", "Footprint"))  %>%
-	      addLegend(position = "bottomright", pal = catchupadist, values = catch_out$upadist, opacity = 1,
+	      addLegend(position = "bottomleft", pal = catchupadist, values = catch_out$upadist, opacity = 1,
 	                        labFormat = function(type, cuts, p) {  # Here's the trick
 	                          paste0(labels)
-	                        }, title = "Upstream disturbed area")
+	                        }, title = "Upstream disturbed area", group = "Upstream area disturbed")
 
 	  }
 	  m
