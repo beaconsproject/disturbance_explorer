@@ -9,6 +9,7 @@ library(shinyjs)
 library(shinyWidgets)
 library(shiny)
 library(rgdal)
+library(shinycssloaders)
 
 ui = dashboardPage(skin="blue",
   dashboardHeader(title = "Regional Disturbance"),
@@ -52,7 +53,7 @@ ui = dashboardPage(skin="blue",
             fluidRow(
                 tabBox(
                     id = "one", width="8",
-                    tabPanel("Map viewer", leafletOutput("map", height=750)),
+                    tabPanel("Map viewer", leafletOutput("map", height=750) %>% withSpinner()),
                     tabPanel("Buffers", 
                              tags$h2("Custom buffers"),
                              tags$p("Buffer widths can specified by disturbance type using the table below. Otherwise buffer width is set using the 
@@ -79,7 +80,7 @@ ui = dashboardPage(skin="blue",
                 tabBox(
                     id = "one", width="8",
                     tabPanel("Landcover", 
-                    leafletOutput("map2", height=750))
+                    leafletOutput("map2", height=750) %>% withSpinner())
                 ),
                 tabBox(
                     id="two", width="4",
@@ -97,7 +98,7 @@ ui = dashboardPage(skin="blue",
                 tabBox(
                     id = "one", width="8",
                     tabPanel("Hydrology", 
-                    leafletOutput("map3", height=750))
+                    leafletOutput("map3", height=750) %>% withSpinner())
                 ),
                 tabBox(
                     id = "two", width="4",
@@ -110,7 +111,7 @@ ui = dashboardPage(skin="blue",
                 tabBox(
                     id = "one", width="8",
                     tabPanel("Upstream", 
-                    leafletOutput("map4", height=750))
+                    leafletOutput("map4", height=750) %>% withSpinner())
                 ),
                 tabBox(
                     id = "two", width="4",
