@@ -33,7 +33,8 @@ ui = dashboardPage(skin="blue",
     #br(),
     #sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 1, step=0.05, ticks=FALSE),
     hr(),
-    downloadButton("downloadMap","Download intactness map")
+    downloadButton("downloadFootprintMap","Download footprint map"),
+    downloadButton("downloadIntactnessMap","Download intactness map")
   ),
   dashboardBody(
     useShinyjs(),
@@ -576,13 +577,17 @@ server = function(input, output) {
 
     dta5 <- reactive({
         if (input$goButton) {
-            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0), Intact_pct=0)
-            streams_intact <- st_intersection(streams(), intactness_sf())
-            lakesrivers_intact <- st_intersection(lakesrivers(), intactness_sf())
+            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0), Disturb_pct=0)
+            #streams_intact <- st_intersection(streams(), intactness_sf())
+            #lakesrivers_intact <- st_intersection(lakesrivers(), intactness_sf())
+            streams_disturb <- st_intersection(streams(), footprint_sf())
+            lakesrivers_disturb <- st_intersection(lakesrivers(), footprint_sf())
             x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
             x$Area_km2[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers()))/1000000,2)
-            x$Intact_pct[x$Class=='Streams'] <- round(sum(st_length(streams_intact))/sum(st_length(streams()))*100,2)
-            x$Intact_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_intact))/sum(st_area(lakesrivers()))*100,2)
+            #x$Intact_pct[x$Class=='Streams'] <- round(sum(st_length(streams_intact))/sum(st_length(streams()))*100,2)
+            #x$Intact_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_intact))/sum(st_area(lakesrivers()))*100,2)
+            x$Disturb_pct[x$Class=='Streams'] <- round(sum(st_length(streams_disturb))/sum(st_length(streams()))*100,2)
+            x$Disturb_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_disturb))/sum(st_area(lakesrivers()))*100,2)
         } else {
             x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0))
             x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
@@ -692,9 +697,14 @@ server = function(input, output) {
     # DOWNLOAD SHAPEFILE
     ####################################################################################################
 
-    output$downloadMap <- downloadHandler(
+    output$downloadFootprintMap <- downloadHandler(
+        filename = function() {'fda_footprint.gpkg'},
+        content = function(file) {st_write(footprint_sf(), dsn=file, layer='footprint')}
+    )
+
+    output$downloadIntactnessMap <- downloadHandler(
         filename = function() {'fda_intactness.gpkg'},
-        content = function(file) {st_write(intactness_sf(), dsn=file, layer=paste0('linear',input$buffer1,'_areal',input$buffer2,'.gpkg'))}
+        content = function(file) {st_write(intactness_sf(), dsn=file, layer='intactness')}
     )
 
 }
