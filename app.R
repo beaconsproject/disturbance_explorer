@@ -33,8 +33,7 @@ ui = dashboardPage(skin="blue",
     #br(),
     #sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 1, step=0.05, ticks=FALSE),
     hr(),
-    downloadButton("downloadFootprintMap","Download footprint map"),
-    downloadButton("downloadIntactnessMap","Download intactness map")
+    downloadButton("downloadFootprintMap","Download footprint/intactness")
   ),
   dashboardBody(
     useShinyjs(),
@@ -698,15 +697,13 @@ server = function(input, output) {
     ####################################################################################################
 
     output$downloadFootprintMap <- downloadHandler(
-        filename = function() {'fda_footprint.gpkg'},
-        content = function(file) {st_write(footprint_sf(), dsn=file, layer='footprint')}
+        filename = function() {'data_download.gpkg'},
+        content = function(file) {
+          st_write(footprint_sf(), dsn=file, layer='footprint')
+          st_write(intactness_sf(), dsn=file, layer='intactness', append = TRUE)
+          st_write(bnd(), dsn=file, layer='fda_boundary', append = TRUE)
+          }
     )
-
-    output$downloadIntactnessMap <- downloadHandler(
-        filename = function() {'fda_intactness.gpkg'},
-        content = function(file) {st_write(intactness_sf(), dsn=file, layer='intactness')}
-    )
-
 }
 
 shinyApp(ui, server)
