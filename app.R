@@ -248,7 +248,11 @@ server = function(input, output) {
         mutate(Buffer = 1000)
       
       if(input$custom_buffer_switch == TRUE){
-        rhandsontable(types_df)
+        rhandsontable(types_df) %>%
+          hot_cols(columnSorting = TRUE) %>%
+          hot_col("Features", readOnly = TRUE) %>%
+          hot_col("Industry", readOnly = TRUE) %>%
+          hot_col("Disturbance", readOnly = TRUE)
       } else{
         # grey out the table and make it read_only (this is a work around because shinyjs::disable doesn't work)
         rhandsontable(types_df, readOnly = TRUE) %>%
