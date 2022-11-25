@@ -23,18 +23,30 @@ ui = dashboardPage(skin="blue",
         #menuItem("Sensitivity analysis", tabName = "sa", icon = icon("th"))
     ),
     hr(),
-    selectInput("fda", label="Select FDA:", choices=c("10AB","09EA")),
-    sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-    sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-    sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
-    hr("Run in order:"),
-    actionButton("goButton", "1. Generate intactness map"),
-    br(),
-    actionButton("goButton2", "2. Upstream disturbances map"),
-    #br(),
-    #sliderInput("alpha", label="Map transparency:", min=0, max=1, value = 1, step=0.05, ticks=FALSE),
-    hr(),
-    downloadButton("downloadFootprintMap","Download footprint/intactness")
+    
+    conditionalPanel(
+      condition = "input.tabs == 'fri' || input.tabs == 'land' || input.tabs == 'hydro' || input.tabs == 'upstream'",
+      selectInput("fda", label="Select FDA:", choices=c("10AB","09EA"))
+    ),
+    conditionalPanel(
+      condition = "input.tabs == 'fri' || input.tabs == 'land' || input.tabs == 'hydro'",
+      sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
+      sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
+      sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
+      actionButton("goButton", "Generate intactness map")
+    ),
+    conditionalPanel(
+      condition = "input.tabs == 'fri'",
+      hr(),
+      downloadButton("downloadFootprintMap","Download footprint/intactness")
+    ),
+    conditionalPanel(
+      condition = "input.tabs == 'upstream'",
+      hr(),
+      actionButton("goButton2", "Visualize upstream disturbances")
+    )
+    
+    
   ),
   dashboardBody(
     useShinyjs(),
