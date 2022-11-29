@@ -433,7 +433,8 @@ server = function(input, output) {
     
     # Make an aggreagated version for use in Leaflet
     lcc_agg <- reactive({
-      aggregate(lcc2(), 10, fun='modal')
+      #aggregate(lcc2(), 10, fun='modal')
+      lcc2()
     })
     
     # Reclassify the aggregated raster depending on veg type selected
