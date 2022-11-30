@@ -157,11 +157,11 @@ server = function(input, output) {
     })
 
     lakesrivers <- reactive({
-        st_read(fda_hydro(), 'lakes_rivers', quiet=T)
+        st_read(fda_hydro(), 'lakes_rivers', quiet=T) %>% st_union()
     })
 
     streams <- reactive({
-        st_read(fda_hydro(), 'streams', quiet=T)
+        st_read(fda_hydro(), 'streams', quiet=T) %>% st_union()
     })
 
     fires <- reactive({
@@ -598,21 +598,25 @@ server = function(input, output) {
             #lakesrivers_intact <- st_intersection(lakesrivers(), intactness_sf())
             streams_disturb <- st_intersection(streams(), footprint_sf())
             lakesrivers_disturb <- st_intersection(lakesrivers(), footprint_sf())
-            x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
-            x$Area_km2[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers()))/1000000,2)
+            
+            streams_length <- sum(st_length(streams()))
+            lakes_area <- sum(st_area(lakesrivers()))
+            
+            x$Length_km[x$Class=='Streams'] <- round(streams_length/1000,2)
+            x$Area_km2[x$Class=='LakesRivers'] <- round(lakes_area/1000000,2)
             #x$Intact_pct[x$Class=='Streams'] <- round(sum(st_length(streams_intact))/sum(st_length(streams()))*100,2)
             #x$Intact_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_intact))/sum(st_area(lakesrivers()))*100,2)
-            x$Disturb_pct[x$Class=='Streams'] <- round(sum(st_length(streams_disturb))/sum(st_length(streams()))*100,2)
-            x$Disturb_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_disturb))/sum(st_area(lakesrivers()))*100,2)
+            x$Disturb_pct[x$Class=='Streams'] <- round(sum(st_length(streams_disturb))/streams_length*100,2)
+            x$Disturb_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_disturb))/lakes_area*100,2)
         } else {
             x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0))
-            x$Length_km[x$Class=='Streams'] <- round(sum(st_length(streams()))/1000,2)
-            x$Area_km2[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers()))/1000000,2)
+            x$Length_km[x$Class=='Streams'] <- round(streams_length/1000,2)
+            x$Area_km2[x$Class=='LakesRivers'] <- round(lakes_area/1000000,2)
         }
         x
     })
 
-	output$tab5 <- renderTable({
+	  output$tab5 <- renderTable({
         dta5()
     })
 
