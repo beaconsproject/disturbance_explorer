@@ -12,7 +12,6 @@ library(rgdal)
 library(shinycssloaders)
 
 ui = dashboardPage(skin="blue",
-<<<<<<< HEAD
                    dashboardHeader(title = "Regional Disturbance"),
                    dashboardSidebar(
                      sidebarMenu(id = "tabs",
@@ -134,134 +133,10 @@ ui = dashboardPage(skin="blue",
                        )
                      )
                    ))
-=======
-  dashboardHeader(title = "Regional Disturbance"),
-  dashboardSidebar(
-    sidebarMenu(id = "tabs",
-        menuItem("Overview", tabName = "overview", icon = icon("th")),
-        menuItem("Footprint/intactness", tabName = "fri", icon = icon("th")),
-        menuItem("Effects on landcover", tabName = "land", icon = icon("th")),
-        menuItem("Effects on hydrology", tabName = "hydro", icon = icon("th")),
-        menuItem("Upstream disturbances", tabName = "upstream", icon = icon("th"))
-        #menuItem("Sensitivity analysis", tabName = "sa", icon = icon("th"))
-    ),
-    hr(),
-    
-    conditionalPanel(
-      condition = "input.tabs == 'fri' || input.tabs == 'land' || input.tabs == 'hydro' || input.tabs == 'upstream'",
-      selectInput("fda", label="Select FDA:", choices=c("10AB","09EA"))
-    ),
-    conditionalPanel(
-      condition = "input.tabs == 'fri' || input.tabs == 'land' || input.tabs == 'hydro'",
-      sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-      sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-      sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
-      actionButton("goButton", "Generate intactness map")
-    ),
-    conditionalPanel(
-      condition = "input.tabs == 'fri'",
-      hr(),
-      downloadButton("downloadFootprintMap","Download footprint/intactness")
-    ),
-    conditionalPanel(
-      condition = "input.tabs == 'upstream'",
-      hr(),
-      actionButton("goButton2", "Visualize upstream disturbances")
-    )
-    
-    
-  ),
-  dashboardBody(
-    useShinyjs(),
-    tabItems(
-       tabItem(tabName="overview",
-        fluidRow(
-          tabBox(
-            id = "zero", width="12",
-            tabPanel("Welcome!", htmlOutput("help")),
-            #tabPanel("Footprint", includeMarkdown("../docs/footprint.md")),
-            #tabPanel("Documentation", htmlOutput("datasets"))
-          )
-        )
-      ),
-       tabItem(tabName="fri",
-            fluidRow(
-                tabBox(
-                    id = "one", width="8",
-                    tabPanel("Map viewer", leafletOutput("map", height=750) %>% withSpinner()),
-                    tabPanel("Buffers", 
-                             tags$h2("Custom buffers"),
-                             tags$p("Buffer widths can specified by disturbance type using the table below. Otherwise buffer width is set using the 
-                                    sliders on the map view."),
-                             materialSwitch("custom_buffer_switch",
-                                            label = "Use custom buffers",
-                                            value = FALSE, status = "primary",
-                                            inline = TRUE),
-                             rHandsontableOutput('buffer_table'))
-                ),
-                tabBox(
-                    id = "two", width="4",
-                    tabPanel("Intactness", tableOutput("tab1"))
-                ),
-                tabBox(
-                    id="three", width="4",
-                    tabPanel("Linear disturbances", tableOutput("tab2")),
-                    tabPanel("Areal disturbances", tableOutput("tab3"))
-                ),
-            )
-        ),
-       tabItem(tabName="land",
-            fluidRow(
-                tabBox(
-                    id = "one", width="8",
-                    tabPanel("Landcover", 
-                    leafletOutput("map2", height=750) %>% withSpinner())
-                ),
-                tabBox(
-                    id="two", width="4",
-                    #selectInput("year", label="Select year:", choices=c(2019,1984)),
-                    selectInput("type", label="Select class:", choices=c("all classes","bryoids","shrubs","wetland","wetland_treed","herbs","coniferous","broadleaf","mixedwood"),selected="all classes")
-                ),
-                tabBox(
-                    id = "two", width="4",
-                    tabPanel("Percent disturbed", tableOutput("tab4"))
-                ),
-            )
-        ),
-       tabItem(tabName="hydro",
-            fluidRow(
-                tabBox(
-                    id = "one", width="8",
-                    tabPanel("Hydrology", 
-                    leafletOutput("map3", height=750) %>% withSpinner())
-                ),
-                tabBox(
-                    id = "two", width="4",
-                    tabPanel("Percent disturbed", tableOutput("tab5"))
-                ),
-            )
-       ),
-       tabItem(tabName="upstream",
-            fluidRow(
-                tabBox(
-                    id = "one", width="8",
-                    tabPanel("Upstream", 
-                    leafletOutput("map4", height=750) %>% withSpinner())
-                ),
-                tabBox(
-                    id = "two", width="4",
-                    tabPanel("Upstream area disturbed", tableOutput("tab6"))
-                ),            
-            )
-       )
-  )
-))
->>>>>>> 7028d2bc2e01e5cf1705aaaf1aa9f26f63658746
 
 
 server = function(input, output) {
   
-<<<<<<< HEAD
   output$help <- renderText({
     includeMarkdown("docs/overview.md")
   })
@@ -338,73 +213,6 @@ server = function(input, output) {
   
   # Activate grey out sliders if button selected. Note that disable doesn't seem to work on the table. Instead we can set it to read only mode when rendering.
   observe({
-=======
-    output$help <- renderText({
-        includeMarkdown("docs/overview.md")
-    })
-
-    ####################################################################################################
-    # READ SPATIAL DATA
-    ####################################################################################################
-    fda <- reactive({
-        paste0('www/fda_',tolower(input$fda),'.gpkg')
-    })
-
-    fda_hydro <- reactive({
-        paste0('www/fda_',tolower(input$fda),'_hydro.gpkg')
-    })
-
-    bnd <- reactive({
-        st_read(fda(), 'FDA', quiet=T)
-    })
-
-    lakesrivers <- reactive({
-        st_read(fda_hydro(), 'lakes_rivers', quiet=T) %>% st_union()
-    })
-
-    streams <- reactive({
-        st_read(fda_hydro(), 'streams', quiet=T) %>% st_union()
-    })
-
-    fires <- reactive({
-        st_read(fda(), 'Fire_History', quiet=T)
-    })
-
-    ifl2000 <- reactive({
-        st_read(fda(), 'IFL_2000', quiet=T)
-    })
-
-    ifl2020 <- reactive({
-        st_read(fda(), 'IFL_2020', quiet=T)
-    })
-
-    linear <- reactive({
-        if (input$fda=='10AB') {
-            st_read(fda(), 'Linear_Features+', quiet=T)
-        } else {
-            st_read(fda(), 'Linear_Features', quiet=T)
-        }
-    })
-
-    quartz <- reactive({
-        st_read(fda(), 'Quartz_Claims', quiet=T)
-    })
-
-    areal <- reactive({
-        if (input$fda=='10AB') {
-            st_read(fda(), 'Areal_Features+', quiet=T)
-        } else {
-            st_read(fda(), 'Areal_Features', quiet=T)
-        }
-    })
-
-    catch <- reactive({
-      catch <- paste0('www/fda_',input$fda,'_catch.gpkg')
-    })
-    catchments <- reactive({
-      catchments <- st_read(catch(), 'catchments', quiet=T)
-    })
->>>>>>> 7028d2bc2e01e5cf1705aaaf1aa9f26f63658746
     
     if(input$custom_buffer_switch == TRUE){
       shinyjs::disable("buffer1")
@@ -439,7 +247,6 @@ server = function(input, output) {
       arrange(Features, Industry, Disturbance) %>%
       mutate(Buffer = 1000)
     
-<<<<<<< HEAD
     if(input$custom_buffer_switch == TRUE){
       rhandsontable(types_df) %>%
         hot_cols(columnSorting = TRUE) %>%
@@ -450,40 +257,6 @@ server = function(input, output) {
       # grey out the table and make it read_only (this is a work around because shinyjs::disable doesn't work)
       rhandsontable(types_df, readOnly = TRUE) %>%
         hot_cols(renderer = "
-=======
-    # Make table of unique disturbance types in areal linear attribute tables
-    output$buffer_table <- renderRHandsontable({
-      
-      linear_types_df <- linear() %>%
-        st_drop_geometry() %>%
-        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-        summarise(Features = "Linear") %>%
-        ungroup() %>%
-        rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
-        relocate(Features, Industry, Disturbance)
-      
-      area_types_df <- areal() %>%
-        st_drop_geometry() %>%
-        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-        summarise(Features = "Areal") %>%
-        rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
-        relocate(Features, Industry, Disturbance)
-      
-      types_df <- rbind(linear_types_df, area_types_df) %>%
-        arrange(Features, Industry, Disturbance) %>%
-        mutate(Buffer = 1000)
-      
-      if(input$custom_buffer_switch == TRUE){
-        rhandsontable(types_df) %>%
-          hot_cols(columnSorting = TRUE) %>%
-          hot_col("Features", readOnly = TRUE) %>%
-          hot_col("Industry", readOnly = TRUE) %>%
-          hot_col("Disturbance", readOnly = TRUE)
-      } else{
-        # grey out the table and make it read_only (this is a work around because shinyjs::disable doesn't work)
-        rhandsontable(types_df, readOnly = TRUE) %>%
-          hot_cols(renderer = "
->>>>>>> 7028d2bc2e01e5cf1705aaaf1aa9f26f63658746
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.NumericRenderer.apply(this, arguments);
               td.style.background = 'lightgrey';
@@ -503,7 +276,6 @@ server = function(input, output) {
   # Footprint
   footprint_sf <- eventReactive(input$goButton, {
     
-<<<<<<< HEAD
     if(input$custom_buffer_switch == TRUE){
       # If custom buffer table requested, for each unique buffer width, extract all features and buffer
       # Then union all layers
@@ -519,39 +291,6 @@ server = function(input, output) {
           linear_final <- linear_buff
         } else{
           linear_final <- st_union(linear_final, linear_buff)
-=======
-  	# load the landcover tif when the fda changes
-    lcc2 <- reactive({
-        dir1 <- substr(fda(),1,nchar(fda())-5)
-        lcc <- rast(paste0(dir1,'/','lc_2019.tif'))
-        subst(lcc, 0, NA)
-    })
-    
-    # Make an aggreagated version for use in Leaflet
-    lcc_agg <- reactive({
-      #aggregate(lcc2(), 10, fun='modal')
-      lcc2()
-    })
-    
-    # Reclassify the aggregated raster depending on veg type selected
-    lcc_rcl <- reactive({
-        if (input$type=='bryoids') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,1,NA,NA,NA,NA,NA,NA,NA))
-        } else if (input$type=='shrubs') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,1,NA,NA,NA,NA,NA,NA))
-        } else if (input$type=='wetland') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,1,NA,NA,NA,NA,NA))
-        } else if (input$type=='wetland_treed') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,1,NA,NA,NA,NA))
-        } else if (input$type=='herbs') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,1,NA,NA,NA))
-        } else if (input$type=='coniferous') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,1,NA,NA))
-        } else if (input$type=='broadleaf') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,1,NA))
-        } else if (input$type=='mixedwood') {
-            r <- subst(lcc_agg(), c(20,31,32,33,40,50,80,81,100,210,220,230), c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,1))
->>>>>>> 7028d2bc2e01e5cf1705aaaf1aa9f26f63658746
         }
         counter <- counter + 1
       }
@@ -891,7 +630,7 @@ server = function(input, output) {
     dist <- st_union(footprint_sf())
     i <- st_intersection(catchments(), dist)
     distArea <- i %>% 
-      mutate(area_dist = st_area(.)/10000 %>% as.numeric()) %>%
+      mutate(area_dist = st_area(.)/1000000 %>% as.numeric()) %>%
       st_drop_geometry()
     catchs <- st_drop_geometry(catchments())
     catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
@@ -937,14 +676,7 @@ server = function(input, output) {
       vv <- st_transform(footprint_sf(), 4326)
       
       m <- m %>%
-        #addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
-        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
-          addLayersControl(position = "topright",
-                           baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                           overlayGroups = c("FDA", "Catchments", "Footprint"),
-                           options = layersControlOptions(collapsed = FALSE)) %>%
-          hideGroup(c("Catchments"))
-      
+        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint')
     }
     
     if (input$goButtonUpstream) {
@@ -960,7 +692,6 @@ server = function(input, output) {
       m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-<<<<<<< HEAD
                          overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream area disturbed"),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c("Catchments", "Intactness", "Footprint"))  %>%
@@ -983,177 +714,6 @@ server = function(input, output) {
       st_write(bnd(), dsn=file, layer='fda_boundary', append = TRUE)
     }
   )
-=======
-                         overlayGroups = overlay_groups(),
-                         options = layersControlOptions(collapsed = FALSE))
-    })
-
-    ####################################################################################################
-    # HYDROLOGY SECTION
-    ####################################################################################################
-
-    output$map3 <- renderLeaflet({
-       bnd <- st_transform(bnd(), 4326)
-       lakesrivers <- st_transform(lakesrivers(), 4326)
-       streams <- st_transform(streams(), 4326)
-       areal <- st_transform(areal(), 4326)
-       linear <- st_transform(linear(), 4326)
-       m <- leaflet(bnd) %>% 
-    		addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
-	    	addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
-            addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
-            addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
-            addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
-            addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
-            addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=0.5)
-            if (input$goButton) {
-                v <- st_transform(intactness_sf(), 4326)
-                vv <- st_transform(footprint_sf(), 4326)
-                m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
-                    addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint')
-            }
-            m <- m %>% addLayersControl(position = "topright",
-                baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                overlayGroups = c("FDA","LakesRivers","Streams","Linear features","Areal features","Intactness","Footprint"),
-            options = layersControlOptions(collapsed = FALSE)) %>%
-                hideGroup(c("Streams","Linear features","Areal features","Intactness","Footprint"))
-    })
-
-    dta5 <- reactive({
-        if (input$goButton) {
-            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0), Disturb_pct=0)
-            #streams_intact <- st_intersection(streams(), intactness_sf())
-            #lakesrivers_intact <- st_intersection(lakesrivers(), intactness_sf())
-            streams_disturb <- st_intersection(streams(), footprint_sf())
-            lakesrivers_disturb <- st_intersection(lakesrivers(), footprint_sf())
-            
-            streams_length <- sum(st_length(streams()))
-            lakes_area <- sum(st_area(lakesrivers()))
-            
-            x$Length_km[x$Class=='Streams'] <- round(streams_length/1000,2)
-            x$Area_km2[x$Class=='LakesRivers'] <- round(lakes_area/1000000,2)
-            #x$Intact_pct[x$Class=='Streams'] <- round(sum(st_length(streams_intact))/sum(st_length(streams()))*100,2)
-            #x$Intact_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_intact))/sum(st_area(lakesrivers()))*100,2)
-            x$Disturb_pct[x$Class=='Streams'] <- round(sum(st_length(streams_disturb))/streams_length*100,2)
-            x$Disturb_pct[x$Class=='LakesRivers'] <- round(sum(st_area(lakesrivers_disturb))/lakes_area*100,2)
-        } else {
-            x <- tibble(Class=c('Streams','LakesRivers'), Length_km=c(0,NA), Area_km2=c(NA,0))
-            x$Length_km[x$Class=='Streams'] <- round(streams_length/1000,2)
-            x$Area_km2[x$Class=='LakesRivers'] <- round(lakes_area/1000000,2)
-        }
-        x
-    })
-
-	  output$tab5 <- renderTable({
-        dta5()
-    })
-
-	####################################################################################################
-	# UPSTREAM SECTION
-	####################################################################################################
-	catch_out <- eventReactive(input$goButton2, {
-	  
-	  # Tabulate dist area per catchment
-	  dist <- st_union(footprint_sf())
-	  i <- st_intersection(catchments(), dist)
-	  distArea <- i %>% 
-	    mutate(area_dist = st_area(.)/10000 %>% as.numeric()) %>%
-	    st_drop_geometry()
-	  catchs <- st_drop_geometry(catchments())
-	  catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
-	  catchs$area_dist[is.na(catchs$area_dist)] <- 0
-	  feature_list <- unique(upstream_catch()$catchments)
-	  catch_list <- unique(catchments()$CATCHNUM)
-	  for(catch_id in catch_list){
-	    if(catch_id %in% feature_list){ 
-	    ## get list of catchments
-	      catchments_list <- {upstream_catch()[upstream_catch()$catchments == catch_id, "value"]}
-	      catchments_list <- c(catch_id, catchments_list)
-	      catch <- filter(catchs, catchs$CATCHNUM %in% catchments_list)
-	      # Total area upstreamn disturbed
-	      upad <- catch %>%
-	        dplyr::summarise(upstream_area_dist = sum(catch$area_dist)) %>%
-	        dplyr::mutate(id = catch_id) #%>%
-	      catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 4)
-	    } else { 
-	      catchs$upadist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id], 4)
-	    }
-	  }
-	  catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist")], by = "CATCHNUM", all.x = TRUE)
-	})
-	
-	output$map4 <- renderLeaflet({
-	  bnd <- st_transform(bnd(), 4326)
-	  catch_4326 <- st_transform(catchments(), 4326)
-	  
-	  m <- leaflet() %>% 
-	    addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
-	    addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
-	    addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
-	    addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments") %>%
-	    addLayersControl(position = "topright",
-	                   baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-	                   overlayGroups = c("FDA", "Catchments"),
-	                   options = layersControlOptions(collapsed = FALSE)) %>%
-	    hideGroup(c("Catchments"))
-	  
-	  if (input$goButton) {
-	    v <- st_transform(intactness_sf(), 4326)
-	    vv <- st_transform(footprint_sf(), 4326)
-	    m <- m %>% addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
-	      addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
-	      addLayersControl(position = "topright",
-	                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint"),
-	                       options = layersControlOptions(collapsed = FALSE)) %>%
-	      hideGroup(c("Catchments", "Intactness", "Footprint"))
-	    
-	  }
-	  if (input$goButton2) {
-      catch_out <- st_transform(catch_out(), 4326)
-	    ## Create a continuous palette function
-      palette_rev <- rev(RColorBrewer::brewer.pal(10, "RdYlGn"))
-	    #catchupadist <- colorNumeric(
-	    #  palette = palette_rev,
-	    #  domain = catch_out$upadist)
-	    #colorBin("Blues", domain = NULL, bins = 4)
-      pal.bins <-c(0, 1, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 150000)
-	    catchupadist <- colorBin(
-	      palette = palette_rev,
-	      domain = catch_out$upadist,
-	      bins = pal.bins)
-	    # Define labels
-	    labels <- c("Not disturbed", ">0-250 ha", "250-500 ha", "500-1000 ha", "1000-2000 ha", "2000-3000 ha", "3000-4000 ha",
-	                "4000-5000 ha", "5000-6000 ha", "6000-7000 ha", ">7000 ha", "")
-	    
-	    m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed") %>%
-	      addLayersControl(position = "topright",
-	                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-	                       overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream area disturbed"),
-	                       options = layersControlOptions(collapsed = FALSE)) %>%
-	      hideGroup(c("Catchments", "Intactness", "Footprint"))  %>%
-	      addLegend(position = "bottomleft", pal = catchupadist, values = catch_out$upadist, opacity = 1,
-	                        labFormat = function(type, cuts, p) {  # Here's the trick
-	                          paste0(labels)
-	                        }, title = "Upstream disturbed area", group = "Upstream area disturbed")
-
-	  }
-	  m
-	})	
-	
-    ####################################################################################################
-    # DOWNLOAD SHAPEFILE
-    ####################################################################################################
-
-    output$downloadFootprintMap <- downloadHandler(
-        filename = function() {'data_download.gpkg'},
-        content = function(file) {
-          st_write(footprint_sf(), dsn=file, layer='footprint')
-          st_write(intactness_sf(), dsn=file, layer='intactness', append = TRUE)
-          st_write(bnd(), dsn=file, layer='fda_boundary', append = TRUE)
-          }
-    )
->>>>>>> 7028d2bc2e01e5cf1705aaaf1aa9f26f63658746
 }
 
 shinyApp(ui, server)
