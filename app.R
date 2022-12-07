@@ -43,7 +43,7 @@ ui = dashboardPage(skin="blue",
                      conditionalPanel(
                        condition = "input.tabs == 'upstream'",
                        hr(),
-                       actionButton("goButtonUpstream", "Visualize upstream disturbances")
+                       actionButton("goButtonUpstream", "View upstream disturbances")
                      )
                      
                      
@@ -197,14 +197,14 @@ server = function(input, output) {
   })
   
   catch <- reactive({
-    catch <- paste0('www/fda_',input$fda,'_catch.gpkg')
+    catch <- paste0('www/fda_',tolower(input$fda),'_catch.gpkg')
   })
   catchments <- reactive({
     catchments <- st_read(catch(), 'catchments', quiet=T)
   })
   
   upstream_catch <- reactive({
-    upstream_catch <- readRDS(file = paste0('www/upstream_catch_',input$fda,'.rds'))
+    upstream_catch <- readRDS(file = paste0('www/upstream_catch_',tolower(input$fda),'.rds'))
   })    
   
   ####################################################################################################
