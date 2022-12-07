@@ -692,9 +692,9 @@ server = function(input, output) {
       m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                         overlayGroups = c("FDA", "Catchments", "Intactness", "Footprint", "Upstream area disturbed"),
+                         overlayGroups = c("FDA", "Catchments", "Footprint", "Upstream area disturbed"),
                          options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Catchments", "Intactness", "Footprint"))  %>%
+        hideGroup(c("Catchments", "Footprint"))  %>%
         addLegend(position = "bottomleft", pal = catchupadist, values = catch_out$upadist, opacity = 1,
                 title = "Upstream area disturbed (sq km)", group = "Upstream area disturbed") 
       
