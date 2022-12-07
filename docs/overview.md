@@ -1,8 +1,8 @@
-# Regional Disturbance Mapping Explorer
+# Regional Disturbance Explorer
 
 ## Introduction
 
-The purpose of the Regional Disturbance Mapping (RDM) Explorer app is to enable users to interactively create a landscape intactness map or, conversely, a human footprint map. The app also allows users to assess the influence of buffer size and minimum patch size on the resulting intactness and footprint maps. Currently, the app can only be used using the demo dataset for a watershed in the southeast Yukon that is included. The dataset is described below. A future release will enable users to use their own regional disturbance data and will include instructions on how to do so. 
+The purpose of the Regional Disturbance Explorer app is to enable users to interactively create a landscape intactness map or, conversely, a human footprint map. The app also allows users to assess the influence of buffer size and minimum patch size on the resulting intactness and footprint maps. Currently, the app can only be used using the demo dataset for a watershed in the southeast Yukon that is included. The dataset is described below. A future release will enable users to use their own regional disturbance data and will include instructions on how to do so. 
 
 <center>
 <img src="app.jpg" width="80%">
@@ -30,7 +30,7 @@ The app consists of four sections:
 4. **Effects on hydrology**:
   - view a map of streams, rivers, and lakes
   - view a table showing length and areas of streams, rivers, and lakes
-  - explore the proportion of streams, rivers, and lakes are within a user-defined distance of anthropogenic disturbances?
+  - explore the proportion of streams, rivers, and lakes are within a user-defined distance of anthropogenic disturbances
 
 ## Input data
 
