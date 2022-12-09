@@ -353,12 +353,15 @@ server = function(input, output) {
     #pal <- colorBin("YlOrRd", domain = fires$FIRE_YEAR, bins = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, Inf))
     labels <- sprintf("Fire year: %s<br/>Fire cause: %s", fires$FIRE_YEAR, fires$GENERAL_FIRE_CAUSE) %>% lapply(htmltools::HTML)
     
+    map_bounds <- bnd %>% st_bbox() %>% as.character()
+    
     m <- leaflet() %>% 
       
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+      fitBounds(map_bounds[1], map_bounds[2], map_bounds[3], map_bounds[4]) %>% # set view to the selected FDA
       #addPolygons(data=fires, fillColor = ~pal(FIRE_YEAR), color='grey', weight=1, group="Fires", opacity=1, fillOpacity = 0.7,
       addPolygons(data=fires, fillColor="red", color='grey', weight=1, group="Fires", opacity=1, fillOpacity=0.5,
                   highlightOptions = highlightOptions(weight=2, color="black", bringToFront=T),
@@ -520,10 +523,13 @@ server = function(input, output) {
     df <- data.frame(ID=val, CAT=cls)
     levels(r) <- df
     
+    map_bounds <- bnd %>% st_bbox() %>% as.character()
+    
     m <- leaflet() %>%
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+      fitBounds(map_bounds[1], map_bounds[2], map_bounds[3], map_bounds[4]) %>% # set view to the selected FDA
       addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
       addPolygons(data=areal, color='black', fill=T, stroke=F, group="Areal features", fillOpacity=0.5) %>%
       hideGroup(c("Linear features","Areal features","Intactness")) %>%
@@ -575,10 +581,14 @@ server = function(input, output) {
     streams <- st_transform(streams(), 4326)
     areal <- st_transform(areal(), 4326)
     linear <- st_transform(linear(), 4326)
+    
+    map_bounds <- bnd %>% st_bbox() %>% as.character()
+    
     m <- leaflet(bnd) %>% 
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+      fitBounds(map_bounds[1], map_bounds[2], map_bounds[3], map_bounds[4]) %>% # set view to the selected FDA
       addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
       addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
       addPolylines(data=linear, color='red', weight=1, group="Linear features") %>%
@@ -673,9 +683,12 @@ server = function(input, output) {
     bnd <- st_transform(bnd(), 4326)
     catch_4326 <- st_transform(catchments(), 4326)
     
+    map_bounds <- bnd %>% st_bbox() %>% as.character()
+    
     m <- leaflet() %>% 
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+      fitBounds(map_bounds[1], map_bounds[2], map_bounds[3], map_bounds[4]) %>% # set view to the selected FDA
       addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments") %>%
       addLayersControl(position = "topright",
                        overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments"),
