@@ -126,8 +126,12 @@ ui = dashboardPage(skin="blue",
                                             leafletOutput("map4", height=750) %>% withSpinner())
                                  ),
                                  tabBox(
+                                   id="two", width="4",
+                                   tabPanel("Upstream disturbance description", htmlOutput("upstreamDesc"))
+                                 ),
+                                 tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Upstream area disturbed", tableOutput("tab6"))
+                                   tabPanel("Upstream disturbances", tableOutput("tab6"))
                                  ),            
                                )
                        )
@@ -635,6 +639,7 @@ server = function(input, output) {
     catchs <- st_drop_geometry(catchments())
     catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
     catchs$area_dist[is.na(catchs$area_dist)] <- 0
+    catchs$area_dist <- as.numeric(catchs$area_dist)
     feature_list <- unique(upstream_catch()$catchments)
     catch_list <- unique(catchments()$CATCHNUM)
     for(catch_id in catch_list){
@@ -648,11 +653,20 @@ server = function(input, output) {
           dplyr::summarise(upstream_area_dist = sum(catch$area_dist)) %>%
           dplyr::mutate(id = catch_id) #%>%
         catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 4)
+        uppd <- catch %>%
+          dplyr::summarise(upstream_percent_dist = sum(.data$area_dist) / sum(.data$Area_Total/1000000)) %>%
+          dplyr::mutate(id = catch_id) #%>%
+        catchs$uppdist[catchs$CATCHNUM ==uppd$id] <- round(uppd$upstream_percent_dist, 2)
       } else { 
         catchs$upadist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id], 4)
+        catchs$uppdist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id]/(catchs$Area_Total[catchs$CATCHNUM == catch_id]/1000000), 2)
       }
     }
-    catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist")], by = "CATCHNUM", all.x = TRUE)
+    catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist", "uppdist", "area_dist")], by = "CATCHNUM", all.x = TRUE)
+  })
+  
+  output$upstreamDesc <- renderText({
+    includeMarkdown("docs/upstream.md")
   })
   
   output$map4 <- renderLeaflet({
@@ -661,12 +675,10 @@ server = function(input, output) {
     
     m <- leaflet() %>% 
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
-      addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
       addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments") %>%
       addLayersControl(position = "topright",
-                       baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                       overlayGroups = c("FDA", "Catchments"),
+                       overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments"),
                        options = layersControlOptions(collapsed = FALSE)) %>%
       hideGroup(c("Catchments"))
   
@@ -676,11 +688,18 @@ server = function(input, output) {
       vv <- st_transform(footprint_sf(), 4326)
       
       m <- m %>%
-        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint')
+        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
+        addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+        addLayersControl(position = "topright",
+                         overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Intactness","Footprint"),
+                         options = layersControlOptions(collapsed = FALSE))
     }
     
     if (input$goButtonUpstream) {
       catch_out <- st_transform(catch_out(), 4326)
+      stralher1 <- subset(catch_out, catch_out$STRAHLER == 1)
+      stralher2 <- subset(catch_out, catch_out$STRAHLER == 2)
+      
       ## Create a continuous palette function
       min <- min(catch_out$upadist)
       max <- max(catch_out$upadist)
@@ -688,20 +707,70 @@ server = function(input, output) {
         palette = "RdBu",
         domain = min:max,
         reverse = TRUE)
-
-      m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed") %>%
-        addLayersControl(position = "topright",
-                         baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
-                         overlayGroups = c("FDA", "Catchments", "Footprint", "Upstream area disturbed"),
-                         options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Catchments", "Footprint"))  %>%
+      
+      ## Create bin palette function for percent
+      catchuppdist = colorBin(
+        palette = 'RdBu', 
+        domain = catch_out$uppdist, 
+        bins = 10,
+        reverse = TRUE)
+      
+      m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed (sq km)") %>%
+        addPolygons(data=catch_out, color=~catchuppdist(uppdist), stroke=F, fillOpacity=1, group="Upstream percent disturbed") %>%
+        addPolygons(data=stralher1, fillColor="#ffff00", stroke=F, fillOpacity=0.8, group="Stralher 1") %>%
+        addPolygons(data=stralher2, fillColor="#eec900", stroke=F, fillOpacity=0.8, group="Stralher 2") %>%
         addLegend(position = "bottomleft", pal = catchupadist, values = catch_out$upadist, opacity = 1,
-                title = "Upstream area disturbed (sq km)", group = "Upstream area disturbed") 
+                  title = "Upstream area disturbed (sq km)", 
+                  group = "Upstream area disturbed (sq km)") %>%
+        addLegend(position = "bottomleft", pal = catchuppdist, values = catch_out$uppdist, opacity = 1,
+                  title = "Upstream percent disturbed", labFormat = labelFormat(
+                    suffix = "%", 
+                    transform = function(x) 100 * x
+                  ), group = "Upstream percent disturbed") %>%
+        addLayersControl(position = "topright",
+                         baseGroups=c("Upstream area disturbed (sq km)", "Upstream percent disturbed"),
+                         overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Footprint", "Stralher 1", "Stralher 2"),
+                         #overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Footprint", "Upstream area disturbed", "Upstream percent disturbed"),
+                         options = layersControlOptions(collapsed = FALSE)) %>%
+        # control legend apparition (show/hide toggle)
+        htmlwidgets::onRender("
+          function(el, x) {
+            var updateLegend = function () {
+                var selectedGroup = document.querySelectorAll('input:checked')[0].nextSibling.innerText.substr(1);
+      
+                document.querySelectorAll('.legend').forEach(a => a.hidden=true);
+                document.querySelectorAll('.legend').forEach(l => {
+                  if (l.children[0].children[0].innerText == selectedGroup) l.hidden=false;
+                });
+            };
+            updateLegend();
+            this.on('baselayerchange', e => updateLegend());
+          }") %>%
+        hideGroup(c("Catchments", "Intactness", "Footprint", "Stralher 1", "Stralher 2"))
       
     }
     m
   })	
+  dta6 <- reactive({
+    if (input$goButtonUpstream) {
+      x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=0, Disturb_area=0, Disturb_pct=0)
+      x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
+      x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
+      x$Disturb_area[x$Class=='Stralher1'] <- round(sum(stralher1$area_dist,2))
+      x$Disturb_area[x$Class=='Stralher2'] <- round(sum(stralher2$area_dist,2))
+      x$Disturb_pct[x$Class=='Stralher1'] <- round(sum(stralher1$area_dist)/sum(stralher1$Area_Total/1000000)*100,2)
+      x$Disturb_pct[x$Class=='Stralher2'] <- round(sum(stralher2$area_dist)/sum(stralher2$Area_Total/1000000)*100,2)
+    } else {
+      x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=c(0,0), Disturb_area=c(NA,NA), Disturb_pct=c(NA,NA))
+      x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
+      x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
+    }
+    x
+  })
   
+  output$tab6 <- renderTable({
+    dta6()
+  })
   ####################################################################################################
   # DOWNLOAD SHAPEFILE
   ####################################################################################################
