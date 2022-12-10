@@ -766,6 +766,9 @@ server = function(input, output) {
   })	
   dta6 <- reactive({
     if (input$goButtonUpstream) {
+      stralher1 <- subset(catch_out(), catch_out()$STRAHLER == 1)
+      stralher2 <- subset(catch_out(), catch_out()$STRAHLER == 2)
+      
       x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=0, Disturb_area=0, Disturb_pct=0)
       x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
       x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
@@ -775,6 +778,8 @@ server = function(input, output) {
       x$Disturb_pct[x$Class=='Stralher2'] <- round(sum(stralher2$area_dist)/sum(stralher2$Area_Total/1000000)*100,2)
     } else {
       x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=c(0,0), Disturb_area=c(NA,NA), Disturb_pct=c(NA,NA))
+      stralher1 <- subset(catchments(), catchments()$STRAHLER == 1)
+      stralher2 <- subset(catchments(), catchments()$STRAHLER == 2)
       x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
       x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
     }
