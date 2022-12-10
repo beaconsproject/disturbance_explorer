@@ -4,4 +4,4 @@ The **upstream area disturbed (sq km)** is calculated for each catchment by summ
 
 The **upstream percent disturbed** represent the percent of the area being disturbed within the entire upstream area. 
 
-A catchment located downstream will end up with a high value of area being disturbed while it could potentially have a low percent value related to the total area being upstream.
+A catchment located downstream will end up with a high value of area being disturbed while it could potentially have a low percent value being disturbed related to the total area being upstream.
