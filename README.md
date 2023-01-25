@@ -7,7 +7,7 @@ The Regional Disturbance Explorer is an R shiny app that enables users to genera
   3. Explore the effects of anthropogenic disturbances on the distribution and abundance of terrestrial ecosystems; and
   4. Explore the effects of anthropogenic disturbances on indicators of hydrological integrity and connectivity.
 
-The app is located at: https::/beaconsproject.shinyapps.io/rdmexplorer
+The app is located at: https://beaconsproject.shinyapps.io/disturbance_explorer
 
 The app can also be run from a local machine using the following steps:
 
