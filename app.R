@@ -65,8 +65,8 @@ ui = dashboardPage(skin="blue",
                                fluidRow(
                                  tabBox(
                                    id = "one", width="8",
-                                   tabPanel("Map viewer", leafletOutput("map", height=750) %>% withSpinner()),
-                                   tabPanel("Buffers", 
+                                   tabPanel(HTML("<b>Map viewer</b>"), leafletOutput("map", height=750) %>% withSpinner()),
+                                   tabPanel(HTML("<b>Buffers</b>"), 
                                             tags$h2("Custom buffers"),
                                             tags$p("Buffer widths can specified by disturbance type using the table below. Otherwise buffer width is set using the 
                                     sliders on the map view."),
@@ -78,12 +78,12 @@ ui = dashboardPage(skin="blue",
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Intactness", tableOutput("tab1"))
+                                   tabPanel(HTML("<b>Intactness</b>"), tableOutput("tab1"))
                                  ),
                                  tabBox(
                                    id="three", width="4",
-                                   tabPanel("Linear disturbances", tableOutput("tab2")),
-                                   tabPanel("Areal disturbances", tableOutput("tab3"))
+                                   tabPanel(HTML("<b>Linear disturbances</b>"), tableOutput("tab2")),
+                                   tabPanel(HTML("<b>Areal disturbances</b>"), tableOutput("tab3"))
                                  ),
                                )
                        ),
@@ -91,7 +91,7 @@ ui = dashboardPage(skin="blue",
                                fluidRow(
                                  tabBox(
                                    id = "one", width="8",
-                                   tabPanel("Landcover", 
+                                   tabPanel(HTML("<b>Landcover</b>"), 
                                             leafletOutput("map2", height=750) %>% withSpinner())
                                  ),
                                  tabBox(
@@ -101,7 +101,7 @@ ui = dashboardPage(skin="blue",
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Percent disturbed", tableOutput("tab4"))
+                                   tabPanel(HTML("<b>Percent disturbed</b>"), tableOutput("tab4"))
                                  ),
                                )
                        ),
@@ -109,12 +109,12 @@ ui = dashboardPage(skin="blue",
                                fluidRow(
                                  tabBox(
                                    id = "one", width="8",
-                                   tabPanel("Hydrology", 
+                                   tabPanel(HTML("<b>Hydrology</b>"), 
                                             leafletOutput("map3", height=750) %>% withSpinner())
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Percent disturbed", tableOutput("tab5"))
+                                   tabPanel(HTML("<b>Percent disturbed</b>"), tableOutput("tab5"))
                                  ),
                                )
                        ),
@@ -122,16 +122,16 @@ ui = dashboardPage(skin="blue",
                                fluidRow(
                                  tabBox(
                                    id = "one", width="8",
-                                   tabPanel("Upstream", 
+                                   tabPanel(HTML("<b>Upstream</b>"), 
                                             leafletOutput("map4", height=750) %>% withSpinner())
                                  ),
                                  tabBox(
                                    id="two", width="4",
-                                   tabPanel("Upstream disturbance description", htmlOutput("upstreamDesc"))
+                                   tabPanel(HTML("<b>Upstream disturbance description</b>"), htmlOutput("upstreamDesc"))
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Upstream disturbances", tableOutput("tab6"))
+                                   tabPanel(HTML("<b>Headwater disturbed (sq km) within the FDA</b>"), tableOutput("tab6"))
                                  ),            
                                )
                        )
@@ -639,17 +639,17 @@ server = function(input, output) {
   # UPSTREAM SECTION
   ####################################################################################################
   catch_out <- eventReactive(input$goButtonUpstream, {
-    
     # Tabulate dist area per catchment
     dist <- st_union(footprint_sf())
     i <- st_intersection(catchments(), dist)
     distArea <- i %>% 
-      mutate(area_dist = st_area(.)/1000000 %>% as.numeric()) %>%
+      mutate(area_dist = st_area(.) %>% as.numeric()) %>%
       st_drop_geometry()
     catchs <- st_drop_geometry(catchments())
     catchs <-merge(catchs, distArea[,c("CATCHNUM", "area_dist")], by= "CATCHNUM", all.x = TRUE)
     catchs$area_dist[is.na(catchs$area_dist)] <- 0
     catchs$area_dist <- as.numeric(catchs$area_dist)
+    
     feature_list <- unique(upstream_catch()$catchments)
     catch_list <- unique(catchments()$CATCHNUM)
     for(catch_id in catch_list){
@@ -658,22 +658,28 @@ server = function(input, output) {
         catchments_list <- {upstream_catch()[upstream_catch()$catchments == catch_id, "value"]}
         catchments_list <- c(catch_id, catchments_list)
         catch <- filter(catchs, catchs$CATCHNUM %in% catchments_list)
+        # Upstreamn area
+        upar <- catch %>%
+          dplyr::summarise(upstream_area = sum(Area_Total)) %>%
+          dplyr::mutate(id = catch_id) 
+        catchs$uparea[catchs$CATCHNUM ==upar$id] <- round(upar$upstream_area, 1)
         # Total area upstreamn disturbed
         upad <- catch %>%
           dplyr::summarise(upstream_area_dist = sum(catch$area_dist)) %>%
-          dplyr::mutate(id = catch_id) #%>%
-        catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 4)
+          dplyr::mutate(id = catch_id) 
+        catchs$upadist[catchs$CATCHNUM ==upad$id] <- round(upad$upstream_area_dist, 1)
         uppd <- catch %>%
-          dplyr::summarise(upstream_percent_dist = sum(.data$area_dist) / sum(.data$Area_Total/1000000)) %>%
-          dplyr::mutate(id = catch_id) #%>%
-        catchs$uppdist[catchs$CATCHNUM ==uppd$id] <- round(uppd$upstream_percent_dist, 2)
+          dplyr::summarise(upstream_percent_dist = sum(.data$area_dist) / sum(.data$Area_Total)) %>%
+          dplyr::mutate(id = catch_id) 
+        catchs$uppdist[catchs$CATCHNUM ==uppd$id] <- round(uppd$upstream_percent_dist, 1)
       } else { 
-        catchs$upadist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id], 4)
-        catchs$uppdist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id]/(catchs$Area_Total[catchs$CATCHNUM == catch_id]/1000000), 2)
+        catchs$upadist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id], 1)
+        catchs$uppdist[catchs$CATCHNUM ==catch_id] <- round(catchs$area_dist[catchs$CATCHNUM == catch_id]
+                                                            /(catchs$Area_Total[catchs$CATCHNUM == catch_id]), 1)
       }
     }
-    catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "upadist", "uppdist", "area_dist")], by = "CATCHNUM", all.x = TRUE)
-  })
+    catch_out <- merge(catchments(), catchs[,c("CATCHNUM", "uparea","upadist", "uppdist", "area_dist")], by = "CATCHNUM", all.x = TRUE)
+    })
   
   output$upstreamDesc <- renderText({
     includeMarkdown("docs/upstream.md")
@@ -682,18 +688,23 @@ server = function(input, output) {
   output$map4 <- renderLeaflet({
     bnd <- st_transform(bnd(), 4326)
     catch_4326 <- st_transform(catchments(), 4326)
+    lakesrivers <- st_transform(lakesrivers(), 4326)
+    streams <- st_transform(streams(), 4326)
     
     map_bounds <- bnd %>% st_bbox() %>% as.character()
+    hl_opts <- highlightOptions(color = "azure2", bringToFront = TRUE)
     
     m <- leaflet() %>% 
       addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
       addPolygons(data=bnd, color='black', fill=F, weight=2, group="FDA") %>%
+      addPolygons(data=lakesrivers, color='blue', weight=1, group="LakesRivers") %>%
+      addPolylines(data=streams, color='blue', weight=1, group="Streams") %>%
       fitBounds(map_bounds[1], map_bounds[2], map_bounds[3], map_bounds[4]) %>% # set view to the selected FDA
       addPolygons(data=catch_4326, color='black', fill=F, weight=1, group="Catchments") %>%
       addLayersControl(position = "topright",
-                       overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments"),
+                       overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "LakesRivers", "Streams", "Catchments"),
                        options = layersControlOptions(collapsed = FALSE)) %>%
-      hideGroup(c("Catchments"))
+      hideGroup(c("LakesRivers", "Streams", "Catchments"))
   
     
     if(input$goButton > 0){
@@ -701,21 +712,25 @@ server = function(input, output) {
       vv <- st_transform(footprint_sf(), 4326)
       
       m <- m %>%
-        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
-        addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+        addMapPane(name = "layer1", zIndex=420) %>%
+        addMapPane(name = "layer2", zIndex=380) %>%
+        addPolygons(data=vv, color='black', stroke=F, fillOpacity=0.5, group='Footprint', options = leafletOptions(pane = "layer1")) %>%
+        addPolygons(data=v, color='blue', stroke=F, fillOpacity=0.5, group='Intactness', options = leafletOptions(pane = "layer1")) %>%
         addLayersControl(position = "topright",
-                         overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Intactness","Footprint"),
-                         options = layersControlOptions(collapsed = FALSE))
+                         overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "LakesRivers", "Streams", "Catchments", "Intactness", "Footprint"),
+                         options = layersControlOptions(collapsed = FALSE)) %>%
+        hideGroup(c("LakesRivers", "Streams", "Catchments"))
     }
     
     if (input$goButtonUpstream) {
-      catch_out <- st_transform(catch_out(), 4326)
-      stralher1 <- subset(catch_out, catch_out$STRAHLER == 1)
-      stralher2 <- subset(catch_out, catch_out$STRAHLER == 2)
+      catch_map <- st_transform(catch_out(), 4326)
+      #Map strahler using mask
+      stralher1 <- subset(catch_map, catch_map$STRAHLER == 1)
+      stralher2 <- subset(catch_map, catch_map$STRAHLER < 3)
       
       ## Create a continuous palette function
-      min <- min(catch_out$upadist)
-      max <- max(catch_out$upadist)
+      min <- min(catch_map$upadist)
+      max <- max(catch_map$upadist)
       catchupadist <- colorNumeric(
         palette = "RdBu",
         domain = min:max,
@@ -724,25 +739,32 @@ server = function(input, output) {
       ## Create bin palette function for percent
       catchuppdist = colorBin(
         palette = 'RdBu', 
-        domain = catch_out$uppdist, 
+        domain = catch_map$uppdist, 
         bins = 10,
         reverse = TRUE)
       
-      m <- m %>% addPolygons(data=catch_out, color=~catchupadist(upadist), stroke=F, fillOpacity=1, group="Upstream area disturbed (sq km)") %>%
-        addPolygons(data=catch_out, color=~catchuppdist(uppdist), stroke=F, fillOpacity=1, group="Upstream percent disturbed") %>%
-        addPolygons(data=stralher1, fillColor="#ffff00", stroke=F, fillOpacity=0.8, group="Stralher 1") %>%
-        addPolygons(data=stralher2, fillColor="#eec900", stroke=F, fillOpacity=0.8, group="Stralher 2") %>%
-        addLegend(position = "bottomleft", pal = catchupadist, values = catch_out$upadist, opacity = 1,
-                  title = "Upstream area disturbed (sq km)", 
+      m <- m %>% 
+        addPolygons(data=bnd, color='black', fill=F, group="Base layer (FDA)") %>%
+        addPolygons(data=catch_map, color=~catchupadist(upadist), stroke=F, fillOpacity=0.7, group="Upstream area disturbed (sq km)", options = leafletOptions(pane = "layer2")) %>%
+        addPolygons(data=catch_map, color=~catchuppdist(uppdist), stroke=F, fillOpacity=0.7, group="Upstream percent disturbed", options = leafletOptions(pane = "layer2")) %>%
+        #addPolygons(data=stralher1, fillColor="yellow", stroke=F, fillOpacity=0.5, group="Stralher order 1 headwater", options = leafletOptions(pane = "layer1")) %>%
+        #addPolygons(data=stralher2, fillColor="yellow", stroke=F, fillOpacity=0.7, group="Stralher order 1 and 2 headwater", options = leafletOptions(pane = "layer1")) %>% 
+        addPolygons(data=stralher1, color='black', fill=F, weight=0.8, group="Stralher order 1 headwater", options = leafletOptions(pane = "layer1")) %>%
+        addPolygons(data=stralher2, color='black', fill=F, weight=0.8, group="Stralher order 1 and 2 headwater", options = leafletOptions(pane = "layer1")) %>% 
+        
+        addLegend(position = "bottomleft", pal = catchupadist, values = catch_map$upadist, opacity = 1,
+                  title = "Upstream area disturbed (sq km)", labFormat = labelFormat(
+                  transform = function(x) x / 1000000 ),
                   group = "Upstream area disturbed (sq km)") %>%
-        addLegend(position = "bottomleft", pal = catchuppdist, values = catch_out$uppdist, opacity = 1,
+        addLegend(position = "bottomleft", pal = catchuppdist, values = catch_map$uppdist, opacity = 1,
                   title = "Upstream percent disturbed", labFormat = labelFormat(
                     suffix = "%", 
                     transform = function(x) 100 * x
                   ), group = "Upstream percent disturbed") %>%
+
         addLayersControl(position = "topright",
-                         baseGroups=c("Upstream area disturbed (sq km)", "Upstream percent disturbed"),
-                         overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Footprint", "Stralher 1", "Stralher 2"),
+                         baseGroups=c("Base layer (FDA)", "Upstream area disturbed (sq km)", "Upstream percent disturbed"),
+                         overlayGroups = c("Esri.NatGeoWorldMap", "LakesRivers", "Streams", "Catchments", "Stralher order 1 headwater", "Stralher order 1 and 2 headwater", "Footprint"),
                          #overlayGroups = c("Esri.NatGeoWorldMap", "FDA", "Catchments", "Footprint", "Upstream area disturbed", "Upstream percent disturbed"),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         # control legend apparition (show/hide toggle)
@@ -759,7 +781,7 @@ server = function(input, output) {
             updateLegend();
             this.on('baselayerchange', e => updateLegend());
           }") %>%
-        hideGroup(c("Catchments", "Intactness", "Footprint", "Stralher 1", "Stralher 2"))
+        hideGroup(c("Catchments", "Intactness", "Footprint", "Stralher order 1 headwater", "Stralher order 1 and 2 headwater"))
       
     }
     m
@@ -767,28 +789,28 @@ server = function(input, output) {
   dta6 <- reactive({
     if (input$goButtonUpstream) {
       stralher1 <- subset(catch_out(), catch_out()$STRAHLER == 1)
-      stralher2 <- subset(catch_out(), catch_out()$STRAHLER == 2)
+      stralher2 <- subset(catch_out(), catch_out()$STRAHLER < 3)
       
-      x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=0, Disturb_area=0, Disturb_pct=0)
-      x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
-      x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
-      x$Disturb_area[x$Class=='Stralher1'] <- round(sum(stralher1$area_dist,2))
-      x$Disturb_area[x$Class=='Stralher2'] <- round(sum(stralher2$area_dist,2))
-      x$Disturb_pct[x$Class=='Stralher1'] <- round(sum(stralher1$area_dist)/sum(stralher1$Area_Total/1000000)*100,2)
-      x$Disturb_pct[x$Class=='Stralher2'] <- round(sum(stralher2$area_dist)/sum(stralher2$Area_Total/1000000)*100,2)
+      x <- tibble(Headwaters=c('Stralher order 1','Stralher order 1 and 2'), Total_Area=0, Disturbed_area=0, Disturbed_pct=0)
+      x$Total_Area[x$Headwaters=='Stralher order 1'] <- round(sum(stralher1$Area_Total/1000000),1)
+      x$Total_Area[x$Headwaters=='Stralher order 1 and 2'] <- round(sum(stralher2$Area_Total/1000000),1)
+      x$Disturbed_area[x$Headwaters=='Stralher order 1'] <- round(sum(stralher1$area_dist/1000000),1)
+      x$Disturbed_area[x$Headwaters=='Stralher order 1 and 2'] <- round(sum(stralher2$area_dist/1000000),1)
+      x$Disturbed_pct[x$Headwaters=='Stralher order 1'] <- round(sum(stralher1$area_dist/1000000)/sum(stralher1$Area_Total/1000000)*100,1)
+      x$Disturbed_pct[x$Headwaters=='Stralher order 1 and 2'] <- round(sum(stralher2$area_dist/1000000)/sum(stralher2$Area_Total/1000000)*100,1)
     } else {
-      x <- tibble(Class=c('Stralher1','Stralher2'), Area_km2=c(0,0), Disturb_area=c(NA,NA), Disturb_pct=c(NA,NA))
+      x <- tibble(Headwaters=c('Stralher order 1','Stralher order 1 and 2'), Total_Area=c(0,0), Disturbed_area=c(NA,NA), Disturbed_pct=c(NA,NA))
       stralher1 <- subset(catchments(), catchments()$STRAHLER == 1)
-      stralher2 <- subset(catchments(), catchments()$STRAHLER == 2)
-      x$Area_km2[x$Class=='Stralher1'] <- round(sum(stralher1$Area_Total/1000000,2))
-      x$Area_km2[x$Class=='Stralher2'] <- round(sum(stralher2$Area_Total/1000000,2))
+      stralher2 <- subset(catchments(), catchments()$STRAHLER < 3)
+      x$Total_Area[x$Headwaters=='Stralher order 1'] <- round(sum(stralher1$Area_Total/1000000,1))
+      x$Total_Area[x$Headwaters=='Stralher order 1 and 2'] <- round(sum(stralher2$Area_Total/1000000,1))
     }
     x
   })
   
   output$tab6 <- renderTable({
     dta6()
-  })
+  }, digits = 1)
   ####################################################################################################
   # DOWNLOAD SHAPEFILE
   ####################################################################################################
@@ -799,6 +821,21 @@ server = function(input, output) {
       st_write(footprint_sf(), dsn=file, layer='footprint')
       st_write(intactness_sf(), dsn=file, layer='intactness', append = TRUE)
       st_write(bnd(), dsn=file, layer='fda_boundary', append = TRUE)
+    }
+  )
+  
+  output$downloadCatchment <- downloadHandler(
+    filename = function() {'catchments_upstream_stats.gpkg'},
+    content = function(file) {
+      catch_dl <- catch_out() %>%
+        mutate(Area_Land = rount(Area_Land,1),
+               Area_Water = round(Area_Water,1),
+               Area_Total = round(Area_Total,1),
+               Prop_Intact =round((Area_Total - area_dist)/Area_Total*100,1),
+               Upstream_Area = round(uparea,1),
+               Upstream_Prop_Intact = round(((uparea - upadist)/uparea)*100,1))
+      catch_dl <- catch_dl[,c("CATCHNUM", "Area_Land", "Area_Water","Area_Total", "Prop_Intact",  "Upstream_Area", "Upstream_Prop_Intact", "STRAHLER")]
+      st_write(catch_dl, dsn=file, layer='catchments')
     }
   )
 }
