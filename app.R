@@ -44,18 +44,23 @@ ui = dashboardPage(skin="blue",
                        condition = "input.tabs == 'upstream'",
                        hr(),
                        actionButton("goButtonUpstream", "View upstream disturbances")
+                     ),
+                     conditionalPanel(
+                       condition = "input.tabs == 'upstream'",
+                       hr(),
+                       downloadButton("downloadCatchment","Download catchments")
                      )
-                     
                      
                    ),
                    dashboardBody(
                      useShinyjs(),
+                     tags$head(tags$style(".skin-blue .sidebar a { color: #444; }")),
                      tabItems(
                        tabItem(tabName="overview",
                                fluidRow(
                                  tabBox(
                                    id = "zero", width="12",
-                                   tabPanel("Welcome!", htmlOutput("help")),
+                                   tabPanel(HTML("<b>Welcome!</b>"), htmlOutput("help")),
                                    #tabPanel("Footprint", includeMarkdown("../docs/footprint.md")),
                                    #tabPanel("Documentation", htmlOutput("datasets"))
                                  )
