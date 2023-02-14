@@ -32,7 +32,8 @@ ui = dashboardPage(skin="blue",
                        condition = "input.tabs == 'fri' || input.tabs == 'land' || input.tabs == 'hydro' || input.tabs == 'upstream'",
                        sliderInput("buffer1", label="Linear buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
                        sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
-                       sliderInput("area1", label="Minimum size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
+                       sliderInput("area1", label="Min size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
+                       checkboxInput("nobound", label = 'Boundary is not a barrier', value = F),
                        actionButton("goButton", "Generate intactness map")
                      ),
                      conditionalPanel(
@@ -156,7 +157,7 @@ server = function(input, output) {
   fda <- reactive({
     paste0('www/fda_',tolower(input$fda),'.gpkg')
   })
-  
+
   fda_hydro <- reactive({
     paste0('www/fda_',tolower(input$fda),'_hydro.gpkg')
   })
@@ -164,7 +165,11 @@ server = function(input, output) {
   bnd <- reactive({
     st_read(fda(), 'FDA', quiet=T)
   })
-  
+
+  bnd10k <- reactive({
+    x <- st_buffer(bnd(), 10000)
+  })
+
   lakesrivers <- reactive({
     st_read(fda_hydro(), 'lakes_rivers', quiet=T) %>% st_union()
   })
@@ -331,10 +336,19 @@ server = function(input, output) {
   
   # Intactness
   intactness_sf <- eventReactive(input$goButton, {
-    ifl <- st_difference(bnd(), footprint_sf())
-    x <- st_cast(ifl, "POLYGON")
-    x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
-    y <- filter(x, area_km2 > input$area1)
+    if (input$nobound) {
+        ifl <- st_difference(bnd10k(), footprint_sf()) %>%
+            st_cast('POLYGON')
+        x <- mutate(ifl, area_km2=as.numeric(st_area(ifl)/1000000))
+        y <- filter(x, area_km2 > input$area1)
+        x <- st_intersection(y, bnd())
+        y <- st_collection_extract(x, 'POLYGON')
+    } else {
+        ifl <- st_difference(bnd(), footprint_sf())
+        x <- st_cast(ifl, "POLYGON")
+        x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
+        y <- filter(x, area_km2 > input$area1)
+    }
   })
   
   
