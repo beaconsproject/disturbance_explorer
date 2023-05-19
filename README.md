@@ -7,8 +7,9 @@ The Regional Disturbance Explorer is an R shiny app that enables users to genera
   - Select an existing fundamental drainage area (FDA) or upload a area of interest (AOI) as a geopackage
   - View the distribution of natural and anthropogenic surface disturbances within a fundamental drainage area (watershed)
   - Calculate the regional human footprint (or landscape intactness) applying user-defined buffers of influence around linear or areal disturbances
+  - Save footprint and intactness maps as a geopackage for use in QGIS or ArcGIS
 
-The app is located at: https://beaconsproject.shinyapps.io/disturbance_explorer [app has not yet been updated]
+The app is located at: https://beaconsproject.shinyapps.io/disturbance_explorer [Note that the latest version will be uploaded by May 31, 2023]
 
 The app can also be run from a local machine using the following steps:
 
@@ -19,7 +20,7 @@ The app can also be run from a local machine using the following steps:
 
   3. Start the Shiny app:
 
-    shiny::runGitHub("beaconsproject/disturbance_explorer") # this doesn't work yet
+    shiny::runGitHub("beaconsproject/disturbance_explorer") # broken, needs to be fixed!
 
 ### Issues and future functionality
 
