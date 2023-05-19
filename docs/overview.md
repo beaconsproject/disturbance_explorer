@@ -14,20 +14,23 @@ Figure 1. Shiny-based disturbance explorer app.
 
 The app consists of four sections:
 
-1. **Overview**:
+**Overview**:
+  
   - Provides a description of the app, its functionality, and the demo datasets.
 
-2. **Footprint/intactness**:
+**Select an area of interest**:
+  
+  - Select an existing fundamental drainage area (FDA)
+  - Upload an area of interest (AOI) polygon as a geopackage ('.gpkg')
+  
+**Calculate footprint/intactness**:
+  
   - view linear and areal anthropogenic surface disturbances, forest fires, and mining claims
   - view a summary of the length or area of each disturbance type that occurs in the region - with or without buffers
   - compare regional estimates of intactness to those provided by Intact Forest Landscapes for the years 2000 and 2020
 
-3. **Effects on landcover**:
-  - view the distribution of landcover in the region
-  - view a table showing the area of individual landcover types along with an estimate of the proportion that is affected by anthropogenic disturbances
-  - select landcover type to view a map showing its distribution along with buffered disturbances
-
-4. **Effects on hydrology**:
+**Save footprint and intactness maps**:
+  
   - view a map of streams, rivers, and lakes
   - view a table showing length and areas of streams, rivers, and lakes
   - explore the proportion of streams, rivers, and lakes are within a user-defined distance of anthropogenic disturbances
@@ -36,9 +39,9 @@ The app consists of four sections:
 
 ### Regional disturbance map
 
-The key input data is the regional disturbance dataset. Currently, only open source file geopackages ("gpkg") can be used. The demo datasets (fda_10ab.gpkg and fda_09ea.gpkg) are from fundamental drainage areas (watersheds) located in the Yukon. They include the following layers. A vignette will soon be available describing how users can create a similar dataset for another region.
+The key input data is the regional disturbance dataset. Currently, only open source file geopackages ("gpkg") can be used. The demo dataset (fda9.gpkg) is comprised of 9 fundamental drainage areas (watersheds) located in the Yukon and British Columbia. They include the following layers. A vignette will soon be available describing how users can create a similar dataset for another region.
 
-The **fda_10ab.gpkg** geopackage includes the following layers:
+The **fda9.gpkg** geopackage includes the following layers:
 
   - FDA
   - IFL_2000
@@ -63,11 +66,3 @@ The **Linear_Features** layer includes the following attributes:
 - CREATED_BY
 - IMAGE_DATA
 - Length_km
-
-### Landcover map
-
-**Land cover 2019**. High-resolution (30m) annual forest land cover maps for Canada's forested ecosystems. Land cover maps for the years 1984-2019 can be downloaded from https://opendata.nfis.org/mapserver/nfis-change_eng.html
-
-### Hydrology data
-
-**Fundamental drainage areas**. Consists of many hydrology layers including streams, rivers, and lakes for each fundamental drainage area (FDA) in Canada. The FDA data can be downloaded from https://open.canada.ca/data/en/dataset/a4b190fe-e090-4e6d-881e-b87956c07977

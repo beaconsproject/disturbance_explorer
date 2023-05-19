@@ -4,7 +4,6 @@ library(terra)
 library(raster)
 library(leaflet)
 library(shinydashboard)
-library(rhandsontable)
 library(shinyjs)
 library(shinyWidgets)
 library(shiny)
@@ -15,12 +14,7 @@ ui = dashboardPage(skin="blue",
                    dashboardHeader(title = "Regional Disturbance"),
                    dashboardSidebar(
                      sidebarMenu(id = "tabs",
-                                 #menuItem("Overview", tabName = "overview", icon = icon("th")),
                                  menuItem("Footprint/intactness", tabName = "fri", icon = icon("th"))
-                                 #menuItem("Effects on landcover", tabName = "land", icon = icon("th")),
-                                 #menuItem("Effects on hydrology", tabName = "hydro", icon = icon("th")),
-                                 #menuItem("Upstream disturbances", tabName = "upstream", icon = icon("th"))
-                                 #menuItem("Sensitivity analysis", tabName = "sa", icon = icon("th"))
                      ),
                      hr(),
                      
@@ -34,7 +28,6 @@ ui = dashboardPage(skin="blue",
                        sliderInput("buffer2", label="Areal buffer size (m):", min=0, max=2000, value = 1000, step=100, ticks=FALSE),
                        sliderInput("area1", label="Min size of intact areas (km2):", min=0, max=2000, value = 500, step=100, ticks=FALSE),
                        checkboxInput("nobound", label = 'Boundary is not a barrier', value = F),
-                       #checkboxInput("potential", label = 'Include potential disturbances', value = F),
                        actionButton("goButton", "Generate intactness map")
                      ),
                      conditionalPanel(
@@ -63,8 +56,6 @@ ui = dashboardPage(skin="blue",
                                  tabBox(
                                    id = "zero", width="12",
                                    tabPanel(HTML("<b>Welcome!</b>"), htmlOutput("help")),
-                                   #tabPanel("Footprint", includeMarkdown("../docs/footprint.md")),
-                                   #tabPanel("Documentation", htmlOutput("datasets"))
                                  )
                                )
                        ),
@@ -73,15 +64,6 @@ ui = dashboardPage(skin="blue",
                                  tabBox(
                                    id = "one", width="8",
                                    tabPanel(HTML("<b>Map viewer</b>"), leafletOutput("map", height=750) %>% withSpinner()),
-                                   tabPanel(HTML("<b>Buffers</b>"), 
-                                            tags$h2("Custom buffers"),
-                                            tags$p("Buffer widths can specified by disturbance type using the table below. Otherwise buffer width is set using the 
-                                    sliders on the map view."),
-                                            materialSwitch("custom_buffer_switch",
-                                                           label = "Use custom buffers",
-                                                           value = FALSE, status = "primary",
-                                                           inline = TRUE),
-                                            rHandsontableOutput('buffer_table'))
                                  ),
                                  tabBox(
                                    id = "two", width="4",
@@ -175,112 +157,12 @@ server = function(input, output) {
   })    
   
   ####################################################################################################
-  # SET UP CUSTOM BUFFER TABLE
-  ####################################################################################################
-  
-  # Activate grey out sliders if button selected. Note that disable doesn't seem to work on the table. Instead we can set it to read only mode when rendering.
-  observe({
-    
-    if(input$custom_buffer_switch == TRUE){
-      shinyjs::disable("buffer1")
-      shinyjs::disable("buffer2")
-    } else{
-      shinyjs::enable("buffer1")
-      shinyjs::enable("buffer2")
-    }
-  })
-  
-  reactive_vals <- reactiveValues() # This sets up a reactive element that will store the buffer width df
-  
-  # Make table of unique disturbance types in areal linear attribute tables
-  output$buffer_table <- renderRHandsontable({
-    
-    linear_types_df <- linear() %>%
-      st_drop_geometry() %>%
-      group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-      summarise(Features = "Linear") %>%
-      ungroup() %>%
-      rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
-      relocate(Features, Industry, Disturbance)
-    
-    area_types_df <- areal() %>%
-      st_drop_geometry() %>%
-      group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-      summarise(Features = "Areal") %>%
-      rename(Industry = TYPE_INDUSTRY, Disturbance = TYPE_DISTURBANCE) %>%
-      relocate(Features, Industry, Disturbance)
-    
-    types_df <- rbind(linear_types_df, area_types_df) %>%
-      arrange(Features, Industry, Disturbance) %>%
-      mutate(Buffer = 1000)
-    
-    if(input$custom_buffer_switch == TRUE){
-      rhandsontable(types_df) %>%
-        hot_cols(columnSorting = TRUE) %>%
-        hot_col("Features", readOnly = TRUE) %>%
-        hot_col("Industry", readOnly = TRUE) %>%
-        hot_col("Disturbance", readOnly = TRUE)
-    } else{
-      # grey out the table and make it read_only (this is a work around because shinyjs::disable doesn't work)
-      rhandsontable(types_df, readOnly = TRUE) %>%
-        hot_cols(renderer = "
-           function (instance, td, row, col, prop, value, cellProperties) {
-             Handsontable.renderers.NumericRenderer.apply(this, arguments);
-              td.style.background = 'lightgrey';
-              td.style.color = 'grey';
-           }")
-    }
-  })
-  
-  observe({
-    reactive_vals$buffer_tab <- hot_to_r(input$buffer_table)
-  })
-  
-  ####################################################################################################
   # BUFFER DISTURBANCES AND CALCULATE FOOTPRINT AND INTACTNESS
   ####################################################################################################
   
   # Footprint
   footprint_sf <- eventReactive(input$goButton, {
     
-    if(input$custom_buffer_switch == TRUE){
-      # If custom buffer table requested, for each unique buffer width, extract all features and buffer
-      # Then union all layers
-      unique_buffers_linear <- unique(reactive_vals$buffer_tab$Buffer[reactive_vals$buffer_tab$Features == "Linear"]) # get unique buffers
-      counter <- 1
-      for(i in unique_buffers_linear){
-        buff_sub <- reactive_vals$buffer_tab %>%
-          filter(Features == "Linear", Buffer == i)
-        linear_join <- right_join(linear(), buff_sub, by = c("TYPE_INDUSTRY" = "Industry", "TYPE_DISTURBANCE" = "Disturbance"))
-        linear_buff <- st_union(st_buffer(linear_join, i))
-        
-        if(counter == 1){
-          linear_final <- linear_buff
-        } else{
-          linear_final <- st_union(linear_final, linear_buff)
-        }
-        counter <- counter + 1
-      }
-      
-      unique_buffers_areal <- unique(reactive_vals$buffer_tab$Buffer[reactive_vals$buffer_tab$Features == "Areal"]) # get unique buffers
-      counter <- 1
-      for(i in unique_buffers_areal){
-        buff_sub <- reactive_vals$buffer_tab %>%
-          filter(Features == "Areal", Buffer == i)
-        areal_join <- right_join(areal(), buff_sub, by = c("TYPE_INDUSTRY" = "Industry", "TYPE_DISTURBANCE" = "Disturbance"))
-        areal_buff <- st_union(st_buffer(areal_join, i))
-        
-        if(counter == 1){
-          areal_final <- areal_buff
-        } else{
-          areal_final <- st_union(areal_final, areal_buff)
-        }
-        counter <- counter + 1
-      }
-      
-      st_union(linear_final, areal_final)
-      
-    } else{
       v1 <- st_union(st_buffer(linear(), input$buffer1))
       v2 <- st_union(st_buffer(areal(), input$buffer2))
       v <- st_intersection(st_union(v1, v2), bnd())
@@ -288,7 +170,6 @@ server = function(input, output) {
       #if (input$potential) {
       #  v <- st_union(v, quartz())
       #}
-    }
   })
   
   # Intactness
