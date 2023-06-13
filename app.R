@@ -30,12 +30,14 @@ ui = dashboardPage(skin="blue",
          ),
         conditionalPanel(
             condition="input.tabs=='download'",
-            div(style="position:relative; left:calc(5%);", downloadButton("downloadData", "Download features"))
-        )
+            div(style="position:relative; left:calc(6%);", downloadButton("downloadData", "Download features"))
+            )
     ),
   dashboardBody(
+    useShinyjs(),
+    tags$head(tags$style(".skin-blue .sidebar a { color: #444; }")),
     tabItems(
-        tabItem(tabName="overview",
+      tabItem(tabName="overview",
             fluidRow(
                 #box(title = "Mapview", leafletOutput("map1", height=750) %>% withSpinner(), width=12),
                 tabBox(id = "one", width="12",
@@ -60,47 +62,47 @@ server = function(input, output) {
   fda_all <- reactive({
     st_read("www/fda10.gpkg", 'fda', quiet=T)
   })
-  
+
   bnd <- reactive({
     st_read('www/fda10.gpkg', 'bnd', quiet=T)
   })
-  
+
   line_all <- reactive({
     st_read("www/fda10.gpkg", 'sd_line', quiet=T)
   })
-  
+
   poly_all <- reactive({
     st_read("www/fda10.gpkg", 'sd_poly', quiet=T)
   })
-  
+
   ifl2000 <- reactive({
     st_read("www/fda10.gpkg", 'ifl_2000', quiet=T)
   })
-  
+
   ifl2020 <- reactive({
     st_read("www/fda10.gpkg", 'ifl_2020', quiet=T)
   })
-  
+
   selected_fda <- reactive({
     if (input$select_fda >0) {
-      paste0('www/fda',tolower(input$select_fda),'.gpkg') 
+      paste0('www/fda',tolower(input$select_fda),'.gpkg')
     } else {
      "www/fda10.gpkg"
     }
   })
-  
+
   fda <- reactive({
     st_read(selected_fda(), 'fda', quiet=T)
   })
-  
+
   line <- reactive({
       st_read(selected_fda(), 'sd_line', quiet=T)
   })
-  
+
   poly <- reactive({
       st_read(selected_fda(), 'sd_poly', quiet=T)
   })
-  
+
   ################################################################################################
   # Upload AOI and zoom in to its extent
   ################################################################################################
@@ -113,7 +115,7 @@ server = function(input, output) {
       showNotification("Wrong file type, must be geopackage (.gpkg)", type = "error")
     }
   })
-  
+
   ################################################################################################
   # Buffer disturbances and calculate footprint and intactness
   ################################################################################################
@@ -135,8 +137,8 @@ server = function(input, output) {
     }
     # footprint
     v <- st_intersection(st_union(v1, v2), st_buffer(aoi, 100))
-  }) 
-  
+  })
+
   intactness_sf <- eventReactive(input$goButton, {
     if(input$select_fda %in% fda_list){
       aoi <- fda()
@@ -150,9 +152,9 @@ server = function(input, output) {
     x <- st_cast(ifl, "POLYGON")
     x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
     y <- filter(x, area_km2 > input$area1)
-    
+
     return(y)
-  }) 
+  })
   ############################################
   #### RENDER MAP VIEWER
   ############################################
@@ -164,7 +166,7 @@ server = function(input, output) {
     intact2000 <- st_transform(ifl2020(), 4326)
     intact2020 <- st_transform(ifl2000(), 4326)
     map_bounds <- bnd %>% st_bbox() %>% as.character()
-    m <- leaflet() %>% 
+    m <- leaflet() %>%
         addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
         addProviderTiles("Esri.NatGeoWorldMap", group="Esri.NatGeoWorldMap") %>%
         addProviderTiles("Esri.WorldTopoMap", group="Esri.WorldTopoMap") %>%
@@ -183,12 +185,12 @@ server = function(input, output) {
 
     if(input$select_fda >0) {
         if (input$select_fda %in% fda_list) {
-          aoi_sf <- fda() 
+          aoi_sf <- fda()
           #Display fda of interest and respectives disturbances
-          aoi <- st_transform(aoi_sf, 4326)  
-          poly_clip <- st_transform(poly(), 4326) 
-          line_clip <- st_transform(line(), 4326) 
-            
+          aoi <- st_transform(aoi_sf, 4326)
+          poly_clip <- st_transform(poly(), 4326)
+          line_clip <- st_transform(line(), 4326)
+
           map_bounds1 <- aoi %>% st_bbox() %>% as.character()
           m <- m %>%
             fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
@@ -202,14 +204,14 @@ server = function(input, output) {
             hideGroup(c("FDAs","Linear disturbances","Areal disturbances", "Intactness 2000", "Intactness 2020"))
         }
     }
-        
+
     if(!is.null(input$upload_poly)) {
     # Clip to area of interest and display those features
       poly_clip <- st_intersection(st_geometry(poly()), st_geometry(aoi_sf())) %>% st_transform(4326)
       line_clip <- st_intersection(st_geometry(line()), st_geometry(aoi_sf())) %>% st_transform(4326)
       aoi <- st_transform(aoi_sf(), 4326)
       map_bounds2 <- aoi %>% st_bbox() %>% as.character()
-      
+
       m <- m %>%
         fitBounds(map_bounds2[1], map_bounds2[2], map_bounds2[3], map_bounds2[4]) %>%
         addPolygons(data = aoi, fillColor='yellow', color="black", fillOpacity=0.5, weight=4, group="AOI") %>%
@@ -220,12 +222,12 @@ server = function(input, output) {
                   overlayGroups = c("AOI", "AOI linear clipped", "AOI areal clipped", "FDAs","Linear disturbances", "Areal disturbances",  "Intactness 2000", "Intactness 2020"),
                   options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c("FDAs","Linear disturbances", "Areal disturbances", "Intactness 2000", "Intactness 2020"))
-   } 
-    
+   }
+
     if(input$goButton > 0){
       fp_sf <- st_transform(footprint_sf(), 4326)
       intact_sf <- st_transform(intactness_sf(), 4326)
-      if(input$select_fda >0 |!is.null(input$upload_poly)){ 
+      if(input$select_fda >0 |!is.null(input$upload_poly)){
           m <- m %>%
             clearGroup("Areal disturbances") %>%
             clearGroup("Linear disturbances") %>%
@@ -247,10 +249,10 @@ server = function(input, output) {
           hideGroup(c("Footprint","FDAs", "Linear disturbances", "Areal disturbances"))
       }
     }
-    m    
+    m
   })
 
-  
+
     ################################################################################################
     # Intactness table
     ################################################################################################
@@ -262,14 +264,14 @@ server = function(input, output) {
       x$Area[x$Map=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020()))/sum(st_area(fda_all()))*100,1)
 
       # If button has been pressed at least once, keep the intactness/footprint values updated
-      if(input$select_fda >0){ 
+      if(input$select_fda >0){
         aoi <- sum(st_area(fda()))
         ifl2000 <- st_intersection(st_geometry(ifl2000()), st_geometry(fda()))
         ifl2020 <- st_intersection(st_geometry(ifl2020()), st_geometry(fda()))
         x$Area[x$Map=="Area of interest (km2)"] <- round(st_area(fda())/1000000,0)
         x$Area[x$Map=="IFL 2000 (%)"] <- round(sum(st_area(ifl2000))/sum(st_area(fda()))*100,1)
         x$Area[x$Map=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020))/sum(st_area(fda()))*100,1)
-      }  
+      }
       if (!is.null(input$upload_poly)){
         aoi <- sum(st_area(aoi_sf()))
         ifl2000 <- st_intersection(st_geometry(ifl2000()), st_geometry(aoi_sf()))
@@ -293,23 +295,23 @@ server = function(input, output) {
         filename = function() { paste("disturbance_explorer-", Sys.Date(), ".gpkg", sep="") },
         content = function(file) {
             if(!is.null(input$upload_poly)) { #upload polygon
-              poly_clip <- st_intersection(poly(), aoi_sf()) 
+              poly_clip <- st_intersection(poly(), aoi_sf())
               line_clip <- st_intersection(line(), aoi_sf())
               st_write(aoi_sf(), dsn=file, layer='aoi')
               st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
-              st_write(intacness_sf(), dsn=file, layer='intactness', append=TRUE)
+              st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
               st_write(line_clip, dsn=file, layer='linear_disturbance', append=TRUE)
               st_write(poly_clip, dsn=file, layer='areal_disturbance', append=TRUE)
             }else if(input$select_fda >0) { # select fda
               st_write(fda(), dsn=file, layer='fda')
               st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
-              st_write(intacness_sf(), dsn=file, layer='intactness', append=TRUE)
+              st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
               st_write(line(), dsn=file, layer='linear_disturbance', append=TRUE)
               st_write(poly(), dsn=file, layer='areal_disturbance', append=TRUE)
             }else { # whole region
               st_write(fda(), dsn=file, layer='aoi')
               st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
-              st_write(intacness_sf(), dsn=file, layer='intactness', append=TRUE)
+              st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
               st_write(line(), dsn=file, layer='linear_disturbance', append=TRUE)
               st_write(poly(), dsn=file, layer='areal_disturbance', append=TRUE)
             }
