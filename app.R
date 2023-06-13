@@ -3,6 +3,7 @@ library(leaflet)
 library(tidyverse)
 library(shinydashboard)
 library(shinycssloaders)
+library(shinyjs)
 
 fda_list <- c("10aa", "10ab", "10ac", "10ad", "10ba", "10bb", "10bc", "10bd", "10be")
 
