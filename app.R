@@ -77,11 +77,15 @@ server = function(input, output) {
   })
 
   ifl2000 <- reactive({
-    st_read("www/fda10.gpkg", 'ifl_2000', quiet=T)
+    st_read("www/fda10_extra.gpkg", 'ifl_2000', quiet=T)
   })
 
   ifl2020 <- reactive({
-    st_read("www/fda10.gpkg", 'ifl_2020', quiet=T)
+    st_read("www/fda10_extra.gpkg", 'ifl_2020', quiet=T)
+  })
+
+  fires <- reactive({
+    st_read("www/fda10_extra.gpkg", 'fires', quiet=T)
   })
 
   selected_fda <- reactive({
