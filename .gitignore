@@ -1,4 +1,4 @@
-www/archive
 rsconnect
-upload2shinyapps.R
+prep_data.R
+upload2shinyio.R
 Rgui.lnk

@@ -9,7 +9,7 @@ The Regional Disturbance Explorer is an R shiny app that enables users to genera
   - Calculate the regional human footprint (or landscape intactness) applying user-defined buffers of influence around linear or areal disturbances
   - Save footprint and intactness maps as a geopackage for use in QGIS or ArcGIS
 
-The app is located at: https://beaconsproject.shinyapps.io/disturbance_explorer [Note that the latest version will be uploaded by May 31, 2023]
+The app is located at: https://beaconsproject.shinyapps.io/disturbance_explorer 
 
 The app can also be run from a local machine using the following steps:
 
@@ -21,6 +21,10 @@ The app can also be run from a local machine using the following steps:
   3. Start the Shiny app:
 
     shiny::runGitHub("beaconsproject/disturbance_explorer") # broken, needs to be fixed!
+
+
+![app](app.jpg)
+
 
 ### Issues and future functionality
 

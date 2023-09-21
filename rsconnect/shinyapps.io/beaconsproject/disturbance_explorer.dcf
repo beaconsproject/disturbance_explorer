@@ -1,11 +1,10 @@
 name: disturbance_explorer
 title:
-username:
+username: beaconsproject
 account: beaconsproject
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 9391962
-bundleId: 7441201
+appId: 9942695
+bundleId: 7711520
 url: https://beaconsproject.shinyapps.io/disturbance_explorer/
-when: 1689015158.41274
-lastSyncTime: 1689015158.41275
+version: 1
