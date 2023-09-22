@@ -50,7 +50,8 @@ ui = dashboardPage(skin="blue",
                 tabBox(id = "one", width="12",
                     tabPanel("Mapview", leafletOutput("map1", height=750) %>% withSpinner()),
                     tabPanel("Statistics", tableOutput("tab1")),
-                    tabPanel("About", includeMarkdown("docs/overview.md"))
+                    tabPanel("Overview", includeMarkdown("docs/overview.md")),
+                    tabPanel("Quick start", includeMarkdown("docs/quick_start.md"))
                 )
             )
         )
