@@ -5,6 +5,6 @@ account: beaconsproject
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9942695
-bundleId: 7711520
+bundleId: 7715512
 url: https://beaconsproject.shinyapps.io/disturbance_explorer/
 version: 1

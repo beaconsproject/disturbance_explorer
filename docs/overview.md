@@ -38,7 +38,7 @@ If you upload an area of interest, the projection must be EPSG:3579 (NAD83(CSRS)
   - view a map of the buffered footprint 
   - explore the proportion of intactness and footprint
   
- ## Input data
+## Input data
   
 ### Regional disturbance map
   
