@@ -1,6 +1,6 @@
 ## Regional Disturbance Explorer
 
-September 21, 2023
+October 4, 2023
 
 The Regional Disturbance Explorer is an R shiny app that enables users to generate human footprint or landscape intactness maps using regional-scale anthropogenic surface disturbance data. The app includes the following functionality:
 
@@ -20,7 +20,7 @@ The app can also be run from a local machine using the following steps:
 
   3. Start the Shiny app:
 
-    shiny::runGitHub("beaconsproject/disturbance_explorer") # broken, needs to be fixed!
+    shiny::runGitHub("beaconsproject/disturbance_explorer")
 
 
 ![app](app.jpg)
