@@ -24,13 +24,3 @@ The app can also be run from a local machine using the following steps:
 
 
 ![app](docs/pics/app.jpg)
-
-
-### Issues and future functionality
-
-- Issues:
-  - **Select AOI:** Select an existing FDA or upload an AOI geopackage, clip disturbance data, zoom in to new region
-  - **Buffer features:** Currently, only works on the entire planning region, not selected FDA or AOI (this needs to be fixed); also, does not calculate the statistics for populating the 3 tables (see code in app_min.R)
-  - **Download data:** Currently, only works on the entire planning region, not selected FDA or AOI (this needs to be fixed); also, catchments, intactness, and footprint layers need to be added
-- Future functionality:
-  - Eventually, we may want to allow users to upload their own disturbance data in specified format
