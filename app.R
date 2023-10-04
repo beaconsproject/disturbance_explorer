@@ -5,6 +5,7 @@ library(shinydashboard)
 library(shinycssloaders)
 library(shinyjs)
 library(markdown)
+library(shinyMatrix)
 
 fda_list <- c("fda10ab","fda10ad")
 x1 <- st_read("www/fda10ab.gpkg", 'sd_line', quiet=T) %>%
@@ -52,7 +53,7 @@ ui = dashboardPage(skin="blue",
                     tabPanel("Buffer sizes", tags$h4("Define linear buffer sizes:"), matrixInput("linear_buffers", value=m1, rows=list(names=FALSE, extend=TRUE), cols=list(names=TRUE)), tags$h4("Define areal buffer sizes:"), matrixInput("areal_buffers", value=m2, rows=list(names=FALSE, extend=TRUE), cols=list(names=TRUE))),
                     tabPanel("Statistics", tableOutput("tab1")),
                     tabPanel("Overview", includeMarkdown("docs/overview.md")),
-                    tabPanel("Workflow", includeMarkdown("docs/workflow.md")),
+                    #tabPanel("Workflow", includeMarkdown("docs/workflow.md")),
                     tabPanel("Quick start", includeMarkdown("docs/quick_start.md")),
                     tabPanel("Datasets", includeMarkdown("docs/datasets.md"))
                 )
@@ -271,9 +272,9 @@ server = function(input, output, session) {
       addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
       addLayersControl(position = "topright",
         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-        overlayGroups = c("Study region", "Intactness", "Footprint", "FDAs", "Linear disturbances", "Areal disturbances", "Intactness 2000", "Intactness 2020"),
+        overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", "Intactness 2000", "Intactness 2020"),
         options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Footprint", "FDAs", "Intactness 2000", "Intactness 2020"))
+        hideGroup(c("Footprint", "Intactness 2000", "Intactness 2020"))
     }
   })
 
@@ -345,9 +346,9 @@ server = function(input, output, session) {
     }
   )
 
-  #session$onSessionEnded(function() {
-  #  stopApp()
-  #})
+  session$onSessionEnded(function() {
+    stopApp()
+  })
 
 }
 shinyApp(ui, server)

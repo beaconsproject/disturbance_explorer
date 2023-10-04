@@ -16,14 +16,14 @@ The app can also be run from a local machine using the following steps:
   1. Install R (download from r-project.org and follow instructions)
   2. Install the following additional packages:
 
-    install.packages(c("sf","leaflet","tidyverse","shinydashboard","shinycssloaders"))
+    install.packages(c("sf","leaflet","tidyverse","shinydashboard","shinycssloaders","shinyMatrix"))
 
   3. Start the Shiny app:
 
-    shiny::runGitHub("beaconsproject/disturbance_explorer")
+    shiny::runGitHub("beaconsproject/disturbance_explorer") # currently doesn't work
 
 
-![app](app.jpg)
+![app](docs/pics/app.jpg)
 
 
 ### Issues and future functionality
