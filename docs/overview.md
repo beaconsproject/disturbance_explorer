@@ -38,34 +38,5 @@ If you upload an area of interest, the projection must be EPSG:3579 (NAD83(CSRS)
   
 ## Input data
   
-### Regional disturbance map
-  
-The key input data is the regional disturbance dataset. Currently, only open source file geopackages ("gpkg") can be used. The demo dataset (fda10.gpkg) is comprised of 9 fundamental drainage areas (watersheds) located in the Yukon and British Columbia. They include the following layers. A vignette will soon be available describing how users can create a similar dataset for another region.
-  
-The **fda10.gpkg** geopackage includes the following layers:
-    
-  - FDA
-  - IFL_2000
-  - IFL_2020
-  - Fire_History
-  - Quartz_Claims
-  - Areal_Features
-  - Linear_Features
-  
-The **Areal_Features** layer includes the following attributes:
-    
-  - TYPE_INDUSTRY
-  - TYPE_DISTURBANCE
-  - CREATED_BY
-  - IMAGE_DATA
-  - Area_ha
-  
-The **Linear_Features** layer includes the following attributes:
-    
-  - TYPE_INDUSTRY
-  - TYPE_DISTURBANCE
-  - CREATED_BY
-  - IMAGE_DATA
-  - Length_km
-  
- 
+The key input data is the regional disturbance dataset. Currently, only open source file geopackages ("gpkg") can be used. The demo datasets include several fundamental drainage areas (watersheds) located in the Yukon and British Columbia. For a description of the data layers and attributes required by the app, go to the **Datasets** tab.  
+

@@ -6,7 +6,7 @@ The Overview section provides a description of the app, its functionality, and t
 
 <center><img src="Slide1.JPG" width="80%"><br>Figure 1. Shiny-based disturbance explorer app.</center>
 
-## Select AOI
+## Select study area
 
 Click on "Select AOI" to change the area of interest dataset. You have two choices:
 
