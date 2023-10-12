@@ -16,12 +16,10 @@ The Overview section provides a description of the app, its functionality, and t
 
 ## Select study area
 
-Click on "Select AOI" to change the area of interest dataset. You have two choices:
+Click on "Select study area" to change the area of interest dataset. You have two choices:
 
-  - Select an existing fundamental drainage area (FDA)
-  - Upload an area of interest (AOI) polygon as a geopackage ('.gpkg')
-  
-If you upload an area of interest, the projection must be EPSG:3579 (NAD83(CSRS) / Yukon Albers). Moreover, in order to generate intactness and footprint maps, the uploaded polygon must overlay the data extent provided within the app.
+  - Select an existing fundamental drainage area (FDA). This will include all the layers needed to run the app.
+  - Upload a user-defined study area as a geopackage ('.gpkg'). In this case, the onus is on the user to ensure that all the required layers are included, and that the projection is sest to EPSG:3578 (NAD83 / Yukon Albers). See the **Datasets** tab for more details about required layers.
 
 <center><img src="pics/Slide2.JPG" width="80%"><br>Figure 1. Shiny-based disturbance explorer app.</center>
 

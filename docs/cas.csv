@@ -59,3 +59,4 @@ Linear,Mining,Survey / Cutline,500,"A linear cleared area through undeveloped la
 ,,Unknown,500,"Unclassified, or unable to identify type based on imagery, but suspected to be anthropogenic"
 ,Utility,Electric Utility Corridor,500,"Corridor usually running parallel to highway, where transmission lines or other utilities are visible"
 ,,Unknown,500,Unknown linear feature assumed to be a utility corridor; ancillary data is unclear
+,Administration,Survey / Cutline,500,This industry/disturbance type is not in the YG manual

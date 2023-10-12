@@ -21,7 +21,7 @@ The app consists of four sections:
   - Select an existing fundamental drainage area (FDA)
   - Upload an area of interest (AOI) polygon as a geopackage ('.gpkg')
   
-If you upload an area of interest, the projection must be EPSG:3579 (NAD83(CSRS) / Yukon Albers). Moreover, in order to generate intactness and footprint maps, the uploaded polygon must overlay the data extent provided within the app.
+If you upload an area of interest, the projection must be EPSG:3578 (NAD83 / Yukon Albers). Moreover, in order to generate intactness and footprint maps, the uploaded polygon must overlay the data extent provided within the app.
   
 **Buffer disturbance features and calculate footprint and intactness**:
     

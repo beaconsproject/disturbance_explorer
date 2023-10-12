@@ -4,7 +4,7 @@ For each study area (planning region), the **Disturbance Explorer** app depends 
   
 ### Required data layers
 
-The demo datasets or user-defined datasets require the following layers within a file geopackage. All layers within the geopackage should be in the same coordinate reference system e.g., Yukon Albers equal area projection (EPSG:3579).
+The demo datasets or user-defined datasets require the following layers within a file geopackage. All layers within the geopackage should be in the same coordinate reference system e.g., Yukon Albers equal area projection (EPSG:3578).
     
   - fda : a single polygon outlining the boundary of the study area e.g., an FDA; displayed as "Study area" in the map legend.
   - ifl_2000 : distribution of intact forest landscapes in the year 2000; displayed as "Intactness 2000" in the map legend.
