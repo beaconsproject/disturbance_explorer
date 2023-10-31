@@ -2,7 +2,6 @@
 format: md
 ---
 
-
 ```{mermaid}
 flowchart TD
   B(Start the app)

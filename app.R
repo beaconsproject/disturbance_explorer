@@ -16,7 +16,7 @@ m1 <- as.matrix(read_csv('docs/cas.csv')[40:60,2:4] %>% filter(TYPE_DISTURBANCE 
 m2 <- as.matrix(read_csv('docs/cas.csv')[1:39,2:4] %>% filter(TYPE_DISTURBANCE %in% x2))
 
 ui = dashboardPage(skin="blue",
-    dashboardHeader(title = "Regional Disturbance Explorer", titleWidth=320),
+    dashboardHeader(title = "BEACONs Disturbance Explorer", titleWidth=320),
     dashboardSidebar(
         sidebarMenu(id="tabs",
             menuItem("Overview", tabName = "overview", icon = icon("th")),
@@ -43,7 +43,7 @@ ui = dashboardPage(skin="blue",
     ),
   dashboardBody(
     useShinyjs(),
-    tags$head(tags$style(".skin-blue .sidebar a { color: #444; }")),
+    tags$head(tags$style(".skin-blue .sidebar a { color: #8a8a8a; }")),
     tabItems(
       tabItem(tabName="overview",
             fluidRow(
@@ -272,9 +272,9 @@ server = function(input, output, session) {
       addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
       addLayersControl(position = "topright",
         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-        overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", "Intactness 2000", "Intactness 2020"),
+        overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", "Fires", "Intactness 2000", "Intactness 2020"),
         options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Footprint", "Intactness 2000", "Intactness 2020"))
+        hideGroup(c("Footprint", "Fires", "Intactness 2000", "Intactness 2020"))
     }
   })
 
