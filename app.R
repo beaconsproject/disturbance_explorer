@@ -19,7 +19,7 @@ ui = dashboardPage(skin="blue",
     dashboardHeader(title = "BEACONs Disturbance Explorer", titleWidth=320),
     dashboardSidebar(
         sidebarMenu(id="tabs",
-            menuItem("Overview", tabName = "overview", icon = icon("th")),
+            menuItem("Welcome!", tabName = "overview", icon = icon("th")),
             menuItem("Select study area", tabName = "select", icon = icon("th")),
             menuItem("Buffer features", tabName = "buffer", icon = icon("th")),
             menuItem("Download data", tabName = "download", icon = icon("th")),

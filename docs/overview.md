@@ -19,7 +19,7 @@ The app consists of four sections:
 **Select an area of interest**:
     
   - Select an existing fundamental drainage area (FDA)
-  - Upload an area of interest (AOI) polygon as a geopackage ('.gpkg')
+  - Upload an study area polygon as a geopackage ('.gpkg')
   
 If you upload an area of interest, the projection must be EPSG:3578 (NAD83 / Yukon Albers). Moreover, in order to generate intactness and footprint maps, the uploaded polygon must overlay the data extent provided within the app.
   
@@ -27,7 +27,7 @@ If you upload an area of interest, the projection must be EPSG:3578 (NAD83 / Yuk
     
   - view linear and areal anthropogenic surface disturbances, forest fires, and mining claims 
   - apply a custom buffer around the disturbance features
-  - set a minimum patch size of intactness areas after the buffering on the disturbance features are applied. This function will remove every patch in the AOI that are considered not sufficiently large to maintain key ecological processes
+  - set a minimum patch size of intactness areas after the buffering on the disturbance features are applied. This function will remove every patch in the study area that are considered not sufficiently large to maintain key ecological processes
   - compare regional estimates of intactness to those provided by Intact Forest Landscapes for the years 2000 and 2020
   
 **Save footprint and intactness maps**:

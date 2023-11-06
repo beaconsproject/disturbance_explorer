@@ -27,7 +27,7 @@ Click on "Select study area" to change the area of interest dataset. You have tw
 
 Click on the "Buffer sizes" tab to apply buffers of influence around linear and areal (polygonal) feature types. Simply edit the values in the "BUFFER_SIZE" column.
 
-In the left sidebar, you can also set a minimum patch size of intactness areas after the buffering on the disturbance features are applied. This function will remove every patch in the AOI that are considered not sufficiently large to maintain key ecological processes
+In the left sidebar, you can also set a minimum patch size of intactness areas after the buffering on the disturbance features are applied. This function will remove every patch in the study area that are considered not sufficiently large to maintain key ecological processes
   
 <center><img src="pics/Slide3.JPG" width="80%"><br>Figure 1. Shiny-based disturbance explorer app.</center>
 
