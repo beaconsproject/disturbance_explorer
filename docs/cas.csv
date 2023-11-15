@@ -8,9 +8,9 @@ Areal,Agriculture,Agriculture,500,"Farms, ranches, or other agricultural areas"
 ,,Laydown area,500,Areas used to store materials and equipment for mining operations
 ,,Mining,500,Miscellaneous or unknown mining activities
 ,,Placer Mining - Minor,500,Placer mining area with little disturbance
-,,Place Mining - Significant,500,Placer mining area with greater disturbance
+,,Placer Mining - Significant,500,Placer mining area with greater disturbance
 ,,Quartz Mining - Minor,500,Quartz mining area with little disturbance
-,,Quarts Mining - Significant,500,Quartz mining area with greater disturbance
+,,Quartz Mining - Significant,500,Quartz mining area with greater disturbance
 ,,Tailing Pond,500,Tailing pond associated with mining activity
 ,,Camp,500,Mining camp
 ,Oil and Gas,Well Pad,500,Cleared area surrounding oil or gas well
