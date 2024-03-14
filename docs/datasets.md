@@ -1,34 +1,40 @@
 ## Datasets
   
-For each study area (planning region), the **Disturbance Explorer** app depends on several key data layers contained within one GeoPackage ("gpkg" extension). Several example datasets come with the app - they consist of fundamental drainage areas (FDAs or watersheds) from southeast Yukon and northeast BC. In addition, the user can upload his or her own dataset provided that it contains the same layers (and attributes) and is in the same format as the demo dataset. Below we describe the required datasets along with their attributes (if any).
+This page describes the required and optional map layers that are used by the Geopackage Creator and Disturbance Explorer apps.
   
-### Required data layers
+### Map layers
 
-The demo datasets or user-defined datasets require the following layers within a file geopackage. All layers within the geopackage should be in the same coordinate reference system e.g., Yukon Albers equal area projection (EPSG:3578).
-    
-  - fda : a single polygon outlining the boundary of the study area e.g., an FDA; displayed as "Study area" in the map legend.
-  - ifl_2000 : distribution of intact forest landscapes in the year 2000; displayed as "Intactness 2000" in the map legend.
-  - ifl_2020 : distribution of intact forest landscapes in the year 2020; displayed as "Intactness 2020" in the map legend.
-  - fires : distribution of wildfire polygons for the past 70 years; displayed as "Fires" in the map legend.
-  - sd_line : linear anthropogenic surface disturbance features; displayed as "Linear disturbances" in the map legend.
-  - sd_poly : areal (polygonal) anthropogenic surface disturbance features; displayed as "Areal disturbances" in the map legend.
+#### Required
 
-An additional layer, which is not a user-defined layer, is available in the Mapview tab:
+- **Study area** : A single polygon outlining the boundary of the study area e.g., a watershed or ecoregion or any other user-defined area.
+- **Linear disturbances** : Linear anthropogenic surface disturbance features. Available from: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/
+- **Areal disturbances** : Areal (polygonal) anthropogenic surface disturbance features. Available from: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/
+- Fires : Distribution of wildfire polygons for the past 70 years. Available from: https://cwfis.cfs.nrcan.gc.ca/datamart
+- **Intactness 2000** : Distribution of intact forest landscapes in the year 2000. Available from: https://intactforests.org
+- **Intactness 2020** : Distribution of intact forest landscapes in the year 2020. Available from: https://intactforests.org
+- **Protected areas** : Distribution of protected areas from the Canadian Protected and Conserved Areas Database (CPCAD). Available from: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
 
-  - FDAs : location of FDAs that comprise the demo study regions available with the app.
+#### Optional - projected
 
-#### Attributes of linear and areal disturbances
+- **Quartz Claims** : Active quartz mining claims. Available from: https://map-data.service.yukon.ca/geoyukon/Mining/Quartz_Claims_50k/
+- **Place Claims** : Active placer mining claims. Available from: https://map-data.service.yukon.ca/geoyukon/Mining/Placer_Claims_50k/
 
-The fda, ifl_2000, ifl_2020, and fires do not have any specific requirements for attributes; however, they must all be polygonal layers. Conversely, the linear and areal disturbance layers require the following minimum set of attributes (additional attributes will be ignored):
+#### Optional - miscellaneous
+
+- **Caribou Herds** : Environment Yukon. 2020. Yukon caribou herd ranges for 2018 (updated 2020-05-15). Government of Yukon, Whitehorse, Yukon.
+- **Thinhorn Sheep** : Environment Yukon. 2023. Generalized Thinhorn Sheep distribution across the Yukon. Government of Yukon, Whitehorse, Yukon.
+- **Key Wetlands 2011** : Environment Yukon. 2007. Inventory of Important Wetlands. Government of Yukon, Whitehorse, Yukon.
+
+### Attributes of linear and areal disturbances
+
+The **Linear disturbances** and **Areal disturbances** layers include the following two attributes which have to be present to use the Disturbance Explorer and Hydrology Explorer apps (additional attributes will be ignored):
 
 The **Linear_Features** layer must include the following attributes:
     
-  - TYPE_INDUSTRY : a text attribute describing industry type e.g., Mining, Transportation
-  - TYPE_DISTURBANCE : a text attribute describing disturbance type (nested within industry type) e.g., Survey / Cutline, Access Road
+- TYPE_INDUSTRY : a text attribute describing industry type e.g., Mining, Transportation
+- TYPE_DISTURBANCE : a text attribute describing disturbance type (nested within industry type) e.g., Survey / Cutline, Access Road
   
 The **Areal_Features** layer must include the following attributes:
     
-  - TYPE_INDUSTRY : a text attribute describing industry type e.g., Mining, Transportation
-  - TYPE_DISTURBANCE : a text attribute describing disturbance type (nested within industry type) e.g., Drill Pad, Clearing
-
-Additional attributes may be added in the near future.
+- TYPE_INDUSTRY : a text attribute describing industry type e.g., Mining, Transportation
+- TYPE_DISTURBANCE : a text attribute describing disturbance type (nested within industry type) e.g., Drill Pad, Clearing
