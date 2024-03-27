@@ -403,14 +403,29 @@ server = function(input, output, session) {
         m <- m %>%
           fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
           addPolygons(data=aoi, color='black', fill=F, weight=3, group="Study region") %>%
-          addPolylines(data=line_clip, color='red', weight=2, group="Linear disturbances") %>%
-          addPolygons(data=poly_clip, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances") %>%
-          addPolygons(data=fires_clip, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group="Fires") %>%
+          #addPolylines(data=line_clip, color='red', weight=2, group="Linear disturbances") %>%
+          #addPolygons(data=poly_clip, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances") %>%
+          #addPolygons(data=fires_clip, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group="Fires") %>%
           addPolygons(data=intact2000_clip, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intactness 2000") %>%
           addPolygons(data=intact2020_clip, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intactness 2020") #%>%
           #addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Protected areas") #%>%
           grps <- NULL
-          if ('protected_areas' %in% lyr_names()) {
+          if ('linear_disturbance' %in% lyr_names() & nrow(line())>0) {
+            line <- st_transform(line(), 4326)
+            m <- m %>% addPolylines(data=line, color='red', weight=2, group="Linear disturbances")
+            grps <- c(grps,"Linear disturbances")
+          }
+          if ('areal_disturbance' %in% lyr_names() & nrow(poly())>0) {
+            poly <- st_transform(poly(), 4326)
+            m <- m %>% addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances")
+            grps <- c(grps,"Areal disturbances")
+          }
+          if ('fires' %in% lyr_names() & nrow(fires())>0) {
+            fires <- st_transform(fires(), 4326)
+            m <- m %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group='Fires')
+            grps <- c(grps,"Fires")
+          }
+          if ('protected_areas' %in% lyr_names() & nrow(pa2021())>0) {
             pa2021 <- st_transform(pa2021(), 4326)
             m <- m %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group='Protected areas')
             grps <- c(grps,"Protected areas")
@@ -440,9 +455,9 @@ server = function(input, output, session) {
           m <- m %>% 
           addLayersControl(position = "topright",
             baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-            overlayGroups = c("Study region", "Linear disturbances", "Areal disturbances", "Fires", "Intactness 2000", "Intactness 2020", grps),
+            overlayGroups = c("Study region", "Intactness 2000", "Intactness 2020", grps),
             options = layersControlOptions(collapsed = FALSE)) %>%
-          hideGroup(c("Fires", "Intactness 2000", "Intactness 2020", grps))
+          hideGroup(c("Intactness 2000", "Intactness 2020", grps))
          m
       } else {
         # Render the initial map (single boundary)
@@ -461,33 +476,33 @@ server = function(input, output, session) {
   # Update map with intactness/footprint
   ##############################################################################
   mapFoot <- eventReactive(input$goButton,{
-  #observe({
-    #if (input$goButton) {
-      fp_sf <- st_transform(footprint_sf(), 4326)
-      intact_sf <- st_transform(intactness_sf(), 4326)
-      grps <- NULL
-      if ('protected_areas' %in% lyr_names()) {grps <- c(grps,'Protected areas')}
-      if ('Quartz Claims' %in% lyr_names()) {grps <- c(grps,'Quartz Claims')}
-      if ('Placer Claims' %in% lyr_names()) {grps <- c(grps,'Placer Claims')}
-      if ('Caribou Herds' %in% lyr_names()) {grps <- c(grps,'Caribou Herds')}
-      if ('Thinhorn Sheep' %in% lyr_names()) {grps <- c(grps,'Thinhorn Sheep')}
-      if ('Key Wetlands 2011' %in% lyr_names()) {grps <- c(grps,'Key Wetlands 2011')}
-      leafletProxy("map1") %>%
-      clearGroup('Intactness') %>%
-      clearGroup('Footprint') %>%
-      addPolygons(data=intact_sf, color='darkblue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
-      addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
-      addLayersControl(position = "topright",
-        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-        overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", "Fires", "Intactness 2000", "Intactness 2020", "Protected areas", grps),
-        options = layersControlOptions(collapsed = FALSE)) %>%
-        hideGroup(c("Footprint", "Fires", "Intactness 2000", "Intactness 2020", "Protected areas", grps))
-    #}
+    fp_sf <- st_transform(footprint_sf(), 4326)
+    intact_sf <- st_transform(intactness_sf(), 4326)
+    grps <- NULL
+    if ('protected_areas' %in% lyr_names()) {grps <- c(grps,'Protected areas')}
+    if ('Quartz Claims' %in% lyr_names()) {grps <- c(grps,'Quartz Claims')}
+    if ('Placer Claims' %in% lyr_names()) {grps <- c(grps,'Placer Claims')}
+    if ('Caribou Herds' %in% lyr_names()) {grps <- c(grps,'Caribou Herds')}
+    if ('Thinhorn Sheep' %in% lyr_names()) {grps <- c(grps,'Thinhorn Sheep')}
+    if ('Key Wetlands 2011' %in% lyr_names()) {grps <- c(grps,'Key Wetlands 2011')}
+    leafletProxy("map1") %>%
+    clearGroup('Intactness') %>%
+    clearGroup('Footprint') %>%
+    addPolygons(data=intact_sf, color='darkblue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
+    addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
+    addLayersControl(position = "topright",
+      baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+      overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", "Fires", "Intactness 2000", "Intactness 2020", "Protected areas", grps),
+      options = layersControlOptions(collapsed = FALSE)) %>%
+      hideGroup(c("Footprint", "Fires", "Intactness 2000", "Intactness 2020", "Protected areas", grps))
   })
 
   observe({
     if (input$goButton) {
-      mapFoot()
+      #if (nrow(line()>0) & nrow(poly())>0) {
+      if (nrow(poly())>0) {
+        mapFoot()
+      }
     }
   })
 
@@ -546,10 +561,12 @@ server = function(input, output, session) {
           x$Value[x$Attribute=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020))/sum(st_area(aoi_bnd()))*100,1)
       }
       if(input$goButton > 0) {
+        if (nrow(poly())>0) {
         x$Value[x$Attribute=="Intactness (%)"] <- round(sum(st_area(intactness_sf()))/aoi*100, 1)
         x$Value[x$Attribute=="Footprint (%)"] <- round(sum(st_area(footprint_sf()))/aoi*100, 1)
         foot_fires <- st_union(st_union(footprint_sf()), st_union(fires()))
         x$Value[x$Attribute=="Footprint + Fires (%)"] <- round(sum(st_area(foot_fires))/aoi*100, 1)
+        }
       }
       x
       }
