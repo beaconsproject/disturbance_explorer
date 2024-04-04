@@ -336,21 +336,30 @@ server = function(input, output, session) {
   # Buffer disturbances and calculate footprint and intactness
   ##############################################################################
   footprint_sf <- eventReactive(input$goButton, {
+    if (nrow(poly())>0 | nrow(line())>0) {
     aoi <- fda()
     if (input$custom_buffers==TRUE) {
-      m1sub <- as_tibble(input$linear_buffers) %>% select(TYPE_DISTURBANCE, BUFFER_SIZE) %>%      
-        mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
-      line <- left_join(line(), m1sub) %>% filter(!is.na(BUFFER_SIZE))
-      v1 <- st_union(st_buffer(line, line$BUFFER_SIZE))
-      m2sub <- as_tibble(input$areal_buffers) %>% select(TYPE_DISTURBANCE, BUFFER_SIZE) %>% 
-        mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
-      poly <- left_join(poly(), m2sub) %>% filter(!is.na(BUFFER_SIZE))
-      v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE))
+      if (nrow(line())>0) {
+        m1sub <- as_tibble(input$linear_buffers) %>% select(TYPE_DISTURBANCE, BUFFER_SIZE) %>%      
+          mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+        line <- left_join(line(), m1sub) %>% filter(!is.na(BUFFER_SIZE))
+        v1 <- st_union(st_buffer(line, line$BUFFER_SIZE))
+      }
+      if (nrow(poly())>0) {
+        m2sub <- as_tibble(input$areal_buffers) %>% select(TYPE_DISTURBANCE, BUFFER_SIZE) %>% 
+          mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+        poly <- left_join(poly(), m2sub) %>% filter(!is.na(BUFFER_SIZE))
+        v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE))
+      }
     } else {
-      v1 <- st_union(st_buffer(line(), input$buffer1)) %>%
-        st_sf()
-      v2 <- st_union(st_buffer(poly(), input$buffer2)) %>%
-        st_sf()
+      if (nrow(line())>0) {
+        v1 <- st_union(st_buffer(line(), input$buffer1)) %>%
+          st_sf()
+      }
+      if (nrow(poly())>0) {
+        v2 <- st_union(st_buffer(poly(), input$buffer2)) %>%
+          st_sf()
+      }
     }
     if (input$claims==TRUE & ('Quartz Claims' %in% lyr_names() | 'Placer Claims' %in% lyr_names())) {
       if ('Quartz Claims' %in% lyr_names() & !'Placer Claims' %in% lyr_names()) {
@@ -368,17 +377,25 @@ server = function(input, output, session) {
       }
       v <- st_intersection(st_union(st_union(v1, v2),v3), aoi)
     } else {
-      #v <- st_intersection(st_union(v1, v2), st_buffer(aoi, 100))
-      v <- st_intersection(st_union(v1, v2), aoi)
+      if (nrow(line())>0 & nrow(poly())==0) {
+        v <- st_intersection(st_union(v1), aoi)
+      } else if (nrow(poly())>0 & nrow(line())==0) {
+        v <- st_intersection(st_union(v2), aoi)
+      } else if (nrow(poly())>0 & nrow(line())>=0) {
+        v <- st_intersection(st_union(v1, v2), aoi)
+      } 
+    }
     }
   })
 
   intactness_sf <- eventReactive(input$goButton, {
-    aoi <- fda()
-    ifl <- st_difference(aoi, footprint_sf())
-    x <- st_cast(ifl, "POLYGON")
-    x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
-    y <- filter(x, area_km2 > input$area1)
+    if (nrow(poly())>0 | nrow(line())>0) {
+      aoi <- fda()
+      ifl <- st_difference(aoi, footprint_sf())
+      x <- st_cast(ifl, "POLYGON")
+      x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
+      y <- filter(x, area_km2 > input$area1)
+    }
   })
   
   ##############################################################################
@@ -402,6 +419,8 @@ server = function(input, output, session) {
         map_bounds1 <- aoi %>% st_bbox() %>% as.character()
         m <- m %>%
           fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
+          clearGroup('Intactness') %>%
+          clearGroup('Footprint') %>%
           addPolygons(data=aoi, color='black', fill=F, weight=3, group="Study region") %>%
           #addPolylines(data=line_clip, color='red', weight=2, group="Linear disturbances") %>%
           #addPolygons(data=poly_clip, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances") %>%
@@ -499,8 +518,7 @@ server = function(input, output, session) {
 
   observe({
     if (input$goButton) {
-      #if (nrow(line()>0) & nrow(poly())>0) {
-      if (nrow(poly())>0) {
+      if (nrow(poly())>0 | nrow(line())>0) {
         mapFoot()
       }
     }
@@ -561,7 +579,7 @@ server = function(input, output, session) {
           x$Value[x$Attribute=="IFL 2020 (%)"] <- round(sum(st_area(ifl2020))/sum(st_area(aoi_bnd()))*100,1)
       }
       if(input$goButton > 0) {
-        if (nrow(poly())>0) {
+        if (nrow(poly())>0 & nrow(line())>0) {
         x$Value[x$Attribute=="Intactness (%)"] <- round(sum(st_area(intactness_sf()))/aoi*100, 1)
         x$Value[x$Attribute=="Footprint (%)"] <- round(sum(st_area(footprint_sf()))/aoi*100, 1)
         foot_fires <- st_union(st_union(footprint_sf()), st_union(fires()))
