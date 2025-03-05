@@ -174,7 +174,7 @@ server = function(input, output, session) {
   pa2021 <- reactive({
     if (is.null(input$upload_poly)) {
       st_read(selected_fda(), 'protected_areas', quiet=T)
-      } else {
+    } else {
       aoi_pa2021()
     }
   })
@@ -457,27 +457,27 @@ server = function(input, output, session) {
           clearGroup('Intactness') %>%
           clearGroup('Footprint') %>%
           addPolygons(data=aoi, color='black', fill=F, weight=3, group="Study region")
-#          addPolygons(data=intact2000_clip, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intactness 2000") %>%
-#          addPolygons(data=intact2020_clip, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intactness 2020") #%>%
+          addPolygons(data=intact2000_clip, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intactness 2000") %>%
+          addPolygons(data=intact2020_clip, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intactness 2020") #%>%
           grps <- NULL
           if ('linear_disturbance' %in% lyr_names() & nrow(line())>0) {
             line <- st_transform(line(), 4326)
-#            m <- m %>% addPolylines(data=line, color='red', weight=2, group="Linear disturbances")
+            m <- m %>% addPolylines(data=line, color='red', weight=2, group="Linear disturbances")
             grps <- c(grps,"Linear disturbances")
           }
           if ('areal_disturbance' %in% lyr_names() & nrow(poly())>0) {
             poly <- st_transform(poly(), 4326)
-#            m <- m %>% addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances")
+            m <- m %>% addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances")
             grps <- c(grps,"Areal disturbances")
           }
           if ('fires' %in% lyr_names() & nrow(fires())>0) {
             fires <- st_transform(fires(), 4326)
-#            m <- m %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group='Fires')
+            m <- m %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group='Fires')
             grps <- c(grps,"Fires")
           }
           if ('protected_areas' %in% lyr_names() & nrow(pa2021())>0) {
             pa2021 <- st_transform(pa2021(), 4326)
-#            m <- m %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group='Protected areas')
+            m <- m %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group='Protected areas')
             grps <- c(grps,"Protected areas")
           }
 
