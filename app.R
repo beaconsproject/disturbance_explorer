@@ -12,8 +12,42 @@ fda_list <- c("fda10ab","fda10ad")
 m1 <- as.matrix(read_csv('docs/cas.csv')[42:66,2:4]) #%>% filter(TYPE_DISTURBANCE %in% x1))
 m2 <- as.matrix(read_csv('docs/cas.csv')[1:41,2:4]) #%>% filter(TYPE_DISTURBANCE %in% x2))
 
-ui = dashboardPage(skin="blue",
-    dashboardHeader(title = "Disturbance Explorer", titleWidth=220),
+ui = dashboardPage(skin="black",
+                   dashboardHeader(title = tags$div(
+                     tags$img(
+                       src = "logoblanc.png",  # Replace with your logo file name
+                       height = "50px",   # Adjust the height of the logo
+                       style = "margin-right: 10px;"  # Add some spacing around the logo
+                     ),"BEACONs Disturbance Explorer"), titleWidth = 400,
+                     # Add Reload Button Next to Sidebar Toggle
+                     tags$li(
+                       class = "dropdown",
+                       actionButton(
+                         "reload_btn",
+                         label = "Reload",
+                         icon = icon("refresh"),
+                         style = "color: black; background-color: orange; border: none; font-size: 16px;"
+                       ),
+                       style = "position: absolute; left: 50px; top: 10px;"  # Adjust margin for placement next to the toggle
+                     ),
+                     tags$li(
+                       class = "dropdown",  # Required for dropdown functionality
+                       dropdownMenu(
+                         type = "tasks", 
+                         badgeStatus = NULL,
+                         icon = icon("life-ring"),  # Life-ring icon triggering dropdown
+                         headerText = "",  # No header text in dropdown
+                         menuItem("Website", href = "https://beaconsproject.ualberta.ca/", icon = icon("globe")),
+                         menuItem("GitHub", href = "https://github.com/beaconsproject/", icon = icon("github")),
+                         menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
+                       ),
+                       # Plain Text "About Us" Positioned Next to Dropdown
+                       tags$span(
+                         "About Us", 
+                         style = "font-size: 16px; position: relative; top: 15px; right: 10px; white-space: nowrap; color: white;"
+                       )
+                     )
+                   ),
     dashboardSidebar(
         sidebarMenu(id="tabs",
             #HTML(paste0("<br>","<a href='https://beaconsproject.ualberta.ca/' target='_blank'>
@@ -47,7 +81,7 @@ ui = dashboardPage(skin="blue",
     ),
   dashboardBody(
     useShinyjs(),
-    tags$head(tags$style(".skin-blue .sidebar a { color: #8a8a8a; }")),
+    tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "green-theme.css")),
     tabItems(
       tabItem(tabName="overview",
             fluidRow(
@@ -403,6 +437,7 @@ server = function(input, output, session) {
   ##############################################################################
   output$map1 <- renderLeaflet({
     if (!is.null(input$upload_poly)) {
+      
       intact2000 <- st_transform(ifl2000(), 4326)
       intact2020 <- st_transform(ifl2020(), 4326)
       m <- leaflet(options = leafletOptions(attributionControl=FALSE)) %>%
@@ -421,56 +456,31 @@ server = function(input, output, session) {
           fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
           clearGroup('Intactness') %>%
           clearGroup('Footprint') %>%
-          addPolygons(data=aoi, color='black', fill=F, weight=3, group="Study region") %>%
-          #addPolylines(data=line_clip, color='red', weight=2, group="Linear disturbances") %>%
-          #addPolygons(data=poly_clip, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances") %>%
-          #addPolygons(data=fires_clip, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group="Fires") %>%
-          addPolygons(data=intact2000_clip, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intactness 2000") %>%
-          addPolygons(data=intact2020_clip, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intactness 2020") #%>%
-          #addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Protected areas") #%>%
+          addPolygons(data=aoi, color='black', fill=F, weight=3, group="Study region")
+#          addPolygons(data=intact2000_clip, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intactness 2000") %>%
+#          addPolygons(data=intact2020_clip, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intactness 2020") #%>%
           grps <- NULL
           if ('linear_disturbance' %in% lyr_names() & nrow(line())>0) {
             line <- st_transform(line(), 4326)
-            m <- m %>% addPolylines(data=line, color='red', weight=2, group="Linear disturbances")
+#            m <- m %>% addPolylines(data=line, color='red', weight=2, group="Linear disturbances")
             grps <- c(grps,"Linear disturbances")
           }
           if ('areal_disturbance' %in% lyr_names() & nrow(poly())>0) {
             poly <- st_transform(poly(), 4326)
-            m <- m %>% addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances")
+#            m <- m %>% addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances")
             grps <- c(grps,"Areal disturbances")
           }
           if ('fires' %in% lyr_names() & nrow(fires())>0) {
             fires <- st_transform(fires(), 4326)
-            m <- m %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group='Fires')
+#            m <- m %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group='Fires')
             grps <- c(grps,"Fires")
           }
           if ('protected_areas' %in% lyr_names() & nrow(pa2021())>0) {
             pa2021 <- st_transform(pa2021(), 4326)
-            m <- m %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group='Protected areas')
+#            m <- m %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group='Protected areas')
             grps <- c(grps,"Protected areas")
           }
-          if ('Quartz Claims' %in% lyr_names()) {
-            prj1 <- st_transform(prj1(), 4326)
-            m <- m %>% addPolygons(data=prj1, color='red', fill=T, weight=1, group='Quartz Claims')
-            grps <- c(grps,"Quartz Claims")
-          }
-          if ('Placer Claims' %in% lyr_names()) {
-            prj2 <- st_transform(prj2(), 4326)
-            m <- m %>% addPolygons(data=prj2, color='red', fill=T, weight=1, group='Placer Claims')
-            grps <- c(grps,"Placer Claims")
-          }
-          if ('Caribou Herds' %in% lyr_names()) {
-            m <- m %>% addPolygons(data=spp1(), color='red', fill=T, weight=1, group='Caribou Herds')
-            grps <- c(grps,"Caribou Herds")
-          }
-          if ('Thinhorn Sheep' %in% lyr_names()) {
-            m <- m %>% addPolygons(data=spp2(), color='red', fill=T, weight=1, group='Thinhorn Sheep')
-            grps <- c(grps,"Thinhorn Sheep")
-          }
-          if ('Key Wetlands 2011' %in% lyr_names()) {
-            m <- m %>% addPolygons(data=spp3(), color='red', fill=T, weight=1, group='Key Wetlands 2011')
-            grps <- c(grps,"Key Wetlands 2011")
-          }
+
           m <- m %>% 
           addLayersControl(position = "topright",
             baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
