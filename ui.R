@@ -25,7 +25,11 @@ ui = dashboardPage(skin="black",
                          headerText = "",  # No header text in dropdown
                          menuItem("Website", href = "https://beaconsproject.ualberta.ca/", icon = icon("globe")),
                          menuItem("GitHub", href = "https://github.com/beaconsproject/", icon = icon("github")),
-                         menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
+                         #menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
+                         tags$li(
+                           class = "treeview",
+                           tags$a(href = "mailto:beacons@ualberta.ca", icon("address-book"), "Contact us")
+                         )
                        ),
                        # Plain Text "About Us" Positioned Next to Dropdown
                        tags$span(
@@ -45,7 +49,7 @@ ui = dashboardPage(skin="black",
                      ),
                      conditionalPanel(
                        condition="input.tabs=='select'",
-                       radioButtons("selectInput", "Select your input gpkg:",
+                       radioButtons("selectInput", "Select source dataset (gpkg):",
                                     choices = list("Use demo dataset" = "usedemo", 
                                                    "Upload a geopackage (gpkg)" = "usegpkg"),
                                     selected = character(0), 
@@ -82,13 +86,13 @@ ui = dashboardPage(skin="black",
                        checkboxInput("forcefire", "Include fires", value=FALSE),
                        conditionalPanel(
                          condition="input.forcefire",
-                         sliderInput("firesize", label="Include minimum fire size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         sliderInput("firesize", label="Include minimum fire size (ha):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                        ),
                        actionButton("goButton", "Generate intactness map", style='color: #000')
                      ),
                      conditionalPanel(
                        condition="input.tabs=='download'",
-                       div(style="position:relative; left:calc(6%);", downloadButton("downloadData", "Download data", style='color: #000'))
+                       div(style="position:relative; left:calc(6%);", downloadButton("downloadData", "Download data (gpkg)", style='color: #000'))
                      )
                    ),
                    dashboardBody(

@@ -42,22 +42,6 @@ server = function(input, output, session) {
     }
   })
   
-  ################################################################################################
-  # Observe on Mining claims
-  observe({
-    if (input$custom_buffers) {
-      # Disable the sliders when custom_buffers is checked
-      disable("buffer1")
-      disable("buffer2")
-      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Custom buffers")
-    } else {
-      # Enable the sliders when custom_buffers is unchecked
-      enable("buffer1")
-      enable("buffer2")
-      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Mapview")
-    }
-  })
-  
   ##############################################################################
   # Read input data - REQUIRED
   ##############################################################################
@@ -95,6 +79,39 @@ server = function(input, output, session) {
     }
   })
 
+  ################################################################################################
+  # Observe mines to disable if NULL
+  ################################################################################################
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      layers <- st_layers(input$upload_gpkg$datapath)$name
+      if (!any(c("Mining_Claims", "Placer_Claims", "Quartz_Claims") %in% layers)){
+        disable("forceclaims")
+        div(
+          style = "color: darkgrey;",
+          updateCheckboxInput(session = getDefaultReactiveDomain(), "forceclaims", label = "Include mining claims", value = FALSE)
+        )
+      }
+    }
+  })
+  
+  ################################################################################################
+  # Observe fires to disable if NULL
+  ################################################################################################
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      layers <- st_layers(input$upload_gpkg$datapath)$name
+      if (!"fires" %in% layers){
+        disable("forcefire")
+        div(
+          style = "color: darkgrey;",
+          updateCheckboxInput(session = getDefaultReactiveDomain(), "forcefire", label = "Include fires", value = FALSE)
+        )
+      }
+    }
+  })
   ################################################################################################
   # Set layers choices
   ################################################################################################
@@ -266,8 +283,10 @@ server = function(input, output, session) {
   })
   
   mines <- reactive({
-    req(input$upload_gpkg)
-    if (!is.null(input$upload_gpkg)){
+    if (input$selectInput=='usedemo') {
+      removeGroup("Mining Claims")
+      return(NULL)
+    } else if (!is.null(input$upload_gpkg)){
       layers <- st_layers(input$upload_gpkg$datapath)$name
       # Check if "fires" layer exists
       if ("Mining_Claims" %in% layers) {
@@ -284,19 +303,6 @@ server = function(input, output, session) {
     }
   })
   
-  observe({
-    req(input$upload_gpkg)
-    if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      if (!any(c("Mining_Claims", "Placer_Claims", "Quartz_Claims") %in% layers)){
-        disable("forceclaims")
-        div(
-          style = "color: darkgrey;",
-          updateCheckboxInput(session = getDefaultReactiveDomain(), "forceclaims", label = "Include mining claims", value = FALSE)
-        )
-      }
-    }
-  })
   ##############################################################################
   # Uploaded data
   ##############################################################################
@@ -484,7 +490,6 @@ server = function(input, output, session) {
   
   observe({
     req(input$distType)
-    #req(input$selectInput == "usedemo" || (input$selectInput == "usegpkg" && !is.null(input$upload_gpkg)))
     req(studyarea())
     
     # show pop-up ...
@@ -505,16 +510,9 @@ server = function(input, output, session) {
       clearGroup("Intact FL 2000") %>%
       clearGroup("Intact FL 2020") %>%
       clearGroup("Placer Claims") %>%
-      clearGroup("Quartz Claims")
-     # {
-      #if(!is.null(group_names())){
-     #   for (group in group_names()) {
-     #     print(group)
-     #     . %>% clearGroup(group)
-     #   }
-      #}
-    #} 
-    
+      clearGroup("Quartz Claims") %>%
+      clearGroup("Mining Claims")
+
     sa <- st_transform(studyarea(), 4326)
     poly <- st_transform(poly(), 4326)
     line <- st_transform(line(), 4326)
@@ -608,7 +606,6 @@ server = function(input, output, session) {
     
     # Close the modal once processing is done
     removeModal()
-    
   })
   
   ##############################################################################
