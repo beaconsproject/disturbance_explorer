@@ -701,10 +701,12 @@ server = function(input, output, session) {
         colnames(x) <-c("Area_km2","Lineardist_km","Arealdist_km2","Fires_per", "PA2021_per","IntactFL2000_per","IntactFL2020_per")
         aoi <- cbind(st_union(studyarea()), x)
         st_write(aoi, dsn=file, layer='studyarea')
-        st_write(line(), dsn=file, layer='linear_disturbance', append=TRUE)
-        st_write(poly(), dsn=file, layer='areal_disturbance', append=TRUE)
-        st_write(fires(), dsn=file, layer='fires', append=TRUE)
-        st_write(pa2021(), dsn=file, layer='protected_areas', append=TRUE)
+        
+        if (!is.null(line())) st_write(line(), dsn=file, layer='linear_disturbance', append=TRUE)
+        if (!is.null(poly())) st_write(poly(), dsn=file, layer='areal_disturbance', append=TRUE)
+        if (!is.null(fires())) st_write(fires(), dsn=file, layer='fires', append=TRUE)
+        if (!is.null(pa2021())) st_write(pa2021(), dsn=file, layer='protected_areas', append=TRUE)
+        
         if (input$goButton) {
           x <- data.frame(intactness_per = additionalAttributes()[1,2],
                           footprint_per  = additionalAttributes()[2,2],
@@ -712,8 +714,8 @@ server = function(input, output, session) {
           colnames(x) <-c("footprint_per","intactness_per","footfire_per")
           aoi <- cbind(aoi, x)
           st_write(aoi, dsn=file, layer='studyarea', append = FALSE)
-          st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
-          st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
+          if (!is.null(footprint_sf())) st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
+          if (!is.null(intactness_sf())) st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
         }
     }
   )
