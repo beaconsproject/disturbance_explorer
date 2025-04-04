@@ -4,8 +4,7 @@ October 31, 2023
 
 The Regional Disturbance Explorer is an R shiny app that enables users to generate human footprint or landscape intactness maps using regional-scale anthropogenic surface disturbance data. The app includes the following functionality:
 
-  - Select an existing fundamental drainage area (FDA) or upload a area of interest (AOI) as a geopackage
-  - View the distribution of natural and anthropogenic surface disturbances within a fundamental drainage area (watershed)
+  - Upload anthropogenic disturbances (linear and areal) and an area of interest (AOI) as a geopackage
   - Calculate the regional human footprint (or landscape intactness) applying user-defined buffers of influence around linear or areal disturbances
   - Save footprint and intactness maps as a geopackage for use in QGIS or ArcGIS
 
