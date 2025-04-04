@@ -1,0 +1,50 @@
+/* Custom header styles */
+.custom-header {
+  background-color: #D96C07 !important; /* Replace 'orange' with your desired color */
+  color: white !important;            /* Text color */
+  border-bottom: 1px solid #ddd;      /* Optional: Add a border for a cleaner look */
+}
+
+.custom-header .navbar-brand {
+  color: white !important;            /* Logo text color */
+}
+
+.custom-header .navbar-brand:hover {
+  color: #f5f5f5 !important;          /* Hover color for logo text */
+}
+
+.custom-header .navbar {
+  background-color: #D96C07 !important; /* Ensures the hover effect stays orange */
+  color: white !important;
+}
+
+.custom-header .navbar:hover {
+  background-color: #D96C07 !important; /* Disable hover color change */
+}
+
+
+/* Custom orange skin for shinydashboard */
+.custom-header .main-header .logo {
+  background-color: #D96C07; /* Dark orange navbar */
+  color: #ffffff;
+}
+
+.custom-header .main-header .navbar {
+  background-color: #D96C07; /* Dark orange navbar */
+}
+
+.custom-header .main-sidebar {
+  background-color: #000000; /* Light orange sidebar */
+}
+
+.custom-header .main-sidebar .sidebar-menu > li.active > a {
+  background-color: #FF8C00; /* Highlight for active menu */
+}
+
+.skin-blue .main-sidebar .sidebar-menu > li:hover > a {
+  background-color: #D96C07; /* Dark orange navbar */
+}
+
+.skin-blue .content-wrapper, .skin-blue .right-side {
+  background-color: #ffffff; /* Light orange content area */
+}
