@@ -1,15 +1,16 @@
-library(sf)
-library(leaflet)
-library(tidyverse)
-library(shinydashboard)
-library(shinycssloaders)
-library(shiny)
-library(shinyjs)
-library(markdown)
-library(shinyMatrix)
+
+# Check and install packages if missing
+required_packages <- c("leaflet", "tidyverse", "shinydashboard", "shinycssloaders", "shiny", "shinyjs",
+   "markdown", "dplyr", "tidyr", "sf", "shinyMatrix"
+)
 
 options(shiny.maxRequestSize=100*1024^2) 
-fda_list <- c("fda10ab","fda10ad")
-m1 <- as.matrix(read_csv('docs/cas.csv')[42:66,2:4]) #%>% filter(TYPE_DISTURBANCE %in% x1))
-m2 <- as.matrix(read_csv('docs/cas.csv')[1:41,2:4]) #%>% filter(TYPE_DISTURBANCE %in% x2))
 
+# Install any missing packages
+missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages)
+}
+
+# Load the packages
+invisible(lapply(required_packages, library, character.only = TRUE))

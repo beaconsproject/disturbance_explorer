@@ -10,6 +10,9 @@ server = function(input, output, session) {
   ################################################################################################
   # Control overlayGroups
   group_names <- reactiveVal(c())
+  dist_names <- reactiveVal(c())
+  footprint_names_old <- reactiveVal(c())
+  footprint_names_new <- reactiveVal(c())
   
   # Function to add a new group to group_names
   addGroup <- function(new_group) {
@@ -26,19 +29,106 @@ server = function(input, output, session) {
     group_names(updated_groups)  # Update the reactiveVal
   }
   
-  ################################################################################################
-  # Observe on custom_buffers checkbox
-  observe({
-    if (input$custom_buffers) {
-      # Disable the sliders when custom_buffers is checked
-      disable("buffer1")
-      disable("buffer2")
-      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Custom buffers")
+  ##############################################################################
+  # Observe on layers names in gpkg
+  lyr_names <- eventReactive(input$selectInput, {
+    if (input$selectInput == 'usedemo') {
+      file <- 'www/demo.gpkg'
+    } else if (!is.null(input$upload_gpkg)) {
+      file <- input$upload_gpkg$datapath
+      ext <- tools::file_ext(file)
+      if (ext != "gpkg") {
+        showModal(modalDialog(
+          title = "Wrong file type, must be a geopackage (.gpkg)",
+          easyClose = TRUE,
+          footer = NULL)
+        ) 
+        return()
+      }
     } else {
-      # Enable the sliders when custom_buffers is unchecked
-      enable("buffer1")
-      enable("buffer2")
-      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Mapview")
+      return(NULL)
+    }
+    
+    # Extract layer names
+    layers <- st_layers(file)$name
+    return(layers)
+  })
+  ################################################################################################
+  # Observe on Mining claims
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      if (!any(c("Mining_Claims", "Placer_Claims", "Quartz_Claims") %in% lyr_names())){
+        disable("forceclaims")
+        div(
+          style = "color: darkgrey;",
+          updateCheckboxInput(session = getDefaultReactiveDomain(), "forceclaims", label = "Include mining claims", value = FALSE)
+        )
+      }
+    }
+  })
+  
+  ################################################################################################
+  # Observe on Fires (checkboxInput and slider)
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      if (!("fires") %in% lyr_names()){
+        disable("forcefire")
+        div(
+          style = "color: darkgrey;",
+          updateCheckboxInput(session = getDefaultReactiveDomain(), "forcefire", label = "Include fires", value = FALSE)
+        )
+      }
+    }
+  })
+  
+  observe({
+    req(input$selectInput)
+    req(fire_sf())
+    req(input$forcefire)
+    #browser()
+    # Update max upstream slider
+    max_fire <- round(max(fire_sf()$area_ha, na.rm = TRUE), -2)
+    # Update the slider input with the max value
+    updateSliderInput(session = getDefaultReactiveDomain(), inputId = "firesize", max = max_fire)
+    
+    # Update max upstream slider
+    minyear <- min(fire_sf()$YEAR, na.rm = TRUE)
+    maxyear <- max(fire_sf()$YEAR, na.rm = TRUE)
+    # Update the slider input with the max value
+    updateSliderInput(session = getDefaultReactiveDomain(), inputId = "fireyear", min = minyear , max = maxyear)
+  })  
+  
+  ################################################################################################
+  # Observe on linear disturbances - disable if missing
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      if (!("linear_disturbance") %in% lyr_names()){
+        disable("buffer1")
+      }
+    }
+  })
+
+  ################################################################################################
+  # Observe on areal disturbances - disable if missing
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      if (!("areal_disturbance") %in% lyr_names()){
+        disable("buffer2")
+      }
+    }
+  })
+  ################################################################################################
+  # Observe on linear and areal for custom buffering - disable if both missing
+  observe({
+    req(input$upload_gpkg)
+    if (!is.null(input$upload_gpkg)){
+      if (!any(c("linear_disturbance", "areal_disturbance") %in% lyr_names())){
+        disable("selectBuffer")
+      }
     }
   })
   
@@ -54,108 +144,115 @@ server = function(input, output, session) {
     if (input$selectInput == "usedemo") {
       st_read('www/demo.gpkg', 'studyarea', quiet = TRUE)
     } else if (input$selectInput == "usegpkg") {
-      # Ensure upload_gpkg is not NULL before reading the file
+      # Validation checks
       req(input$upload_gpkg)
+      has_studyarea <- "studyarea" %in% lyr_names()
+      
+      if (!has_studyarea) {
+        showModal(modalDialog(
+          title = "Missing required 'studyarea' layer in the GeoPackage.",
+          easyClose = TRUE,
+          footer = NULL)
+        ) 
+      }
+      req(has_studyarea)
+      
+      # Ensure upload_gpkg is not NULL before reading the file
       st_read(input$upload_gpkg$datapath, 'studyarea', quiet = TRUE)
     }
   })
   
-  line <- eventReactive(input$selectInput,{
-    if (input$selectInput == 'usedemo') {
-      # Load the demo dataset
-      st_read('www/demo.gpkg', 'linear_disturbance', quiet = TRUE)
-    } else if (!is.null(input$upload_gpkg)) {
-      # Ensure a file is uploaded before trying to read it
-      req(input$upload_gpkg)
-      st_read(input$upload_gpkg$datapath, 'linear_disturbance', quiet = TRUE)
+  line <- reactive({
+    req(input$selectInput)
+
+    if (input$selectInput == "usedemo") {
+      line_sf <- st_read("www/demo.gpkg", "linear_disturbance", quiet = TRUE)
+      return(line_sf)
     }
+    if (input$selectInput == "usegpkg") {
+      req(input$upload_gpkg)
+      if ("linear_disturbance" %in% lyr_names()) {
+        line_sf <- st_read(input$upload_gpkg$datapath, "linear_disturbance", quiet = TRUE)
+        return(line_sf)
+      } else {
+        return(NULL)  
+      }
+    }
+    NULL
   })
   
-  poly <- eventReactive(input$selectInput,{
-    if (input$selectInput=='usedemo') {
-      st_read('www/demo.gpkg', 'areal_disturbance', quiet=T)
-    } else if (!is.null(input$upload_gpkg)){
-      st_read(input$upload_gpkg$datapath, 'areal_disturbance', quiet = TRUE)
+  poly <- reactive({
+    req(input$selectInput)
+
+    if (input$selectInput == "usedemo") {
+      poly_sf <- st_read("www/demo.gpkg", "areal_disturbance", quiet = TRUE)
+      return(poly_sf)
     }
+    if (input$selectInput == "usegpkg") {
+      req(input$upload_gpkg)
+
+      if ("areal_disturbance" %in% lyr_names()) {
+        poly_sf <- st_read(input$upload_gpkg$datapath, "areal_disturbance", quiet = TRUE)
+        return(poly_sf)
+      } else {
+        return(NULL)  
+      }
+    }
+    NULL
+  })
+  
+  ################################################################################################
+  # Render UI for the selection of column name for disturbances 
+  ################################################################################################
+  output$lineIndustryUI <- renderUI({
+    req(line())  # only show if line() is available
+    selectInput("lineindustry", 
+                label = div(style = "font-size:13px;margin-top: -10px;", "Select linear industry attribute"), 
+                choices = c("Please select",colnames(line())), 
+                selected = "Please select")
+  })
+  
+  output$lineDistTypeUI <- renderUI({
+    req(line())
+    selectInput("linedisttype", 
+                label = div(style = "font-size:13px;", "Select linear disturbance type attribute"), 
+                choices = c("Please select", colnames(line())), 
+                selected = "Please select")
+  })
+  
+  output$polyIndustryUI <- renderUI({
+    req(poly())
+    selectInput("polyindustry", 
+                label = div(style = "font-size:13px;", "Select areal industry attribute"), 
+                choices = c("Please select",colnames(poly())), 
+                selected = "Please select")
+  })
+  
+  output$polyDistTypeUI <- renderUI({
+    req(poly())
+    selectInput("polydisttype", 
+                label = div(style = "font-size:13px;margin: 0px;", "Select areal disturbance type attribute"), 
+                choices = c("Please select",colnames(poly())), 
+                selected = "Please select")
   })
 
-  ################################################################################################
-  # Observe mines to disable if NULL
-  ################################################################################################
-  observe({
-    req(input$upload_gpkg)
-    if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      if (!any(c("Mining_Claims", "Placer_Claims", "Quartz_Claims") %in% layers)){
-        disable("forceclaims")
-        div(
-          style = "color: darkgrey;",
-          updateCheckboxInput(session = getDefaultReactiveDomain(), "forceclaims", label = "Include mining claims", value = FALSE)
-        )
-      }
-    }
-  })
-  
-  ################################################################################################
-  # Observe fires to disable if NULL
-  ################################################################################################
-  observe({
-    req(input$upload_gpkg)
-    if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      if (!"fires" %in% layers){
-        disable("forcefire")
-        div(
-          style = "color: darkgrey;",
-          updateCheckboxInput(session = getDefaultReactiveDomain(), "forcefire", label = "Include fires", value = FALSE)
-        )
-      }
-    }
-  })
-  ################################################################################################
-  # Set layers choices
-  ################################################################################################
-  observe({
-    req(input$selectInput)
-    req(input$upload_gpkg)
-    updateSelectInput(session = getDefaultReactiveDomain(), "lineindustry", choices = colnames(line()), selected = "Please select")
-    updateSelectInput(session = getDefaultReactiveDomain(), "linedisttype", choices = colnames(line()), selected = "Please select")
-    updateSelectInput(session = getDefaultReactiveDomain(), "polyindustry", choices = colnames(poly()), selected = "Please select")
-    updateSelectInput(session = getDefaultReactiveDomain(), "polydisttype", choices = colnames(poly()), selected = "Please select")
-  })
-  
-  ################################################################################################
-  # Update fire
-  ################################################################################################
-  observe({
-    req(input$selectInput)
-    req(fires())
-    req(input$forcefire)
-    
-    # Update max upstream slider
-    max_fire <- round(max(fires()$area_ha, na.rm = TRUE), -2)
-    # Update the slider input with the max value
-    updateSliderInput(session = getDefaultReactiveDomain(), inputId = "firesize", max = max_fire)
-  })  
   ##############################################################################
   # Read input data - OPTIONAL
   ##############################################################################
-  fires <- reactive({
+  fire_sf <- reactive({
     if (input$selectInput=='usedemo') {
       fi <-st_read('www/demo.gpkg', 'fires', quiet=T) %>%
-        st_cast('MULTIPOLYGON') %>% 
+        suppressWarnings(st_cast('MULTIPOLYGON')) %>% 
         st_zm(drop = TRUE, what = "ZM")  %>%
         st_make_valid() %>%
         mutate(area_ha = as.numeric(st_area(geom)/10000))
       addGroup("Fires")
       return(fi)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      # Check if "fires" layer exists
-      if ("fires" %in% layers) {
+      if ("fires" %in% lyr_names()) {
         # Read the "fires" layer from the uploaded file if it exists
         fi <-st_read(input$upload_gpkg$datapath, 'fires', quiet = TRUE) %>%
-          st_cast('MULTIPOLYGON') %>% 
+          suppressWarnings(st_cast('MULTIPOLYGON')) %>% 
           st_zm(drop = TRUE, what = "ZM")  %>%
           st_make_valid() %>%
           mutate(area_ha = as.numeric(st_area(geom)/10000))
@@ -166,25 +263,33 @@ server = function(input, output, session) {
         return(NULL)  # or display a message, warning, etc.
       }
     }else{
-      NULL
+      return(NULL)
     }
   })
   
+  fires <- reactive({
+    if(!is.null(fire_sf())){
+      fire <- fire_sf() %>%
+        dplyr::filter(YEAR >= input$fireyear[1] & YEAR <= input$fireyear[2])
+      return(fire)
+    }else{
+      return(NULL)
+    }
+  }) 
+  
   ifl2000 <- reactive({
     if (input$selectInput=='usedemo') {
-      la <-st_read('www/demo.gpkg', 'intactness_2000', quiet=T)
+      la <-st_read('www/demo.gpkg', 'Intact_FL_2000', quiet=T)
       addGroup("Intact FL 2000")
       return(la)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      # Check if "fires" layer exists
-      if ("intactness_2000" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'intactness_2000', quiet = TRUE)
+      if ("Intact_FL_2000" %in% lyr_names()) {
+        # Read the "intactness_2000" layer from the uploaded file if it exists
+        la <-st_read(input$upload_gpkg$datapath, 'Intact_FL_2000', quiet = TRUE)
         addGroup("Intact FL 2000")
         return(la)
       } else {
-        # Optionally, handle the case where the "intactness_2000" layer is missing
+        # Optionally, handle the case where the "Intact_FL_2000" layer is missing
         removeGroup("Intact FL 2000")
         return(NULL)  # or display a message, warning, etc.
       }
@@ -195,22 +300,19 @@ server = function(input, output, session) {
   
   ifl2020 <- reactive({
     if (input$selectInput=='usedemo') {
-      la <-st_read('www/demo.gpkg', 'intactness_2020', quiet=T)
+      la <-st_read('www/demo.gpkg', 'Intact_FL_2020', quiet=T)
       addGroup("Intact FL 2020")
       return(la)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      
-      # Check if "fires" layer exists
-      if ("intactness_2020" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'intactness_2020', quiet = TRUE)
+      if ("Intact_FL_2020" %in% lyr_names()) {
+        # Read the "intactness_2020" layer from the uploaded file if it exists
+        la <-st_read(input$upload_gpkg$datapath, 'Intact_FL_2020', quiet = TRUE)
         addGroup("Intact FL 2020")
         return(la)
       } else {
-        # Optionally, handle the case where the "intactness_2020" layer is missing
+        # Optionally, handle the case where the "Intact_FL_2020" layer is missing
         removeGroup("Intact FL 2020")
-        return(NULL)  # or display a message, warning, etc.
+        return(NULL)  
       }
     }else{
       NULL
@@ -223,18 +325,15 @@ server = function(input, output, session) {
       addGroup("Protected areas")
       return(la)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      
-      # Check if "protected_areas" layer exists
-      if ("protected_areas" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
+      if ("protected_areas" %in% lyr_names()) {
+        # Read the "protected_areas" layer from the uploaded file if it exists
         la <-st_read(input$upload_gpkg$datapath, 'protected_areas', quiet = TRUE)
         addGroup("Protected areas")
         return(la)
       } else {
-        # Optionally, handle the case where the "fires" layer is missing
+        # Optionally, handle the case where the "protected_areas" layer is missing
         removeGroup("Protected areas")
-        return(NULL)  # or display a message, warning, etc.
+        return(NULL)  
       }
     }
   })
@@ -245,18 +344,15 @@ server = function(input, output, session) {
       addGroup("Placer Claims")
       return(la)
     } else if (!is.null(input$upload_gpkg)){
-      
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      # Check if "fires" layer exists
-      if ("Placer_Claims" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
+      if ("Placer_Claims" %in% lyr_names()) {
+        # Read the "Placer_Claims" layer from the uploaded file if it exists
         la <-st_read(input$upload_gpkg$datapath, 'Placer_Claims', quiet = TRUE)
         addGroup("Placer Claims")
         return(la)
       } else {
         # Optionally, handle the case where the "Placer_Claims" layer is missing
         removeGroup("Placer Claims")
-        return(NULL)  # or display a message, warning, etc.
+        return(NULL)  
       }
     }
   })
@@ -267,10 +363,8 @@ server = function(input, output, session) {
       addGroup("Quartz Claims")
       return(la)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      # Check if "fires" layer exists
-      if ("Quartz_Claims" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
+      if ("Quartz_Claims" %in% lyr_names()) {
+        # Read the "Quartz_Claims" layer from the uploaded file if it exists
         la <-st_read(input$upload_gpkg$datapath, 'Quartz_Claims', quiet = TRUE)
         addGroup("Quartz Claims")
         return(la)
@@ -287,142 +381,217 @@ server = function(input, output, session) {
       removeGroup("Mining Claims")
       return(NULL)
     } else if (!is.null(input$upload_gpkg)){
-      layers <- st_layers(input$upload_gpkg$datapath)$name
-      # Check if "fires" layer exists
-      if ("Mining_Claims" %in% layers) {
-        # Read the "fires" layer from the uploaded file if it exists
+      if ("Mining_Claims" %in% lyr_names()) {
+        # Read the "Mining_Claims" layer from the uploaded file if it exists
         la <-st_read(input$upload_gpkg$datapath, 'Mining_Claims', quiet = TRUE)
         addGroup("Mining Claims")
         return(la)
       } else {
-        # Optionally, handle the case where the "Placer_Claims" layer is missing
+        # Optionally, handle the case where the "Mining_Claims" layer is missing
         removeGroup("Mining Claims")
-        #disable("forceclaims")
         return(NULL)  # or display a message, warning, etc.
       }
     }
   })
   
-  ##############################################################################
-  # Uploaded data
-  ##############################################################################
-  lyr_names <- eventReactive(input$selectInput, {
-    if (input$selectInput=='usedemo') {
-      la <- st_layers('www/demo.gpkg')$name
-      return(la)
-    } else if (!is.null(input$upload_gpkg)){
-      file <- input$upload_gpkg$datapath
-      ext <- tools::file_ext(file)
-      if(ext == "gpkg"){
-        la <- st_layers(file)$name
-        return(la)
-      }else {
-        showNotification("Wrong file type, must be geopackage (.gpkg)", type = "error")
+  mines_all <- reactive({
+    geoms <- list(quartz(), placers(), mines()) |>
+    purrr::compact() |>                # removes NULLs
+    purrr::map(sf::st_geometry)       # extract just the geometries
+
+  # If no layers, return NULL
+  if (length(geoms) == 0) return(NULL)
+
+  # Combine geometries into one sf object
+  sf::st_as_sf(sf::st_union(do.call(c, geoms)))
+  })
+  ########################################################
+  ## Observe on column name for type of dist
+  observeEvent(input$distType, {
+    if(input$selectInput =="usedemo"){
+      if(!is.null(line())){
+        industry_line <- "TYPE_INDUSTRY"
+        disttype_line <- "TYPE_DISTURBANCE"
+      }
+      if(!is.null(poly())){
+        industry_poly <- "TYPE_INDUSTRY"
+        disttype_poly <- "TYPE_DISTURBANCE"
+     }
+    }else if(!is.null(input$upload_gpkg)){
+      if(!is.null(line())){
+       industry_line <- input$lineindustry
+        disttype_line <- input$linedisttype
+      }
+      if(!is.null(poly())){
+       industry_poly <- input$polyindustry
+        disttype_poly <- input$polydisttype
       }
     }
-  })
-  
-  observeEvent(input$distType, {
     
-    if(input$selectInput =="usedemo"){
-      industry_line <- "TYPE_INDUSTRY"
-      disttype_line <- "TYPE_DISTURBANCE"
-      industry_poly <- "TYPE_INDUSTRY"
-      disttype_poly <- "TYPE_DISTURBANCE"
-    }else{
-      industry_line <- input$lineindustry
-      disttype_line <- input$linedisttype
-      industry_poly <- input$polyindustry
-      disttype_poly <- input$polydisttype
-    }
-  
-    # Build tibbles for line and poly feature
-    line_tibble <- line() %>%
-      st_drop_geometry() %>%
-      select(any_of(c(industry_line, disttype_line))) %>%
-      mutate(TYPE_FEATURE = "Linear",
-             BUFFER_SIZE = input$buffer1,
-             TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
-             TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
-      )
+    output$linear_matrix_ui <- renderUI({
+      if (is.null(line())) {
+        tags$p("NONE", style = "color: gray; font-style: italic;")
+      } else {
+        # Build matrix
+        #browser()
+        req(industry_line, disttype_line, input$buffer1)
         
-    # Summarize by TYPE_DISTURBANCE and TYPE_INDUSTRY to calculate the total length
-    line_summary <- line() %>%
-      mutate(length_km=st_length(line())/1000,
-             TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
-             TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA) %>%
-      st_drop_geometry() %>%
-      group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-      summarize(LENGTH_KM = as.numeric(round(sum(length_km),2))) %>%
-      ungroup()
+        line_tibble <- line() %>%
+          st_drop_geometry() %>%
+          dplyr::select(any_of(c(industry_line, disttype_line))) %>%
+          mutate(
+            TYPE_FEATURE = "Linear",
+            BUFFER_SIZE = input$buffer1,
+            TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
+            TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
+          )
+        
+        line_summary <- line() %>%
+          mutate(
+            length_km = st_length(line()) / 1000,
+            TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
+            TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
+          ) %>%
+          st_drop_geometry() %>%
+          group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+          summarize(LENGTH_KM = as.numeric(round(sum(length_km), 2))) %>%
+          ungroup()
+        
+        line_tibble <- line_tibble %>%
+          left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+        
+        mline <- unique(line_tibble) %>%
+          dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "LENGTH_KM"))) %>%
+          as.matrix()
+        
+        # Return the matrixInput to UI
+        matrixInput("linear_buffers",
+                    value = mline,
+                    rows = list(names = FALSE, extend = TRUE),
+                    cols = list(names = TRUE))
+      }
+    })
     
-    # Join the summary back to the original tibble
-    line_tibble <- line_tibble %>%
-      left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
-  
-    mline <- unique(line_tibble) %>%
-      select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "LENGTH_KM"))) %>%
-      as.matrix()
-    updateMatrixInput(session, 'linear_buffers', mline)
-    
-    # Create a new tibble with data from both layers
-    poly_tibble <- poly() %>%
-      st_drop_geometry() %>%
-      select(any_of(c(industry_poly, disttype_poly))) %>%
-      mutate(TYPE_FEATURE = "Areal",
-             BUFFER_SIZE = input$buffer2,
-             TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
-             TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
-      )
-    # Summarize by TYPE_DISTURBANCE and TYPE_INDUSTRY to calculate the total length
-    poly_summary <- poly() %>%
-      mutate(area_km2=st_area(poly())/1000000,
-             TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
-             TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA) %>%
-      st_drop_geometry() %>%
-      group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-      summarize(AREA_KM2 = round(as.numeric(sum(area_km2)),2)) %>%
-      ungroup()
-    
-    # Join the summary back to the original tibble
-    poly_tibble <- poly_tibble %>%
-      left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
-    
-    mpoly <- unique(poly_tibble) %>%
-      select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "AREA_KM2"))) %>%
-      as.matrix()
-    updateMatrixInput(session, 'areal_buffers', mpoly)
-  
+    output$areal_matrix_ui <- renderUI({
+      if (is.null(poly())) {
+        tags$p("NONE", style = "color: gray; font-style: italic;")
+      } else {
+        req(industry_poly, disttype_poly, input$buffer2)
+        
+        poly_tibble <- poly() %>%
+          st_drop_geometry() %>%
+          dplyr::select(any_of(c(industry_poly, disttype_poly))) %>%
+          mutate(
+            TYPE_FEATURE = "Areal",
+            BUFFER_SIZE = input$buffer2,
+            TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
+            TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
+          )
+        
+        poly_summary <- poly() %>%
+          mutate(
+            area_km2 = st_area(poly()) / 1e6,
+            TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
+            TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
+          ) %>%
+          st_drop_geometry() %>%
+          group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+          summarize(AREA_KM2 = round(as.numeric(sum(area_km2)), 2)) %>%
+          ungroup()
+        
+        poly_tibble <- poly_tibble %>%
+          left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+        
+        mpoly <- unique(poly_tibble) %>%
+          dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "AREA_KM2"))) %>%
+          as.matrix()
+        
+        matrixInput("areal_buffers",
+                    value = mpoly,
+                    rows = list(names = FALSE, extend = TRUE),
+                    cols = list(names = TRUE))
+      }
+    })
   })
   
+  ################################################################################################
+  # Observe on tabset
+  # Observe on buffer radiobutton
+  observe({
+    req(input$selectBuffer)
+    if (input$selectBuffer=='custom_buffers') {
+      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Custom buffers")
+    } else {
+      updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Mapview")
+    }
+  })
+  
+  # Observe on tabset when generating footprint
+  observeEvent(input$goButton,{
+    updateTabsetPanel(getDefaultReactiveDomain(), "one", selected = "Mapview")
+  })
   ##############################################################################
   # Buffer disturbances and calculate footprint and intactness
   ##############################################################################
   footprint_sf <- reactive({
-    if (nrow(poly())>0 | nrow(line())>0) {
-      aoi <- studyarea()
-      if (input$custom_buffers==TRUE) {
-        if (nrow(line())>0) {
-          m1sub <- as_tibble(input$linear_buffers) %>% select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>%      
-            mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
-          line <- left_join(line(), m1sub) %>% filter(!is.na(BUFFER_SIZE))
-          v1 <- st_union(st_buffer(line, line$BUFFER_SIZE))
+    if (!is.null(poly()) | !is.null(line()) | !is.null(fires()) | !is.null(mines_all()) ) {
+      if (!is.null(poly()) | !is.null(line()) ) {
+        if(input$selectInput =="usedemo"){
+          industry_line <- "TYPE_INDUSTRY"
+          disttype_line <- "TYPE_DISTURBANCE"
+          industry_poly <- "TYPE_INDUSTRY"
+          disttype_poly <- "TYPE_DISTURBANCE"
+        }else{
+          industry_line <- input$lineindustry
+          disttype_line <- input$linedisttype
+          industry_poly <- input$polyindustry
+          disttype_poly <- input$polydisttype
         }
-        if (nrow(poly())>0) {
-          m2sub <- as_tibble(input$areal_buffers) %>% select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>% 
-            mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
-          poly <- left_join(poly(), m2sub) %>% filter(!is.na(BUFFER_SIZE))
-          v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE))
-        }
-      } else {
-        if (nrow(line())>0) {
-          v1 <- st_union(st_buffer(line(), input$buffer1)) %>%
-            st_sf()
-        }
-        if (nrow(poly())>0) {
-          v2 <- st_union(st_buffer(poly(), input$buffer2)) %>%
-            st_sf()
-        }
+        
+        if (is.null(input$selectBuffer)){
+          showModal(modalDialog(
+            title = "Please select a buffer type",
+            easyClose = TRUE,
+            footer = NULL)
+          )
+          v1<- NULL
+          v2 <- NULL
+          return()
+        } else if (input$selectBuffer== "custom_buffers") {
+          if (!is.null(line())) {
+            m1sub <- as_tibble(input$linear_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>%      
+              mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+            line <- line() %>%
+              mutate(TYPE_INDUSTRY = !!sym(industry_line),
+                   TYPE_DISTURBANCE = !!sym(disttype_line)) %>%
+              left_join(m1sub, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE")) %>% 
+              filter(!is.na(BUFFER_SIZE))
+            v1 <- st_union(st_buffer(line, line$BUFFER_SIZE))
+          } else { v1 <- NULL}
+          if (!is.null(poly())) {
+            m2sub <- as_tibble(input$areal_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>% 
+              mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+            poly <- poly() %>%
+              mutate(TYPE_INDUSTRY = !!sym(industry_poly),
+                   TYPE_DISTURBANCE = !!sym(disttype_poly)) %>%
+              left_join(m2sub, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE")) %>% 
+              filter(!is.na(BUFFER_SIZE))
+          
+            v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE))
+          } else { v2 <- NULL}
+        }else {
+          if (!is.null(line())) {
+            v1 <- st_union(st_buffer(line(), input$buffer1)) %>%
+              st_sf()
+          } else { v1 <- NULL}
+          if (!is.null(poly())) {
+            v2 <- st_union(st_buffer(poly(), input$buffer2)) %>%
+              st_sf()
+          } else { v2 <- NULL}
+        } 
+      } else{
+        v1<- NULL
+        v2 <- NULL
       }
       
       if(input$forceclaims & ('Quartz_Claims' %in% lyr_names() | 'Placer_Claims' %in% lyr_names() | 'Mining_Claims' %in% lyr_names())) {
@@ -443,36 +612,56 @@ server = function(input, output, session) {
             st_sf()
           v3 <- st_union(v3a, v3b)
         }
-        v <- st_intersection(st_union(st_union(v1, v2),v3), aoi)
+      } else { v3 <- NULL}
+      
+      v_list <- list(v1, v2, v3)
+      v_valid <- Filter(Negate(is.null), v_list)
+      if (length(v_valid) > 0) {
+        v_combined <- do.call(c, lapply(v_valid, st_geometry))
+        v_combined_sf <- st_sf(geometry = v_combined)
+        v_union <- st_union(v_combined_sf)
+        v <- st_intersection(v_union, studyarea())
       } else {
-        if (nrow(line())>0 & nrow(poly())==0) {
-          v <- st_intersection(st_union(v1), aoi)
-        } else if (nrow(poly())>0 & nrow(line())==0) {
-          v <- st_intersection(st_union(v2), aoi)
-        } else if (nrow(poly())>0 & nrow(line())>=0) {
-          v <- st_intersection(st_union(v1, v2), aoi)
-        } 
-      }
-      if(input$forcefire & 'fires' %in% lyr_names()) {
-        fires_sf <- fires() %>%
-          dplyr::filter(area_ha > input$firesize)
-        
-        v4 <- st_union(fires_sf) %>% 
-          st_sf()
-        v <- st_intersection(st_union(v, v4), aoi)
+        v <- NULL
       }
       return(v)
     }
   })
   
+  footprintfire_sf <- reactive({
+    if(input$forcefire & 'fires' %in% lyr_names()) {
+    #if('fires' %in% lyr_names()) {
+        fires_sf <- fires() %>%
+        dplyr::filter(area_ha > input$firesize)
+      v4 <- st_union(fires_sf) %>% 
+        st_sf()
+      if(!is.null(footprint_sf())){
+        v_union <- st_union(footprint_sf(), v4)
+      }else{
+        v_union <- v4
+      }
+      v <- st_intersection(v_union, studyarea())
+    } else { v <- NULL}
+    
+    return(v)
+  })
+  
   intactness_sf <- reactive({
-    if (nrow(poly())>0 | nrow(line())>0) {
-      aoi <- studyarea()
-      ifl <- st_difference(aoi, footprint_sf())
-      x <- st_cast(ifl, "POLYGON")
-      x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
-      y <- filter(x, area_km2 > input$area1)
+    footprint_names_init <- c()
+    if (input$forcefire &  !is.null(footprintfire_sf())) {
+      ifl <- st_difference(studyarea(), footprintfire_sf())
+      footprint_names_init <- "Disturbed areas (human + fires)"
+    } else {
+      req(footprint_sf())
+      ifl <- st_difference(studyarea(), footprint_sf())
+      footprint_names_init <- "Disturbed areas (human)"
     }
+    
+    footprint_names_new(footprint_names_init)
+    x <- suppressWarnings(st_cast(ifl, "POLYGON"))
+    x <- mutate(x, area_km2=as.numeric(st_area(x)/1000000))
+    y <- filter(x, area_km2 > input$area1)
+    return(y)
   })
   
   ##############################################################################
@@ -480,7 +669,10 @@ server = function(input, output, session) {
   ##############################################################################
   output$map1 <- renderLeaflet({
     leaflet(options = leafletOptions(attributionControl=FALSE)) %>%
-      fitBounds(lng1 = -121, lat1 = 44, lng2 = -65, lat2 = 78)%>%
+      fitBounds(lng1 = -121, lat1 = 44, lng2 = -65, lat2 = 78) %>%
+      addMapPane(name = "ground", zIndex=380) %>%
+      addMapPane(name = "top", zIndex=420) %>%
+      addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       addProviderTiles("Esri.WorldTopoMap", group="Esri.WorldTopoMap")%>% 
       addLayersControl(position = "topright",
@@ -501,86 +693,145 @@ server = function(input, output, session) {
     
     leafletProxy("map1") %>% 
       clearGroup("Study region") %>%
-      clearGroup("Linear disturbances") %>%
-      clearGroup("Areal disturbances") %>%
-      clearGroup("Intactness") %>%
-      clearGroup("Footprint") %>%
+      clearGroup("Linear disturbance") %>%
+      clearGroup("Areal disturbance") %>%
+      clearGroup("Undisturbed areas") %>%
+      #clearGroup("Footprint") %>%
+      #clearGroup("Footprint + Fires") %>%
+      #clearGroup(footprint_names()) %>%
       clearGroup("Fires") %>%
       clearGroup("Protected areas") %>%
       clearGroup("Intact FL 2000") %>%
       clearGroup("Intact FL 2020") %>%
+      clearGroup("Mining Claims") %>%
       clearGroup("Placer Claims") %>%
-      clearGroup("Quartz Claims") %>%
-      clearGroup("Mining Claims")
-
+      clearGroup("Quartz Claims")
+     
     sa <- st_transform(studyarea(), 4326)
-    poly <- st_transform(poly(), 4326)
-    line <- st_transform(line(), 4326)
     map_bounds1 <- sa %>% st_bbox() %>% as.character()
     
     leafletProxy("map1") %>%
-        addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
-        addProviderTiles("Esri.WorldTopoMap", group="Esri.WorldTopoMap") %>%
         fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
-        addPolygons(data=sa, color='black', fill=F, weight=3, group="Study region") %>%
-        addPolylines(data=line, color='red', weight=2, group="Linear disturbances") %>%
-        addPolygons(data=poly, fill=T, stroke=F, fillColor='red', fillOpacity=0.5, group="Areal disturbances") %>%
+        addPolygons(data=sa, color='black', fill=F, opacity = 1, weight=2, group="Study region", options = leafletOptions(pane = "top")) %>%
+      
         addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study region", "Linear disturbances", "Areal disturbances"),
+                       overlayGroups = c("Study region"),
                        options = layersControlOptions(collapsed = FALSE)) 
       
+    dist_names_new <- c()
+    
+    # Disturbance
+    poly <- isolate(poly())
+    if(!is.null(poly)){
+      poly <- st_transform(poly, 4326)
+      leafletProxy("map1") %>% addPolygons(data=poly, color = 'red', fill=T, fillColor='red', fillOpacity=0.8, weight=1, group="Areal disturbances", options = leafletOptions(pane = "top")) 
+      dist_names_new <- c(dist_names_new,"Areal disturbances")
+    }
+    line <- isolate(line())
+    if(!is.null(line)){
+      line <- st_transform(line, 4326)
+      leafletProxy("map1") %>% addPolylines(data=line, color = "orange",  weight=2, group="Linear disturbances", options = leafletOptions(pane = "top")) 
+      dist_names_new <- c(dist_names_new,"Linear disturbances")
+    }
+    
     # Optional
     fires <- isolate(fires())
     if(!is.null(fires)){
         fires <- st_transform(fires, 4326)
-        leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor='orange', fillOpacity=0.5, group="Fires") 
+        
+        fires$CAUSE_LABEL <- dplyr::case_when(
+          fires$CAUSE == "L" ~ "Lightning",
+          fires$CAUSE == "H" ~ "Human",
+          is.na(fires$CAUSE) | fires$CAUSE == "" ~ "Unknown",
+          TRUE ~ "Unknown"  # Catch any other unexpected cases
+        )
+        pal <- colorFactor(
+          palette = c("coral4", "coral", "pink"),
+          domain = c("Lightning", "Human", "Unknown"),
+        )
+        
+        leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", label = ~CAUSE_LABEL, options = leafletOptions(pane = "top")) %>%
+          addLegend(position = "bottomright", pal = pal, values = fires$CAUSE_LABEL, title = "Cause of fires", group = "Fires" )
     }
     ifl2000 <- isolate(ifl2000())
     if(!is.null(ifl2000)){
         ifl2000 <- st_transform(ifl2000, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intact FL 2000") 
+        leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
     }
     ifl2020 <- isolate(ifl2020())
     if(!is.null(ifl2020)){
         ifl2020 <- st_transform(ifl2020, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intact FL 2020") 
+        leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
     }
     pa2021 <- isolate(pa2021())
     if(!is.null(pa2021)){
         pa2021 <- st_transform(pa2021, 4326)
-        leafletProxy("map1") %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#699999', fillOpacity=0.5,  group="Protected areas") 
+        leafletProxy("map1") %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#699999', fillOpacity=1,  group="Protected areas", options = leafletOptions(pane = "ground")) 
     }
     placers <- isolate(placers())
     if(!is.null(placers)){
         placers <- st_transform(placers, 4326)
-        leafletProxy("map1") %>% addPolygons(data=placers, color='red', fill=T, weight=1, group="Placer Claims") 
+        leafletProxy("map1") %>% addPolygons(data=placers, color= '#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Placer Claims", options = leafletOptions(pane = "ground")) 
     }
     quartz <- isolate(quartz())
     if(!is.null(quartz)){
         quartz <- st_transform(quartz, 4326)
-        leafletProxy("map1") %>% addPolygons(data=quartz, color='red', fill=T, weight=1, group="Quartz Claims") 
+        leafletProxy("map1") %>% addPolygons(data=quartz, color = '#CCCCCC', fill=T, fillColor='#CCCCCC', weight=1, fillOpacity = 1, group="Quartz Claims", options = leafletOptions(pane = "ground")) 
     }
+    
     mines <- isolate(mines())
     if(!is.null(mines)){
       mines <- st_transform(mines, 4326)
-      leafletProxy("map1") %>% addPolygons(data=mines, color='red', fill=T, weight=1, group="Mining Claims") 
+      leafletProxy("map1") %>% addPolygons(data=mines, color='#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Mining Claims", options = leafletOptions(pane = "ground")) 
     } 
+    
     leafletProxy("map1") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                         overlayGroups = c("Study region", "Linear disturbances", "Areal disturbances", group_names()),
+                         overlayGroups = c("Study region", dist_names_new, group_names()),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c(group_names()))
     
     # Close the modal once processing is done
+    dist_names(dist_names_new)
     removeModal()
+    
+        ################################################################################################
+    # Add modal if layers are missing
+    if(!any(c('linear_disturbance', 'areal_disturbance', 'fires', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names())){
+        showModal(modalDialog(
+          title = "No disturbance provided in the GPKG.",
+          "Please provide a GPKG that has either 'linear_disturbance', 'areal_disturbance', 'fires' or 'Mining_Claims' as a layer",
+          easyClose = FALSE,
+          footer = modalButton("OK")
+        ))
+        return()  # Stop further execution
+    }
+      
+      
+    if(!any(c('linear_disturbance', 'areal_disturbance', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names()) & 'fires' %in% lyr_names()){
+        showModal(modalDialog(
+          title = "Only wildfires will be used to generate the footprint and intactness layers",
+          "You can proceed with wildfires. ",
+          easyClose = FALSE,
+          footer =  modalButton("OK"))
+        )  
+    }
+      
+    if(!all(c('linear_disturbance', 'areal_disturbance', 'fires') %in% lyr_names()) & any(c('Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names())){
+        showModal(modalDialog(
+          title = "Only mining claims will be used to generate the footprint and intactness layers",
+          easyClose = FALSE,
+          footer =  modalButton("OK"))
+        )  
+    }
+
   })
   
   ##############################################################################
   # Update map with intactness/footprint
   ##############################################################################
-  #mapFoot <- eventReactive(input$goButton,{
   observeEvent(input$goButton,{
     
     # show pop-up ...
@@ -589,51 +840,109 @@ server = function(input, output, session) {
       easyClose = TRUE,
       footer = NULL)
     )
-    
-    fp_sf <- st_transform(footprint_sf(), 4326)
-    intact_sf <- st_transform(intactness_sf(), 4326)
 
+    dist_names_new <- dist_names()
+    
+    if(is.null(footprintfire_sf())){
+      fp_sf <- st_transform(footprint_sf(), 4326)
+    }else{
+      fp_sf <- st_transform(footprintfire_sf(), 4326)
+    }
+    intact_sf <- st_transform(intactness_sf(), 4326)
+    
     leafletProxy("map1") %>%
-      clearGroup('Intactness') %>%
-      clearGroup('Footprint') %>%
-      addPolygons(data=intact_sf, color='darkblue', stroke=F, fillOpacity=0.5, group='Intactness') %>%
-      addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group='Footprint') %>%
+      clearGroup('Undisturbed areas') %>%
+      #clearGroup('Footprint') %>%
+      #clearGroup('Footprint + fires') %>%
+      clearGroup(footprint_names_old()) %>% 
+      addPolygons(data=intact_sf, color='darkblue', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
+      addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=footprint_names_new(), options = leafletOptions(pane = "top")) 
+
+    #footprintfires <- isolate(footprintfire_sf())
+    #if(!is.null(footprintfires)){
+    #  footprintfires <- st_transform(footprintfires, 4326)
+    #  leafletProxy("map1") %>% addPolygons(data=footprintfires, color = '#663300', fill=T, stroke=F, fillColor='#663300', fillOpacity=0.5, group="Footprint + fires", options = leafletOptions(pane = "top")) 
+    #  #dist_names_new <- c("Footprint + fires", dist_names_new)
+    #  dist_names_new <- c(footprint_names(), dist_names_new)
+    #}
+    
+    leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study region", "Intactness", "Footprint", "Linear disturbances", "Areal disturbances", group_names()),
+                       overlayGroups = c("Study region", "Undisturbed areas", footprint_names_new(), dist_names_new, group_names()),
                        options = layersControlOptions(collapsed = FALSE)) %>%
-      hideGroup(c("Footprint", group_names()))
+      #hideGroup(c("Footprint", group_names()))
+      hideGroup(c(footprint_names_new(), group_names()))
     
     # Close the modal once processing is done
+    dist_names(dist_names_new)
+    footprint_names_old(footprint_names_new())
     removeModal()
+    
   })
   
   ##############################################################################
   # Generate statistics table
   ##############################################################################
   # Reactive for the attributes updated by `usedemo` or `upload_gpkg`
-  baseAttributes <- reactive({
+  aoiAttributes <- reactive({
     req(input$selectInput == "usedemo" || (input$selectInput == "usegpkg" && !is.null(input$upload_gpkg)))
     aoi <- sum(st_area(studyarea()))
 
+    tibble(Attribute = "Area of interest (km2)", Value = as.numeric(round(aoi / 1000000, 0)))
+  })
+
+  # Reactive for the attributes updated by `usedemo` or `upload_gpkg`
+  baseAttributes <- reactive({
+    req(input$selectInput == "usedemo" || (input$selectInput == "usegpkg" && !is.null(input$upload_gpkg)))
+    aoi <- sum(st_area(studyarea()))
+    
     tibble(
       Attribute = c(
-        "Area of interest (km2)",
         "Linear disturbances (km)",
         "Areal disturbances (km2)",
         "Fires (%)",
+        "Mining claims (%)",
         "Protected areas (%)",
-        "Intact FL 2000 (%)",
-        "Intact FL 2020 (%)"
+        "Intact FL 2000 (%)*",
+        "Intact FL 2020 (%)**"
       ),
       Value = c(
-        as.numeric(round(aoi / 1000000, 0)),
-        as.numeric(round(sum(st_length(line())) / 1000, 1)),
-        as.numeric(round(sum(st_area(poly())) / 1000000, 1)),
+        if (is.null(line())) 0 else as.numeric(round(sum(st_length(line())) / 1000, 1)),
+        if (is.null(poly())) 0 else as.numeric(round(sum(st_area(poly())) / 1000000, 1)),
         if (is.null(fires())) 0 else as.numeric(round(sum(st_area(fires())) / aoi * 100, 1)),
+        if (is.null(mines_all())) 0 else as.numeric(round(sum(st_area(mines_all())) / aoi * 100, 1)),
         if (is.null(pa2021())) 0 else as.numeric(round(sum(st_area(pa2021())) / aoi * 100, 1)),
         if (is.null(ifl2000())) 0 else as.numeric(round(sum(st_area(ifl2000())) / aoi * 100, 1)),
         if (is.null(ifl2020())) 0 else as.numeric(round(sum(st_area(ifl2020())) / aoi * 100, 1))
+      )
+    )
+  })  
+  output$acronym_definitions <- renderUI({
+    req(input$distType)
+    tagList(
+      tags$div(
+        style = "font-size: 0.85em; color: grey;",
+        tags$em("*"), "Intact Forest Landscape 2000"
+      ),
+      tags$div(
+        style = "font-size: 0.85em; color: grey;",
+        tags$em("**"), "Intact Forest Landscape 2020"
+      ),
+      tags$br(),
+      tags$div(
+        tags$h5("Map Legend***", style = "text-align: left; font-weight: bold; margin-bottom: 0px;"),  # Title above the image
+        tags$img(src = "legend.png", width = "90%")
+      ),
+      tags$div(
+        style = "font-size: 0.85em; color: grey;",
+        tags$em("***"), "Elements in the Map Legend may not show on the Map if not present in the GPKG.",
+        tags$p(
+          tags$strong("Disturbed areas"), " refers to regions of the landscape that have been altered by human activity and/or fire, based on the user's selection (e.g., disturbances included in the GPKG and whether fires were marked as included)."
+        ), 
+        tags$p(
+          tags$strong("Undisturbed areas"), " are defined as all regions within the study region that are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions."
+        )
       )
     )
   })
@@ -643,31 +952,30 @@ server = function(input, output, session) {
   
   # Reactive for the attributes updated by `goButton`
   observeEvent(input$goButton, {
-    req(nrow(poly()) > 0, nrow(line()) > 0)
-    
+    #browser()
     aoi <- sum(st_area(studyarea()))
-    if (is.null(fires())) {
-      foot_fires <- footprint_sf()
-    }else{
-      foot_fires <- st_union(st_union(footprint_sf()), st_union(fires()))
+    if (!is.null(footprintfire_sf())) {
+      footprint <- st_union(footprintfire_sf()) 
+    }else if (!is.null(footprint_sf())){
+      footprint <- st_union(footprint_sf())
+    } else{
+      footprint <- NULL
     }
     
     additionalAttributes(tibble(
       Attribute = c(
-        "Intactness (%)",
-        "Footprint (%)",
-        "Footprint + Fires (%)"
+        "Undisturbed areas (%)",
+        "Disturbed areas (%)"
       ),
       Value = c(
-        as.numeric(round(sum(st_area(intactness_sf())) / aoi * 100, 1)),
-        as.numeric(round(sum(st_area(footprint_sf())) / aoi * 100, 1)),
-        as.numeric(round(sum(st_area(foot_fires)) / aoi * 100, 1))
+        if (is.null(intactness_sf())) 0 else as.numeric(round(sum(st_area(intactness_sf())) / aoi * 100, 1)),
+        if (is.null(footprint)) 0 else as.numeric(round(sum(st_area(footprint)) / aoi * 100, 1))
       )
     ))
   })
   
   # Reset additional attributes when studyarea or related inputs change
-  observeEvent(c(studyarea(), poly(), line(), fires(), pa2021()), {
+  observeEvent(c(studyarea(), poly(), line(), fires(), mines_all(), pa2021()), {
     additionalAttributes(NULL)
   })
   
@@ -675,14 +983,17 @@ server = function(input, output, session) {
   output$tab1 <- renderTable({
     req(input$distType)
     req(baseAttributes())  # Ensure `baseAttributes` is ready
+    aoi <- aoiAttributes()
     base <- baseAttributes()
     
     # Add additional attributes if the button has been pressed
     additional <- additionalAttributes()
     if (!is.null(additional)) {
-      base <- bind_rows(base, additional)
+      all <- bind_rows(aoi, additional, base)
+    } else{
+      all <- bind_rows(aoi, base)
     }
-    base
+    all
   })
   
   ##############################################################################
@@ -701,21 +1012,22 @@ server = function(input, output, session) {
         colnames(x) <-c("Area_km2","Lineardist_km","Arealdist_km2","Fires_per", "PA2021_per","IntactFL2000_per","IntactFL2020_per")
         aoi <- cbind(st_union(studyarea()), x)
         st_write(aoi, dsn=file, layer='studyarea')
-        
         if (!is.null(line())) st_write(line(), dsn=file, layer='linear_disturbance', append=TRUE)
         if (!is.null(poly())) st_write(poly(), dsn=file, layer='areal_disturbance', append=TRUE)
         if (!is.null(fires())) st_write(fires(), dsn=file, layer='fires', append=TRUE)
         if (!is.null(pa2021())) st_write(pa2021(), dsn=file, layer='protected_areas', append=TRUE)
-        
         if (input$goButton) {
-          x <- data.frame(intactness_per = additionalAttributes()[1,2],
-                          footprint_per  = additionalAttributes()[2,2],
-                          footfire_per = additionalAttributes()[3,2])
-          colnames(x) <-c("footprint_per","intactness_per","footfire_per")
+          x <- data.frame(Undisturbed_per = additionalAttributes()[1,2],
+                          Disturbed_per  = additionalAttributes()[2,2])
+          colnames(x) <-c("Undisturbed_per", "Disturbed_per")
           aoi <- cbind(aoi, x)
-          st_write(aoi, dsn=file, layer='studyarea', append = FALSE)
-          if (!is.null(footprint_sf())) st_write(footprint_sf(), dsn=file, layer='footprint', append=TRUE)
-          if (!is.null(intactness_sf())) st_write(intactness_sf(), dsn=file, layer='intactness', append=TRUE)
+          st_write(aoi, dsn=file, layer='studyarea', append=FALSE)
+          st_write(intactness_sf(), dsn=file, layer='undisturbed', append=TRUE)
+          if (!is.null(footprintfire_sf())){
+            st_write(footprintfire_sf(), dsn=file, layer='disturbed', append=TRUE)
+          } else{
+            st_write(footprint_sf(), dsn=file, layer='disturbed', append=TRUE)
+          }
         }
     }
   )

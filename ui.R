@@ -1,10 +1,12 @@
 ui = dashboardPage(skin="black",
+                   title = "BEACONs Disturbance Explorer",
                    dashboardHeader(title = tags$div(
                      tags$img(
                        src = "logoblanc.png",  # Replace with your logo file name
                        height = "50px",   # Adjust the height of the logo
                        style = "margin-right: 10px;"  # Add some spacing around the logo
-                     ),"BEACONs Disturbance Explorer"), titleWidth = 400,
+                     ), "BEACONs Disturbance Explorer" ), titleWidth = 400,
+                    
                      # Add Reload Button Next to Sidebar Toggle
                      tags$li(
                        class = "dropdown",
@@ -25,11 +27,7 @@ ui = dashboardPage(skin="black",
                          headerText = "",  # No header text in dropdown
                          menuItem("Website", href = "https://beaconsproject.ualberta.ca/", icon = icon("globe")),
                          menuItem("GitHub", href = "https://github.com/beaconsproject/", icon = icon("github")),
-                         #menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
-                         tags$li(
-                           class = "treeview",
-                           tags$a(href = "mailto:beacons@ualberta.ca", icon("address-book"), "Contact us")
-                         )
+                         menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
                        ),
                        # Plain Text "About Us" Positioned Next to Dropdown
                        tags$span(
@@ -41,7 +39,7 @@ ui = dashboardPage(skin="black",
                    
                    dashboardSidebar(
                      sidebarMenu(id="tabs",
-                                 menuItem("Overview", tabName = "overview", icon = icon("th")),
+                                 menuItem("Welcome", tabName = "overview", icon = icon("th")),
                                  menuItem("Select study area", tabName = "select", icon = icon("arrow-pointer")),
                                  menuItem("Buffer features", tabName = "buffer", icon = icon("arrow-pointer")),
                                  menuItem("Download data", tabName = "download", icon = icon("th")),
@@ -49,35 +47,37 @@ ui = dashboardPage(skin="black",
                      ),
                      conditionalPanel(
                        condition="input.tabs=='select'",
-                       radioButtons("selectInput", "Select source dataset (gpkg):",
+                       radioButtons("selectInput", "Select source dataset:",
                                     choices = list("Use demo dataset" = "usedemo", 
-                                                   "Upload a geopackage (gpkg)" = "usegpkg"),
+                                                   "Upload a GeoPackage (gpkg)" = "usegpkg"),
                                     selected = character(0), 
                                     inline = FALSE),
                        conditionalPanel(
                          condition="input.selectInput=='usegpkg'",
-                         fileInput(inputId = "upload_gpkg", label = "Upload a geopackage:", multiple = FALSE, accept = ".gpkg"),
+                         fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg"),
                          hr(),
-                         div(style = "margin: 15px; font-size:13px; font-weight: bold", "Specify attributes that describe disturbances"),
-                         div(style = "margin-top: -20px;",selectInput("lineindustry", label = div(style = "font-size:13px;margin-top: -10px;", "Select linear industry attribute"), choices = NULL)),
-                         div(style = "margin-top: -20px;",selectInput("linedisttype", label = div(style = "font-size:13px;", "Select linear disturbance type attribute"), choices = NULL)),
-                         div(style = "margin: 15px; font-size:13px; font-weight: bold", "Set the attributes that describe areal disturbances"),
+                         uiOutput("lineIndustryUI"),
+                         uiOutput("lineDistTypeUI"),
                          tags$br(),
-                         div(style = "margin-top: -20px;",selectInput("polyindustry", label = div(style = "font-size:13px;", "Select areal industry attribute"), choices =  NULL)),
-                         div(style = "margin-top: -20px;",selectInput("polydisttype", label = div(style = "font-size:13px;margin: 0px;", "Select areal disturbance type attribute"), choices = NULL))
+                         uiOutput("polyIndustryUI"),
+                         uiOutput("polyDistTypeUI")
                        ),
                        actionButton("distType", "Confirm", class = "btn-warning", style='color: #000')
                      ),
                      conditionalPanel(
                        condition = "input.tabs == 'buffer'",
-                       HTML("<h4>&nbsp; &nbsp; Select buffer type</h4>"),
-                       #div(style = "top: 50px; margin: 15px; font-size:13px; font-weight: bold", "Select buffer type"),
-                       checkboxInput("custom_buffers", "Use custom buffers", value=FALSE),
-                       HTML("<h5>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;-- OR --</h4>"),
-                       sliderInput("buffer1", label="Set linear buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE),
-                       sliderInput("buffer2", label="Set areal buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE),
+                       radioButtons("selectBuffer", "Select buffer type:",
+                                    choices = list("Use custom buffers" = "custom_buffers", 
+                                                   "Use overall buffers" = "slider_buffers"),
+                                    selected = character(0), 
+                                    inline = FALSE),
+                       conditionalPanel(
+                         condition="input.selectBuffer=='slider_buffers'",
+                         sliderInput("buffer1", label="Set linear buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE),
+                         sliderInput("buffer2", label="Set areal buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                       ),
                        hr(),
-                       sliderInput("area1", label="Min intact patch size (km2):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
+                       sliderInput("area1", label="Set minimum intact patch size (km2):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
                        checkboxInput("forceclaims", "Include mining claims", value=FALSE),
                        conditionalPanel(
                          condition="input.forceclaims",
@@ -86,25 +86,27 @@ ui = dashboardPage(skin="black",
                        checkboxInput("forcefire", "Include fires", value=FALSE),
                        conditionalPanel(
                          condition="input.forcefire",
-                         sliderInput("firesize", label="Include minimum fire size (ha):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         sliderInput("firesize", label="Include minimum fire size (m):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
+                         sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1960, 2023), sep = "")
                        ),
                        actionButton("goButton", "Generate intactness map", style='color: #000')
                      ),
                      conditionalPanel(
                        condition="input.tabs=='download'",
-                       div(style="position:relative; left:calc(6%);", downloadButton("downloadData", "Download data (gpkg)", style='color: #000'))
+                       div(style="position:relative; left:calc(6%);", downloadButton("downloadData", "Download data", style='color: #000'))
                      )
                    ),
                    dashboardBody(
                      useShinyjs(),
                     # Link to custom CSS for the orange theme
-                     tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "green-theme.css")),
+                     tags$head(tags$link(rel = "icon", type = "image/png", href = "logoblanc.png"),
+                               tags$link(rel = "stylesheet", type = "text/css", href = "green-theme.css")),
                      tabItems(
                        tabItem(tabName="overview",
                                fluidRow(
                                  tabBox(id = "landing", width="12",
                                         tabPanel("Overview", includeMarkdown("docs/overview.md")),
-                                        tabPanel("User guide", includeMarkdown("docs/quick_start.md")),
+                                        tabPanel("User guide", includeMarkdown("docs/user_guide.md")),
                                         tabPanel("Datasets", includeMarkdown("docs/datasets.md"))
                                  )            )
                        ),
@@ -112,11 +114,18 @@ ui = dashboardPage(skin="black",
                                fluidRow(
                                  tabBox(id = "one", width="8",
                                         tabPanel("Mapview", leafletOutput("map1", height=900) %>% withSpinner()),
-                                        tabPanel("Custom buffers", tags$h4("Define linear buffer sizes:"), matrixInput("linear_buffers", value=m1, rows=list(names=FALSE, extend=TRUE), cols=list(names=TRUE)), tags$h4("Define areal buffer sizes:"), matrixInput("areal_buffers", value=m2, rows=list(names=FALSE, extend=TRUE), cols=list(names=TRUE)))
+                                        tabPanel("Custom buffers",
+                                                 tags$h4("Define linear buffer sizes:"),
+                                                 uiOutput("linear_matrix_ui"),
+                                                 tags$h4("Define areal buffer sizes:"),
+                                                 uiOutput("areal_matrix_ui")
+                                        )
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Statistics", tableOutput("tab1"))
+                                   tabPanel("Statistics", tableOutput("tab1"),
+                                   br(),  
+                                   uiOutput("acronym_definitions"))
                                  )
                                )
                        )
