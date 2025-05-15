@@ -89,7 +89,7 @@ ui = dashboardPage(skin="black",
                          sliderInput("firesize", label="Include minimum fire size (m):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
                          sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1960, 2023), sep = "")
                        ),
-                       actionButton("goButton", "Generate intactness map", style='color: #000')
+                       actionButton("goButton", "Generate undisturbed areas", style='color: #000')
                      ),
                      conditionalPanel(
                        condition="input.tabs=='download'",
@@ -119,7 +119,8 @@ ui = dashboardPage(skin="black",
                                                  uiOutput("linear_matrix_ui"),
                                                  tags$h4("Define areal buffer sizes:"),
                                                  uiOutput("areal_matrix_ui")
-                                        )
+                                        ),
+                                        tabPanel("User guide", uiOutput("guide_ui"))
                                  ),
                                  tabBox(
                                    id = "two", width="4",

@@ -664,6 +664,27 @@ server = function(input, output, session) {
     return(y)
   })
   
+  
+  ######################################################
+  ##  SERVE USER GUIDE SECTION
+  ######################################################
+  output$guide_ui <- renderUI({
+    req(input$tabs)  # 'sidebar' is the id of your sidebarMenu
+    
+    guide_file <- switch(input$tabs,
+                         "select" = "docs/select_guide.md",
+                         "buffer" = "docs/buffer_guide.md",
+                         NULL
+    )
+    
+    if (!is.null(guide_file) && file.exists(guide_file)) {
+      includeMarkdown(guide_file)
+    } else {
+      tags$p("No user guide available for this section.")
+    }
+  })
+  
+  
   ##############################################################################
   # View initial set of maps
   ##############################################################################
@@ -725,13 +746,13 @@ server = function(input, output, session) {
     poly <- isolate(poly())
     if(!is.null(poly)){
       poly <- st_transform(poly, 4326)
-      leafletProxy("map1") %>% addPolygons(data=poly, color = 'red', fill=T, fillColor='red', fillOpacity=0.8, weight=1, group="Areal disturbances", options = leafletOptions(pane = "top")) 
+      leafletProxy("map1") %>% addPolygons(data=poly, color = '#660000', fill=T, fillColor='#660000', fillOpacity=0.8, weight=1, group="Areal disturbances", options = leafletOptions(pane = "top")) 
       dist_names_new <- c(dist_names_new,"Areal disturbances")
     }
     line <- isolate(line())
     if(!is.null(line)){
       line <- st_transform(line, 4326)
-      leafletProxy("map1") %>% addPolylines(data=line, color = "orange",  weight=2, group="Linear disturbances", options = leafletOptions(pane = "top")) 
+      leafletProxy("map1") %>% addPolylines(data=line, color = "#CC3333",  weight=2, group="Linear disturbances", options = leafletOptions(pane = "top")) 
       dist_names_new <- c(dist_names_new,"Linear disturbances")
     }
     
@@ -747,22 +768,23 @@ server = function(input, output, session) {
           TRUE ~ "Unknown"  # Catch any other unexpected cases
         )
         pal <- colorFactor(
-          palette = c("coral4", "coral", "pink"),
+          palette = c("#996633", "#FF9933", "pink"),
           domain = c("Lightning", "Human", "Unknown"),
         )
         
-        leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", label = ~CAUSE_LABEL, options = leafletOptions(pane = "top")) %>%
-          addLegend(position = "bottomright", pal = pal, values = fires$CAUSE_LABEL, title = "Cause of fires", group = "Fires" )
+        leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", options = leafletOptions(pane = "top")) 
+        #leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", label = ~CAUSE_LABEL, options = leafletOptions(pane = "top")) %>%
+        #  addLegend(position = "bottomright", pal = pal, values = fires$CAUSE_LABEL, title = "Cause of fires", group = "Fires" )
     }
     ifl2000 <- isolate(ifl2000())
     if(!is.null(ifl2000)){
         ifl2000 <- st_transform(ifl2000, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#99CC99', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
+        leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#3366FF', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
     }
     ifl2020 <- isolate(ifl2020())
     if(!is.null(ifl2020)){
         ifl2020 <- st_transform(ifl2020, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#669966', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
+        leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#000066', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
     }
     pa2021 <- isolate(pa2021())
     if(!is.null(pa2021)){
@@ -855,7 +877,7 @@ server = function(input, output, session) {
       #clearGroup('Footprint') %>%
       #clearGroup('Footprint + fires') %>%
       clearGroup(footprint_names_old()) %>% 
-      addPolygons(data=intact_sf, color='darkblue', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
+      addPolygons(data=intact_sf, color='#336633', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
       addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=footprint_names_new(), options = leafletOptions(pane = "top")) 
 
     #footprintfires <- isolate(footprintfire_sf())
@@ -931,16 +953,16 @@ server = function(input, output, session) {
       ),
       tags$br(),
       tags$div(
-        tags$h5("Map Legend***", style = "text-align: left; font-weight: bold; margin-bottom: 0px;"),  # Title above the image
+        tags$h5("Map Legend", style = "text-align: left; font-weight: bold; margin-bottom: 0px;"),  # Title above the image
         tags$img(src = "legend.png", width = "90%")
       ),
       tags$div(
         style = "font-size: 0.85em; color: grey;",
-        tags$em("***"), "Elements in the Map Legend may not show on the Map if not present in the GPKG.",
-        tags$p(
+        "Elements in Map Legend may not show on the Map if not present in the GPKG.",
+        tags$p("\u00B9",
           tags$strong("Disturbed areas"), " refers to regions of the landscape that have been altered by human activity and/or fire, based on the user's selection (e.g., disturbances included in the GPKG and whether fires were marked as included)."
         ), 
-        tags$p(
+        tags$p("\u00B2",
           tags$strong("Undisturbed areas"), " are defined as all regions within the study region that are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions."
         )
       )
