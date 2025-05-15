@@ -1,7 +1,7 @@
 # Set up your colors and layer names
 legend_items <- data.frame(
-  label = c("Undisturbed areas", 
-            "Disturbed areas", 
+  label = c("Undisturbed areas\u00B9", 
+            "Disturbed areas\u00B2", 
             "Areal disturbances", 
             "Linear disturbances", 
             "Fires (Lightning)", 
@@ -14,19 +14,19 @@ legend_items <- data.frame(
             "Intact FL 2000", 
             "Intact FL 2020"
   ),
-  color = c("darkblue", 
+  color = c("#336633", 
             "black", 
-            "red", 
-            "orange", 
-            "coral4", 
-            "coral", 
+            "#660000", 
+            "#CC3333", 
+            "#996633", 
+            "#FF9933", 
             "pink",
             "#CCCCCC",
             "#666666", 
             "#666666",
             "#699999",
-            "#99CC99", 
-            "#669966"
+            "#3366FF", 
+            "#000066"
   ),
   type = c("polygon", 
            "polygon", 
