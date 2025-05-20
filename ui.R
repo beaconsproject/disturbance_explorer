@@ -38,6 +38,7 @@ ui = dashboardPage(skin="black",
                    ),
                    
                    dashboardSidebar(
+                     width = 325,
                      sidebarMenu(id="tabs",
                                  menuItem("Welcome", tabName = "overview", icon = icon("th")),
                                  menuItem("Select study area", tabName = "select", icon = icon("arrow-pointer")),
@@ -55,12 +56,32 @@ ui = dashboardPage(skin="black",
                        conditionalPanel(
                          condition="input.selectInput=='usegpkg'",
                          fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg"),
-                         hr(),
-                         uiOutput("lineIndustryUI"),
-                         uiOutput("lineDistTypeUI"),
-                         tags$br(),
-                         uiOutput("polyIndustryUI"),
-                         uiOutput("polyDistTypeUI")
+                         div(
+                           style = "margin-top: -40px;",  # move it up
+                           checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)
+                         ),
+                         conditionalPanel(
+                           condition="input.createMatrix==true",
+                           div(
+                             style = "margin-left: 10px; margin-top: 30px;",
+                             h5(strong("Classify Disturbance Layer"))
+                           ),
+                           div(
+                             style = "margin-left: 10px;",
+                             h5("Select linear disturbance attributes that describe:")
+                           ),
+                           uiOutput("lineIndustryUI"),
+                           uiOutput("lineDistTypeUI"),
+                           div(
+                             style = "margin-left: 10px;",
+                             h5("Select areal distrubance attributes that describe:")
+                           ),
+                           uiOutput("polyIndustryUI"),
+                           uiOutput("polyDistTypeUI")
+                         ),
+                         br(),
+                         fileInput(inputId = "upload_others", label = "Include other disturbances (shp or gpkg):", multiple = TRUE, accept = c(".gpkg", ".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                         hr()
                        ),
                        actionButton("distType", "Confirm", class = "btn-warning", style='color: #000')
                      ),
@@ -89,7 +110,7 @@ ui = dashboardPage(skin="black",
                          sliderInput("firesize", label="Include minimum fire size (m):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
                          sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1960, 2023), sep = "")
                        ),
-                       actionButton("goButton", "Generate undisturbed areas", style='color: #000')
+                       actionButton("goButton", "Generate undisturbed areas", class = "btn-warning", style='color: #000')
                      ),
                      conditionalPanel(
                        condition="input.tabs=='download'",

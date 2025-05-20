@@ -13,6 +13,11 @@ server = function(input, output, session) {
   dist_names <- reactiveVal(c())
   footprint_names_old <- reactiveVal(c())
   footprint_names_new <- reactiveVal(c())
+  industry_line <- reactiveVal(c())
+  disttype_line <- reactiveVal(c())
+  industry_poly <- reactiveVal(c())
+  disttype_poly <- reactiveVal(c())
+  
   
   # Function to add a new group to group_names
   addGroup <- function(new_group) {
@@ -87,7 +92,7 @@ server = function(input, output, session) {
     req(input$selectInput)
     req(fire_sf())
     req(input$forcefire)
-    #browser()
+    
     # Update max upstream slider
     max_fire <- round(max(fire_sf()$area_ha, na.rm = TRUE), -2)
     # Update the slider input with the max value
@@ -205,35 +210,51 @@ server = function(input, output, session) {
   # Render UI for the selection of column name for disturbances 
   ################################################################################################
   output$lineIndustryUI <- renderUI({
+    req(input$createMatrix == TRUE)
     req(line())  # only show if line() is available
-    selectInput("lineindustry", 
-                label = div(style = "font-size:13px;margin-top: -10px;", "Select linear industry attribute"), 
-                choices = c("Please select",colnames(line())), 
-                selected = "Please select")
+    div(
+      style = "margin-top: -30px;",  
+      selectInput("lineindustry", 
+                label = div(style = "font-size:13px;margin-top: -10px;", ""), 
+                choices = c("--industry type--",colnames(line())), 
+                selected = "--industry type--")
+    )
   })
   
   output$lineDistTypeUI <- renderUI({
+    req(input$createMatrix == TRUE)
     req(line())
-    selectInput("linedisttype", 
-                label = div(style = "font-size:13px;", "Select linear disturbance type attribute"), 
-                choices = c("Please select", colnames(line())), 
-                selected = "Please select")
+    div(
+      style = "margin-top: -30px;",
+      selectInput("linedisttype", 
+                label = div(style = "font-size:13px;", ""), 
+                choices = c("--disturbance type--", colnames(line())), 
+                selected = "--disturbance type--")
+    )
   })
   
   output$polyIndustryUI <- renderUI({
+    req(input$createMatrix == TRUE)
     req(poly())
-    selectInput("polyindustry", 
-                label = div(style = "font-size:13px;", "Select areal industry attribute"), 
-                choices = c("Please select",colnames(poly())), 
-                selected = "Please select")
+    div(
+      style = "margin-top: -30px;",
+      selectInput("polyindustry", 
+                label = div(style = "font-size:13px;", ""), 
+                choices = c("--industry type--",colnames(poly())), 
+                selected = "--industry type--")
+    )
   })
   
   output$polyDistTypeUI <- renderUI({
+    req(input$createMatrix == TRUE)
     req(poly())
-    selectInput("polydisttype", 
-                label = div(style = "font-size:13px;margin: 0px;", "Select areal disturbance type attribute"), 
-                choices = c("Please select",colnames(poly())), 
-                selected = "Please select")
+    div(
+      style = "margin-top: -30px;",
+      selectInput("polydisttype", 
+                label = div(style = "font-size:13px;margin: 0px;", ""), 
+                choices = c("--disturbance type--",colnames(poly())), 
+                selected = "--disturbance type--")
+    )
   })
 
   ##############################################################################
@@ -405,113 +426,155 @@ server = function(input, output, session) {
   # Combine geometries into one sf object
   sf::st_as_sf(sf::st_union(do.call(c, geoms)))
   })
-  ########################################################
-  ## Observe on column name for type of dist
-  observeEvent(input$distType, {
-    if(input$selectInput =="usedemo"){
-      if(!is.null(line())){
-        industry_line <- "TYPE_INDUSTRY"
-        disttype_line <- "TYPE_DISTURBANCE"
-      }
-      if(!is.null(poly())){
-        industry_poly <- "TYPE_INDUSTRY"
-        disttype_poly <- "TYPE_DISTURBANCE"
-     }
-    }else if(!is.null(input$upload_gpkg)){
-      if(!is.null(line())){
-       industry_line <- input$lineindustry
-        disttype_line <- input$linedisttype
-      }
-      if(!is.null(poly())){
-       industry_poly <- input$polyindustry
-        disttype_poly <- input$polydisttype
+  
+  ##############################################################################
+  # Read input data - OTHERS
+  ##############################################################################
+  other_dist <- reactive({
+    layer <- NULL
+    if(!is.null(input$upload_others)){
+      browser()
+      ext <- tools::file_ext(path)
+      if(ext == "gpkg"){
+        layer <- st_read(path, name, quiet = TRUE) 
+      } else if (length(infile$upload_others) > 1) {
+        dir <- unique(dirname(infile$datapath))
+        outfiles <- file.path(dir, infile$name)
+        name <- tools::file_path_sans_ext(infile$name[1])
+        purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
+        shp_path <- file.path(dir, paste0(name, ".shp"))
+        if (file.exists(shp_path)) {
+          layer <- sf::st_read(shp_path)
+        } else {
+          stop("Shapefile (.shp) or geopackage (.gpkg) is missing.")
+        }
       }
     }
     
-    output$linear_matrix_ui <- renderUI({
-      if (is.null(line())) {
-        tags$p("NONE", style = "color: gray; font-style: italic;")
-      } else {
-        # Build matrix
-        #browser()
-        req(industry_line, disttype_line, input$buffer1)
-        
-        line_tibble <- line() %>%
-          st_drop_geometry() %>%
-          dplyr::select(any_of(c(industry_line, disttype_line))) %>%
-          mutate(
-            TYPE_FEATURE = "Linear",
-            BUFFER_SIZE = input$buffer1,
-            TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
-            TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
-          )
-        
-        line_summary <- line() %>%
-          mutate(
-            length_km = st_length(line()) / 1000,
-            TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
-            TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
-          ) %>%
-          st_drop_geometry() %>%
-          group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-          summarize(LENGTH_KM = as.numeric(round(sum(length_km), 2))) %>%
-          ungroup()
-        
-        line_tibble <- line_tibble %>%
-          left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
-        
-        mline <- unique(line_tibble) %>%
-          dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "LENGTH_KM"))) %>%
-          as.matrix()
-        
-        # Return the matrixInput to UI
-        matrixInput("linear_buffers",
-                    value = mline,
-                    rows = list(names = FALSE, extend = TRUE),
-                    cols = list(names = TRUE))
+    if(!is.null(layer)){
+      if(is.null(layer$geometry)){layer$geometry <- layer$geom}
+      layer <- st_set_geometry(layer, "geometry")
+    }
+    return(layer)
+  })
+  ########################################################
+ observeEvent(input$selectInput, {
+    if (input$selectInput == "usedemo") {
+      if (!is.null(line())) {
+        industry_line("TYPE_INDUSTRY")
+        disttype_line("TYPE_DISTURBANCE")
       }
-    })
+      if (!is.null(poly())) {
+        industry_poly("TYPE_INDUSTRY")
+        disttype_poly("TYPE_DISTURBANCE")
+      }
+    }
+  })
+  
+  # For uploaded GPKG
+  observeEvent(input$distType, {
+    req(!is.null(input$upload_gpkg))  # Optional safeguard
+    if (!is.null(line())) {
+      industry_line(input$lineindustry)
+      disttype_line(input$linedisttype)
+    }
+    if (!is.null(poly())) {
+      industry_poly(input$polyindustry)
+      disttype_poly(input$polydisttype)
+    }
+  })
+  
+  observeEvent(input$distType, {
+    req(input$createMatrix == TRUE)
     
-    output$areal_matrix_ui <- renderUI({
-      if (is.null(poly())) {
-        tags$p("NONE", style = "color: gray; font-style: italic;")
-      } else {
-        req(industry_poly, disttype_poly, input$buffer2)
+    output$linear_matrix_ui <- renderUI({
+        if (is.null(line())) {
+          tags$p("NONE", style = "color: gray; font-style: italic;")
+        } else {
+          # Build matrix
+          browser()
+          req(industry_line(), disttype_line(), input$buffer1)
+          industry_line <- industry_line()
+          disttype_line <- disttype_line()
+          
+          line_tibble <- line() %>%
+            st_drop_geometry() %>%
+            dplyr::select(any_of(c(industry_line, disttype_line))) %>%
+            mutate(
+              TYPE_FEATURE = "Linear",
+              BUFFER_SIZE = input$buffer1,
+              TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
+              TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
+            )
         
-        poly_tibble <- poly() %>%
-          st_drop_geometry() %>%
-          dplyr::select(any_of(c(industry_poly, disttype_poly))) %>%
-          mutate(
-            TYPE_FEATURE = "Areal",
-            BUFFER_SIZE = input$buffer2,
-            TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
-            TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
-          )
+          line_summary <- line() %>%
+            mutate(
+              length_km = st_length(line()) / 1000,
+              TYPE_INDUSTRY = if (industry_line %in% colnames(.)) .[[industry_line]] else NA,
+              TYPE_DISTURBANCE = if (disttype_line %in% colnames(.)) .[[disttype_line]] else NA
+            ) %>%
+            st_drop_geometry() %>%
+            group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+            summarize(LENGTH_KM = as.numeric(round(sum(length_km), 2))) %>%
+            ungroup()
         
-        poly_summary <- poly() %>%
-          mutate(
-            area_km2 = st_area(poly()) / 1e6,
-            TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
-            TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
-          ) %>%
-          st_drop_geometry() %>%
-          group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-          summarize(AREA_KM2 = round(as.numeric(sum(area_km2)), 2)) %>%
-          ungroup()
+          line_tibble <- line_tibble %>%
+            left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
         
-        poly_tibble <- poly_tibble %>%
-          left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+          mline <- unique(line_tibble) %>%
+            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "LENGTH_KM"))) %>%
+            as.matrix()
         
-        mpoly <- unique(poly_tibble) %>%
-          dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "AREA_KM2"))) %>%
-          as.matrix()
-        
-        matrixInput("areal_buffers",
-                    value = mpoly,
-                    rows = list(names = FALSE, extend = TRUE),
-                    cols = list(names = TRUE))
-      }
-    })
+          # Return the matrixInput to UI
+          matrixInput("linear_buffers",
+                      value = mline,
+                      rows = list(names = FALSE, extend = TRUE),
+                      cols = list(names = TRUE))
+        }
+      })
+      
+      output$areal_matrix_ui <- renderUI({
+        if (is.null(poly())) {
+          tags$p("NONE", style = "color: gray; font-style: italic;")
+        } else {
+          req(industry_poly, disttype_poly, input$buffer2)
+          industry_poly <- industry_poly()
+          disttype_poly <- disttype_poly()
+          
+          poly_tibble <- poly() %>%
+            st_drop_geometry() %>%
+            dplyr::select(any_of(c(industry_poly, disttype_poly))) %>%
+            mutate(
+              TYPE_FEATURE = "Areal",
+              BUFFER_SIZE = input$buffer2,
+              TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
+              TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
+            )
+          
+          poly_summary <- poly() %>%
+            mutate(
+              area_km2 = st_area(poly()) / 1e6,
+              TYPE_INDUSTRY = if (industry_poly %in% colnames(.)) .[[industry_poly]] else NA,
+              TYPE_DISTURBANCE = if (disttype_poly %in% colnames(.)) .[[disttype_poly]] else NA
+            ) %>%
+            st_drop_geometry() %>%
+            group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+            summarize(AREA_KM2 = round(as.numeric(sum(area_km2)), 2)) %>%
+            ungroup()
+          
+          poly_tibble <- poly_tibble %>%
+            left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+          
+          mpoly <- unique(poly_tibble) %>%
+            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "AREA_KM2"))) %>%
+            as.matrix()
+          
+          matrixInput("areal_buffers",
+                      value = mpoly,
+                      rows = list(names = FALSE, extend = TRUE),
+                      cols = list(names = TRUE))
+        }
+      })
   })
   
   ################################################################################################
@@ -954,7 +1017,7 @@ server = function(input, output, session) {
       tags$br(),
       tags$div(
         tags$h5("Map Legend", style = "text-align: left; font-weight: bold; margin-bottom: 0px;"),  # Title above the image
-        tags$img(src = "legend.png", width = "90%")
+        tags$img(src = "legend.png", width = "70%")
       ),
       tags$div(
         style = "font-size: 0.85em; color: grey;",
