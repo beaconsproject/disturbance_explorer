@@ -1010,7 +1010,12 @@ server = function(input, output, session) {
     }
       
       
-    if(!any(c('linear_disturbance', 'areal_disturbance', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names()) & 'fires' %in% lyr_names()){
+    if(!any(c('linear_disturbance', 'areal_disturbance', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names()) &&
+        'fires' %in% lyr_names() &&
+         is.null(other_linedist()) &&
+         is.null(other_polydist())
+       ){
+      
         showModal(modalDialog(
           title = "Only wildfires will be used to generate the footprint and intactness layers",
           "You can proceed with wildfires. ",
@@ -1169,7 +1174,6 @@ server = function(input, output, session) {
   
   # Reactive for the attributes updated by `goButton`
   observeEvent(input$goButton, {
-    #browser()
     aoi <- sum(st_area(studyarea()))
     if (!is.null(footprintfire_sf())) {
       footprint <- st_union(footprintfire_sf()) 
