@@ -74,19 +74,11 @@ server = function(input, output, session) {
     disable("otherpolysize")
     req(!is.null(input$upload_polyothers))
     enable("otherpolysize")
-    div(
-      style = "color: darkgrey;",
-      updateCheckboxInput(session = getDefaultReactiveDomain(), "otherpolysize", label = "Include others areal disturbances", value = FALSE)
-    )
   })
   observe({
     disable("otherlinesize")
     req(!is.null(input$upload_lineothers))
     enable("otherlinesize")
-    div(
-      style = "color: darkgrey;",
-      updateCheckboxInput(session = getDefaultReactiveDomain(), "otherlinesize", label = "Include others linear disturbances", value = FALSE)
-    )
   })
   ################################################################################################
   # Observe on Mining claims
@@ -242,28 +234,38 @@ server = function(input, output, session) {
   other_linedist <- reactive({
     layer <- NULL
     if(!is.null(input$upload_lineothers)){
-      
+      required_extensions <- c("shp", "shx", "dbf", "prj")
       infile <- input$upload_lineothers
-      if(length(infile) > 1) {
+      file_extensions <- tools::file_ext(infile$name)
+      
+      # Check if all required extensions are present
+      if (!all(required_extensions %in% file_extensions)) {
+        showModal(modalDialog(
+          title = "Missing shapefile component for other linear disturbances.",
+          "Please upload all required shapefile components: .shp, .shx, .dbf, and .prj.",
+          easyClose = FALSE,
+          footer = modalButton("OK")
+        ))
+        req(FALSE)
+      }else{
+        # Proceed if all components are present
         dir <- unique(dirname(infile$datapath))
         outfiles <- file.path(dir, infile$name)
         name <- tools::file_path_sans_ext(infile$name[1])
+        
         purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
-        shp_path <- file.path(dir, paste0(name, ".shp"))
-        if (file.exists(shp_path)) {
-          layer <- sf::st_read(shp_path)
-        } else {
-          stop("Shapefile (.shp) or geopackage (.gpkg) is missing.")
+        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE)
+        
+        # Handle cases where 'geometry' might not be named correctly
+        if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
+          layer$geometry <- layer$geom
         }
+        
+        layer <- layer %>%
+          sf::st_set_geometry("geometry") %>%
+          sf::st_zm(drop = TRUE, what = "ZM") %>%
+          sf::st_transform(st_crs(studyarea()))
       }
-    }
-    
-    if(!is.null(layer)){
-      if(is.null(layer$geometry)){layer$geometry <- layer$geom}
-      
-      layer <- st_set_geometry(layer, "geometry") %>%
-        st_zm(drop = TRUE, what = "ZM") %>%
-        st_transform(crs(studyarea()))
     }
     return(layer)
   })
@@ -271,29 +273,40 @@ server = function(input, output, session) {
   other_polydist <- reactive({
     layer <- NULL
     if(!is.null(input$upload_polyothers)){
-      
+      required_extensions <- c("shp", "shx", "dbf", "prj")
       infile <- input$upload_polyothers
-      if(length(infile) > 1) {
+      file_extensions <- tools::file_ext(infile$name)
+      
+      # Check if all required extensions are present
+      if (!all(required_extensions %in% file_extensions)) {
+        showModal(modalDialog(
+          title = "Missing shapefile component for other areal disturbances.",
+          "Please upload all required shapefile components: .shp, .shx, .dbf, and .prj.",
+          easyClose = FALSE,
+          footer = modalButton("OK")
+        ))
+        req(FALSE)
+      } else {
+        # Proceed if all components are present
         dir <- unique(dirname(infile$datapath))
         outfiles <- file.path(dir, infile$name)
         name <- tools::file_path_sans_ext(infile$name[1])
+        
         purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
-        shp_path <- file.path(dir, paste0(name, ".shp"))
-        if (file.exists(shp_path)) {
-          layer <- sf::st_read(shp_path)
-        } else {
-          stop("Shapefile (.shp) or geopackage (.gpkg) is missing.")
+        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE)
+        
+        # Handle cases where 'geometry' might not be named correctly
+        if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
+          layer$geometry <- layer$geom
         }
+        
+        layer <- layer %>%
+          sf::st_set_geometry("geometry") %>%
+          sf::st_zm(drop = TRUE, what = "ZM") %>%
+          sf::st_transform(st_crs(studyarea()))
       }
     }
     
-    if(!is.null(layer)){
-      if(is.null(layer$geometry)){layer$geometry <- layer$geom}
-      
-      layer <- st_set_geometry(layer, "geometry") %>%
-        st_zm(drop = TRUE, what = "ZM") %>%
-        st_transform(crs(studyarea()))
-    }
     return(layer)
   })
   ################################################################################################
@@ -1101,9 +1114,9 @@ server = function(input, output, session) {
     
     # Other dist --Default to NA
     other_linevalue <- NA
-    other_linelabel <- "Other linear disturbances"
+    other_linelabel <- "Other linear disturbances (km)"
     other_polyvalue <- NA
-    other_polylabel <- "Other areal disturbances"
+    other_polylabel <- "Other areal disturbances (km2)"
     
     # If the user uploaded a shapefile via `other_dist()`
     if (!is.null(other_linedist())) {
