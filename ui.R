@@ -104,7 +104,7 @@ ui = dashboardPage(skin="black",
                        conditionalPanel(
                          condition="input.includeOthers",
                          sliderInput("otherlinesize", label="Apply buffer size (m) on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE),
-                         sliderInput("otherpolysize", label="Apply a buffer size (m)on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         sliderInput("otherpolysize", label="Apply a buffer size (m)on other areal disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                          
                        ),
                        checkboxInput("forceclaims", "Include mining claims", value=FALSE),
