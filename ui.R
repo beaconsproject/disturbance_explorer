@@ -80,7 +80,8 @@ ui = dashboardPage(skin="black",
                            uiOutput("polyDistTypeUI")
                          ),
                          br(),
-                         fileInput(inputId = "upload_others", label = "Include other disturbances (shp or gpkg):", multiple = TRUE, accept = c(".gpkg", ".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                         fileInput(inputId = "upload_lineothers", label = "Include other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                         fileInput(inputId = "upload_polyothers", label = "Include other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
                          hr()
                        ),
                        actionButton("distType", "Confirm", class = "btn-warning", style='color: #000')
@@ -99,6 +100,13 @@ ui = dashboardPage(skin="black",
                        ),
                        hr(),
                        sliderInput("area1", label="Set minimum intact patch size (km2):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
+                       checkboxInput("includeOthers", "Include other disturbances", value=FALSE),
+                       conditionalPanel(
+                         condition="input.includeOthers",
+                         sliderInput("otherlinesize", label="Apply buffer size (m) on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE),
+                         sliderInput("otherpolysize", label="Apply a buffer size (m)on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         
+                       ),
                        checkboxInput("forceclaims", "Include mining claims", value=FALSE),
                        conditionalPanel(
                          condition="input.forceclaims",
