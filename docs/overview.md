@@ -1,46 +1,64 @@
 ## Welcome to the Disturbance Explorer 
 
-The purpose of the Regional Disturbance Explorer app is to enable users to interactively create a landscape intactness map or, 
-conversely, a human footprint map. The app also allows users to assess the influence of buffer size, minimum patch size, fires and mining claims on the resulting intactness and 
-footprint maps. The dataset is described below. 
+The **Disturbance Explorer** app lets users interactively generate maps of undisturbed landscape  or, alternatively, maps highlighting human disturbances. 
+It also provides tools to evaluate how buffer size, minimum patch size, fire events, and mining claims affect both undisturbed and disturbed area outputs. 
+A built-in **User Guide** tab walks you step by step through each feature and its functionality, while the **Dataset Requirements** tab details the data formats and 
+layers needed to run the app.
 
-<center>
-  <img src="pics/app.png" width="600">
-    <br>
-    Figure 1. Shiny-based disturbance explorer app.
-  </center>
-    
-## Functionality
-    
-The app consists of four sections:
-    
-**Documentation: User guide and datasets**:
-    
-- Provides a description of the app, its functionality, and the description of the required datasets.
+
+### Input data
   
-**Select study area**:
+The **Disturbance Explorer** app relies on several key data layers contained within a single GeoPackage. A sample dataset is included with the app, representing the 
+fundamental drainage area 10ab in Canada located in the Yukon and British Columbia. Users may upload their own GeoPackage, provided it follows the required structure. 
+Please refer to the **Dataset Requirements** section for details on the necessary layers, attributes, and formatting.
+
+### Functionality
     
-  - Use demo dataset or upload a geopackage ('.gpkg') that contains all the required layers.
-  
-The projection of all layers within the geopackage must be the same. Moreover, in order to generate intactness and footprint maps, 
-the uploaded study area must completely overlay the disturbances extent provided within the geopackage.
-  
-**Buffer features**:
+The app consists of three sections:
+
+
+
+#### Select study area
+
+  - Use the demo dataset or upload a custom GeoPackage ("gpkg" extension) containing all required spatial layers.
+
+  - Visualize the included features: linear and areal anthropogenic disturbances, forest fires, and mining claims.
+
+If a custom GeoPackage is provided, users can also upload additional disturbance features—either linear or areal—as shapefiles. 
+These can be incorporated into the mapping process or used for visualization purposes only.
+
+📌 Note: All layers in the GeoPackage must share the same projection. Additionally, the study area must completely overlap the extent of disturbance layers to ensure 
+accurate analysis.
+<br><br>
+
+#### Buffer features:
     
-  - view linear and areal anthropogenic surface disturbances, forest fires, and mining claims included in the geopackage.
-  - apply buffers around disturbance features. Users can either apply a uniform buffer or specify custom buffer sizes based on disturbance types. 
-  - set a minimum patch size of intactness areas after the buffering on the disturbance features are applied. This function will remove every patch in the study area that are considered not sufficiently large to maintain key ecological processes
-  - include fires. Option to specify the minimum size of fire to include.
-  - include mining claims. Option to apply a buffer. 
+  - Apply buffers around disturbance features. Choose between:
   
-**Save footprint and intactness maps**:
+  
+    - A uniform buffer applied to all features.
+
+    - Custom buffer sizes specific to disturbance types.
+
+  - Set a minimum patch size for intact areas after buffering. Smaller patches will be removed, as they are considered insufficient to support key ecological processes.
+
+  - Include fires with the option to specify a minimum size threshold.
+
+  - Include mining claims, with the option to apply a buffer.
+<br><br>
+  
+#### Download undisturbed and disturbed areas:
     
-  - view a map of intactness that contain only patches that reach the minimum size of intactness areas
-  - view a map of the buffered footprint 
-  - explore the proportion of intactness and footprint
+  - View the **undisturbed areas**, showing only patches that meet the minimum size of intactness areas.
+  - View the **disturbed areas**.
+  - Explore and compare the **proportion of undisturbed and disturbed areas**.
+<br><br>
   
-## Input data
   
-The **Disturbance Explorer** app depends on several key data layers contained within one GeoPackage ("gpkg" extension). An example datasets come with the app which correspond to the fundamental drainage area 10ab in Canada located in the Yukon and British Columbia.
-The user can upload his or her own dataset provided that it contains the same layers (and attributes) and is in the same format as the demo dataset. For a description of the data layers and attributes required by the app, go to the **Datasets** tab.  
-  
+### Disturbance Explorer workflow diagram
+
+The worflow diagram below provides an overview of the process.
+
+<br><br>
+<center><img src="pics/workflow.png" width="800"><br>Workflow diagram of the Disturbance Explorer app.</center>
+<br><br>

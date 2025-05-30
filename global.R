@@ -1,6 +1,6 @@
 
 # Check and install packages if missing
-required_packages <- c("leaflet", "tidyverse", "shinydashboard", "shinycssloaders", "shiny", "shinyjs",
+required_packages <- c("leaflet", "tidyverse", "cli","shinydashboard", "shinycssloaders", "shiny", "shinyjs",
    "markdown", "dplyr", "tidyr", "sf", "shinyMatrix"
 )
 

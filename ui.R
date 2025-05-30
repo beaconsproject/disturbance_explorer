@@ -131,13 +131,22 @@ ui = dashboardPage(skin="black",
                      tags$head(tags$link(rel = "icon", type = "image/png", href = "logoblanc.png"),
                                tags$link(rel = "stylesheet", type = "text/css", href = "green-theme.css")),
                      tabItems(
-                       tabItem(tabName="overview",
+                       tabItem(tabName = "overview",
                                fluidRow(
-                                 tabBox(id = "landing", width="12",
-                                        tabPanel("Overview", includeMarkdown("docs/overview.md")),
-                                        tabPanel("User guide", includeMarkdown("docs/user_guide.md")),
-                                        tabPanel("Datasets", includeMarkdown("docs/datasets.md"))
-                                 )            )
+                                 column(width = 8,  # Adjusted from 6 to 8 for better alignment
+                                        tabBox(id = "landing", width = 12,
+                                               tabPanel("Overview", includeMarkdown("docs/overview.md")),
+                                               tabPanel("User Guide", includeMarkdown("docs/user_guide.md")),
+                                               tabPanel("Datasets Requirements", includeMarkdown("docs/datasets.md"))
+                                        )
+                                 ),
+                                 absolutePanel(
+                                   right = 0, top = 0, width = 250, height = "100%",
+                                   #style = "background-color: white; padding: 0px; overflow-y: auto; z-index: 1000;",
+                                   style = "background-color: white; padding: 0;margin: 0;border: none; right: 0;overflow: hidden;z-index: 1000;",
+                                   tags$img(src = "intact.jpg",width = "100%", style = "display: block;")
+                                 )
+                               )
                        ),
                        tabItem(tabName="select",
                                fluidRow(

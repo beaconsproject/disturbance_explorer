@@ -855,6 +855,7 @@ server = function(input, output, session) {
     guide_file <- switch(input$tabs,
                          "select" = "docs/select_guide.md",
                          "buffer" = "docs/buffer_guide.md",
+                         "download" = "docs/dwd_guide.md",
                          NULL
     )
     
