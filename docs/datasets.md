@@ -1,17 +1,17 @@
 ## Datasets
   
-This page outlines the required and optional layers that are used by the **Disturbance Explorer** app. For the app to recognize uploaded GeoPackage layers, the layer names **must exactly match the expected names.**
+This page outlines the required and optional layers that are used by the **Disturbance Explorer** app. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names.**
   
 ### Map layers
 
-#### Required
+#### Required - GeoPackage
 
 - **studyarea** : A single polygon outlining the boundary of the study area e.g., watershed, ecoregion or any other user-defined area.
 - **linear_disturbance or areal_disturbance** 
   - **linear_disturbance** : Linear anthropogenic surface disturbance features e.g., roads, seismic line. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Linear_Features/
   - **areal_disturbance** : Areal (polygonal) anthropogenic surface disturbance features e.g., mine, town site, cutblock. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Areal_Features/
 
-#### Optional
+#### Optional - GeoPackage
 
 - **fires** : Distribution of wildfire polygons. Example source: https://cwfis.cfs.nrcan.gc.ca/datamart
 - **Intact_FL_2000** : Distribution of intact forest landscapes in the year 2000. Example source: https://intactforests.org
@@ -19,10 +19,12 @@ This page outlines the required and optional layers that are used by the **Distu
 - **protected_areas** : Distribution of protected areas from the Canadian Protected and Conserved Areas Database (CPCAD). Example source: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
 - **Quartz_Claims** : Quartz mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Quartz_Claims_50k/
 - **Placer_Claims** : Placer mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Placer_Claims_50k/
-- **Mining_Claims** : Mining claims. 
+- **Mining_Claims** : Mining claims.
 
-**Other disturbances** can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
+#### Optional - Shapefile
+
+- **Other disturbances** can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
 
 
-📌 Note: All layers in the GeoPackage, including shapefiles for **Other disturbances** must have the same projection. Additionally, the study area must contain the full extent of disturbance layers to ensure 
+📌 Note: All layers in the GeoPackage, as well as shapefiles for **Other disturbances**, must have the same projection. Additionally, the study area must contain the full extent of disturbance layers to ensure 
 accurate analysis.
