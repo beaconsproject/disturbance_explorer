@@ -23,7 +23,7 @@ This page outlines the required and optional layers that are used by the **Distu
 
 #### Optional - Shapefile
 
-- **Other disturbances** can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
+- **Other disturbances** (linear and areal) can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
 
 
 📌 Note: All layers in the GeoPackage, as well as shapefiles for **Other disturbances**, must have the same projection. Additionally, the study area must contain the full extent of disturbance layers to ensure 
