@@ -22,8 +22,7 @@ To get started, click 'Select study area' section on the left-side panel.
 
 The **Select study area** panel offers two options:
 
-  - **Use demo dataset** embedded in the app. This dataset is for a watershed located in the southeast Yukon. 
-  It includes all the necessary spatial layers to run the app.
+  - **Use demo dataset** embedded in the app. This dataset is for a watershed located in the southeast Yukon and includes all spatial layers required to run the app.
   - **Upload a custom GeoPackage (gpkg)**. Users are responsible for ensuring that all required spatial layers are included and that all 
   layers share a consistent coordinate reference system. Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, 
   as well as their respective data structure.
