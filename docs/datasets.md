@@ -1,6 +1,6 @@
 ## Datasets
   
-This page outlines the required and optional layers that are used by the **Disturbance Explorer** app. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names.**
+This page outlines the required and optional layers that are used by the **Disturbance Explorer** app. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names.** All spatial layers must have the same projection.
   
 ### Map layers
 
