@@ -8,12 +8,12 @@ Understanding human activity is essential for effective conservation planning, l
 intact landscapes, are critical for maintaining biodiversity, supporting ecosystem services, and preserving ecological integrity. Conversely, identifying disturbed 
 areas—such as those affected by roads, industrial activities, or fires—helps quantify human impact and guides conservation efforts.
 
-The purpose of the **Disturbance Explorer** app lets users to interactively generate both undisturbed or, conversely, disturbed landscape maps. 
-The app also allows users to assess the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed maps. 
-This page walks you through the step-by-step process for creating these maps.
+**Disturbance Explorer** produces undisturbed and disturbed landscape maps for a study area based on human disturbances as well as natural disturbances if desired. 
+Users can explore the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed maps. 
+This page describes the step-by-step process for creating these maps.
 
-The **Overview** section serves as the landing page, providing a concise introduction of the app and its functionality. It also provide access to this guide and the **Dataset Requirements**
-sections, which outlines the description, naming convention and data structure of the required layers used by the **Disturbance Explorer** app. 
+The **Welcome** section includes the **Overview** landing page, providing a concise introduction to the app and its functionality. It also includes this guide and the **Dataset Requirements**, 
+which outlines the description, naming convention and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
 
 To get started, click 'Select study area' section on the left-side panel. 
 
@@ -22,16 +22,16 @@ To get started, click 'Select study area' section on the left-side panel.
 
 The **Select study area** panel offers two options:
 
-  - Use demo dataset (which is embedded in the app). This dataset represents the fundamental drainage area 10AB, located in the Yukon and British Columbia. 
-  It includes all the necessary layers to run the application.
-  - Upload a custom GeoPackage ('.gpkg'). When using your own dataset, you are responsible for ensuring that all required layers are included and that all 
+  - **Use demo dataset** embedded in the app. This dataset is for a watershed located in the southeast Yukon. 
+  It includes all the necessary spatial layers to run the app.
+  - **Upload a custom GeoPackage (gpkg)**. Users are responsible for ensuring that all required spatial layers are included and that all 
   layers share a consistent coordinate reference system. Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, 
   as well as their respective data structure.
 
-If a user-defined GeoPackage is uploaded, the app provides the option to classify linear and areal disturbances by industry and type. This classification generates 
-a table used in the next step to assign custom buffer sizes for each industry/type combination.
+If a user-defined GeoPackage is uploaded, the app provides the option to classify linear and areal disturbances by industry and disturbance type. This classification generates 
+a table used in the next step to assign custom buffer sizes for each industry/disturbance type combination.
 <br><br>
-<center><img src="pics/SelectSA.png" width="600"><br>Figure 1. Mapping study area and underlying dataset with the option to classify disturbances per industry/type.</center>
+<center><img src="pics/SelectSA.png" width="600"><br>Figure 1. Mapping study area and underlying dataset with the option to classify disturbances per industry/disturbance type.</center>
 <br><br>
 
 It is also possible for the user to upload additional linear and areal disturbances as shapefiles, which can be included in the mapping workflow or used solely for visualization.
@@ -41,26 +41,25 @@ Pressing the **Confirm** button loads the study area along with its underlying l
 
 ### Buffer features
 
-The **Buffer features** enables users to apply influence buffers around linear and polygonal (areal) disturbances features. 
+The **Buffer features** enables users to apply influence buffers around linear and areal (polygonal) disturbances features. 
 
 Users have two options:
 
   - Apply an overall buffer on the respective layers using sliders, or 
   - Enable custom buffer sizes based on industry and feature types. 
   
-Choosing **Use custom buffers** will switch the map view to display the table where disturbances have been summarized by industry/feature types. Value inside the 'BUFFER_SIZE' column can be edited.
+Choosing **Use custom buffers** will switch the map view to display the table where disturbances are summarized by industry/disturbance type. The value inside the 'BUFFER_SIZE' column can be edited.
 <br><br>
 <center><img src="pics/customBuf.png" width="600"><br>Figure 2. Custom buffer table generated by user specified disturbance industries and types.</center>
 <br><br>
 
-In the left sidebar, minimum patch size of intactness areas can be set using the slider after the buffering on the disturbance features are applied. 
-This function will remove every patch in the study area that are considered not sufficiently large to maintain key ecological processes.
+In the left sidebar, **Set minimum patch size of undisturbed areas** can be set using the slider. 
+This function will remove undisturbed patches that are smaller than the set minimum size from the final undisturbed areas map.
 
-The user can choose to include other disturbances, fires and mining claims if these layers are present in the GeoPackage for generating undisturbed and disturbed maps.
-Default values are provided for the buffer size around other disturbances, the minimum fire size, and the buffer size around mining claims, 
-but these can be adjusted before generating the maps.
+The user can choose to include **other disturbances**, **fires**, and **mining claims** in generating the undisturbed and disturbed areas map if the required spatial layers were uploaded in the **Select study area** step. 
+If these spatial layers are not provided, the corresponding options will be disabled. 
+Default values are provided for buffer sizes as well as the minimum fire size, but these can be adjusted before generating the maps.
 
-If other disturbances, fires and mining claims are not present in the provided GeoPackage, the corresponding options will be disabled. 
 <br><br>
 <center><img src="pics/setOptions.png" width="600"><br>Figure 3. Inclusion of fires and mining claims. The "Include other disturbances" option is disabled because no additional disturbances were provided.</center>
 <br><br>
