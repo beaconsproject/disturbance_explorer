@@ -50,9 +50,7 @@ accurate analysis.
   
 #### Download undisturbed and disturbed areas:
     
-  - View the **undisturbed areas**, showing only patches that meet the minimum size of undisturbed areas.
-  - View the **disturbed areas**.
-  - Explore and compare the **proportion of undisturbed and disturbed areas**.
+  - Download a GeoPackage of the input spatial layers and the **undisturbed areas** and **disturbed areas** created by the app.
 <br><br>
   
   
