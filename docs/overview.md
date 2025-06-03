@@ -60,5 +60,5 @@ accurate analysis.
 The worflow diagram below provides an overview of the process.
 
 <br><br>
-<center><img src="pics/workflow.png" width="800"><br>Workflow diagram of the Disturbance Explorer app.</center>
+<center><img src="pics/workflow.png" width="800"></center>
 <br><br>
