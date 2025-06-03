@@ -16,7 +16,7 @@ This page outlines the required and optional layers that are used by the **Distu
 - **fires** : Distribution of wildfire polygons. Example source: https://cwfis.cfs.nrcan.gc.ca/datamart
 - **Intact_FL_2000** : Distribution of intact forest landscapes in the year 2000. Example source: https://intactforests.org
 - **Intact_FL_2020** : Distribution of intact forest landscapes in the year 2020. Example source: https://intactforests.org
-- **protected_areas** : Distribution of protected areas from the Canadian Protected and Conserved Areas Database (CPCAD). Example source: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
+- **protected_areas** : Distribution of protected areas e.g., Canadian Protected and Conserved Areas Database. Example source: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
 - **Quartz_Claims** : Quartz mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Quartz_Claims_50k/
 - **Placer_Claims** : Placer mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Placer_Claims_50k/
 - **Mining_Claims** : Mining claims.
