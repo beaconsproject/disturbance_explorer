@@ -19,7 +19,7 @@ This page outlines the required and optional layers that are used by the **Distu
 - **protected_areas** : Distribution of protected areas from the Canadian Protected and Conserved Areas Database (CPCAD). Example source: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
 - **Quartz_Claims** : Quartz mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Quartz_Claims_50k/
 - **Placer_Claims** : Placer mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Placer_Claims_50k/
-- **Mining_Claims** : Active mining claims. 
+- **Mining_Claims** : Mining claims. 
 
 **Other disturbances** can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
 
