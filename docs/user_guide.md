@@ -12,8 +12,8 @@ areas—such as those affected by roads, industrial activities, or fires—helps
 Users can explore the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed maps. 
 This page describes the step-by-step process for creating these maps.
 
-The **Welcome** section includes the **Overview** landing page, providing a concise introduction to the app and its functionality. It also includes this guide and the **Dataset Requirements**, 
-which outlines the description, naming convention and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
+The **Welcome** section includes the **Overview** landing page that provides a concise introduction to the app and its functionality. It also includes this guide and **Dataset Requirements** 
+which outlines the description, naming convention, and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
 
 To get started, click 'Select study area' section on the left-side panel. 
 
@@ -65,25 +65,25 @@ Default values are provided for buffer sizes as well as the minimum fire size, b
 
 #### Generate undisturbed  and disturbed areas
 
-Click on **Generate undisturbed areas** to trigger the generation of undisturbed and disturbed maps. After a few seconds to a minute, two new layers will appear in the 
-map and legend: a "disturbed" layer that shows the human/fires influence on the landscape and an "undisturbed" layer which shows all regions within the study region that 
-are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions.
+Click on **Generate undisturbed areas** to trigger the generation of undisturbed and disturbed areas maps. When the generation is completed, two new layers will appear on the 
+map and legend: (1) The "disturbed area" layer is comprised of buffered areal and linear disturbances, and if selected, other disturbances, mining claims, and/or fires. (2) The "undisturbed area" layer shows all regions within the study region that 
+are not intersected by disturbed areas. 
 <br><br>
 <center><img src="pics/mapping.png" width="600"><br>Figure 4. Mapping undisturbed and disturbed areas.</center>
 <br><br>
 
 #### View statistics
 
-The "Statistics" tab on the right panel provides regional summaries of the landscape provided. 
+The "Statistics" tab on the right panel provides summaries for the study area. 
 If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets.
-The table also displays the statistics on fires, mining and protected areas if provided.
+The table also displays the statistics on fires, mining claims, and protected areas if provided.
 <br><br>
-<center><img src="pics/stats.png" width="600"><br>Figure 5. Statistics on generated undisturbed and disturbed areas.</center>
+<center><img src="pics/stats.png" width="600"><br>Figure 5. Statistics generated for the study area (red box - top right) includes % area undisturbed and disturbed.</center>
 <br><br>
 
 ### Download data
 
-Finally, users can navigate to the **Download data** panel to initiate the download. This will export the undisturbed and disturbed maps as layers in a GeoPackage format, 
+Finally, users can navigate to the **Download data** panel to download the undisturbed and disturbed area maps as spatial layers in a GeoPackage format, 
 which can be further viewed and analyzed in a GIS application such as QGIS.
 <br><br>
 <center><img src="pics/dwd.png" width="600"><br>Figure 6. Download the GeoPackage.</center>
