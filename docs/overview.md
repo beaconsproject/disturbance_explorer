@@ -13,8 +13,7 @@ Please refer to the **Dataset Requirements** tab for details on the required spa
 ### Functionality
     
 The app consists of three sections:
-
-
+<br><br>
 
 #### Select study area:
 
