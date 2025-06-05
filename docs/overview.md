@@ -1,7 +1,7 @@
 ## Welcome to the Disturbance Explorer 
 
-The **Disturbance Explorer** generates maps of undisturbed and disturbed landscapes. 
-It also provides tools to evaluate how buffer size, minimum patch size, fire events, and potential future disturbances such as mining claims affect both undisturbed and disturbed area outputs. 
+The **Disturbance Explorer** generates custom maps of undisturbed and disturbed landscapes. 
+It also provides tools to evaluate how buffer size (or zone of influence), minimum patch size, fire, and potential future disturbances such as mining claims affect both undisturbed and disturbed areas. 
 A built-in **User Guide** tab provides step-by-step instructions and function descriptions, while the **Dataset Requirements** tab details data formats and 
 layers needed to run the app.
 
