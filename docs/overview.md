@@ -15,7 +15,7 @@ Please refer to the **Dataset Requirements** tab for details on the required spa
 The app consists of three sections:
 <br>
 
-#### Select study area:
+#### Select study area
 
   - Use the demo dataset or upload a custom GeoPackage ("gpkg" extension) containing all required spatial layers. If a custom GeoPackage is provided, users can also upload additional linear and areal disturbance features as shapefiles. 
 These can be incorporated into the mapping process or used for viewing purposes only.
@@ -25,7 +25,7 @@ These can be incorporated into the mapping process or used for viewing purposes 
 📌 Note: All layers in the GeoPackage must have the same projection. Additionally, the study area must capture the full extent of disturbance layers to ensure accurate analysis.
 <br>
 
-#### Buffer features:
+#### Buffer features
     
   - Apply buffers to disturbance features. Choose between:
   
@@ -43,11 +43,10 @@ These can be incorporated into the mapping process or used for viewing purposes 
   - Optional: Include mining claims and specify a buffer.
 <br>
   
-#### Download undisturbed and disturbed areas:
+#### Download undisturbed and disturbed areas
     
   - Download a GeoPackage of the **undisturbed areas** and **disturbed areas** created by the app, as well as the input spatial layers (e.g., linear and areal disturbances).
 <br>
-  
   
 ### Disturbance Explorer workflow diagram
 
