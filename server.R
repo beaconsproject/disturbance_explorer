@@ -1052,6 +1052,16 @@ server = function(input, output, session) {
   ##############################################################################
   observeEvent(input$goButton,{
     
+    if(input$distType[1]==0){
+      showModal(modalDialog(
+        title = "Missing source dataset confirmation",
+        "Before proceeding, please confirm the source dataset in the Select study area section.",
+        easyClose = TRUE,
+        footer = NULL)
+      )
+    }
+    
+    req(input$distType)
     # show pop-up ...
     showModal(modalDialog(
       title = "Generating footprint and intactness map. Please wait...",
