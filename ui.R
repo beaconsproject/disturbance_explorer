@@ -80,8 +80,8 @@ ui = dashboardPage(skin="black",
                            uiOutput("polyDistTypeUI")
                          ),
                          br(),
-                         fileInput(inputId = "upload_lineothers", label = "Include other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
-                         fileInput(inputId = "upload_polyothers", label = "Include other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                         fileInput(inputId = "upload_lineothers", label = "Upload other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                         fileInput(inputId = "upload_polyothers", label = "Upload other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
                          hr()
                        ),
                        actionButton("distType", "Confirm", class = "btn-warning", style='color: #000')
