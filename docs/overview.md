@@ -41,7 +41,6 @@ These can be incorporated into the mapping process or used for viewing purposes 
   - Optional: Include fires and specify a minimum size threshold and the years to include.
 
   - Optional: Include mining claims and specify a buffer.
-<br>
   
 #### Download undisturbed and disturbed areas
     
