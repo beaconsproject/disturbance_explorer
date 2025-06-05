@@ -5,7 +5,13 @@ format: md
 
 ## Buffer features
 
-The **Buffer features** enables users to apply influence buffers around linear and polygonal (areal) disturbances features. 
+In this step, the user specifies the disturbance layers and associated buffers for creating the undisturbed and disturbed areas maps. The disturbance layer options include linear and areal disturbance features, other disturbance features, mining claims, and fire, assuming the spatial layers have been uploaded in the previous step.
+
+**Select buffer type:** The user has two options.
+
+  1. **Use custom buffers** - Select this option if variable buffer widths are desired e.g., 1000-m buffer for highways and 500-m buffer for trails. If selected, the **mapview** will be replaced with the table summarizing linear and area disturbances under the **custom buffers** tab. Variable buffer widths can be assigned . The default buffer assigned to all disturances is 500 m.
+
+**Buffer features** enables users to apply influence buffers around linear and polygonal (areal) disturbances features. 
 
 Users have two options:
 
