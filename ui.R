@@ -99,7 +99,7 @@ ui = dashboardPage(skin="black",
                          sliderInput("buffer2", label="Set areal buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                        ),
                        hr(),
-                       sliderInput("area1", label="Set minimum intact patch size (km2):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
+                       sliderInput("area1", label="Set minimum undisturbed patch size (km2):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
                        checkboxInput("includeOthers", "Include other disturbances", value=FALSE),
                        conditionalPanel(
                          condition="input.includeOthers",
