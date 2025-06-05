@@ -10,7 +10,7 @@ areas—such as those affected by roads, industrial activities, or fires—helps
 
 **Disturbance Explorer** produces undisturbed and disturbed area maps for human disturbances as well as natural disturbances if desired. 
 Users can explore the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed area maps. 
-Th e **User Guide** describes the step-by-step process for creating these maps.
+The **User Guide** describes the step-by-step process for creating these maps.
 
 The **Welcome** section includes the **Overview** landing page that provides a concise introduction to the app and its functionality. It also includes this guide and **Dataset Requirements** 
 which outlines the description, naming convention, and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
@@ -33,19 +33,19 @@ a table used in the next step to assign custom buffer sizes for each industry/di
 <center><img src="pics/SelectSA.png" width="600"><br>Figure 1. Mapping study area and underlying dataset with the option to classify disturbances per industry/disturbance type.</center>
 <br><br>
 
-It is also possible for the user to upload additional linear and areal disturbances as shapefiles, which can be included in the mapping workflow or used solely for visualization.
+It is also possible for the user to upload additional (or other) linear and areal disturbances as shapefiles which can be included in the mapping workflow or used solely for visualization.
 
-Pressing the **Confirm** button loads the study area along with its underlying layers, allowing the user to toggle individual layers on and off in the map legend.
+Pressing the **Confirm** button loads the spatial layers, allowing the user to toggle individual layers on and off in the map legend.
 
 
 ### Buffer features
 
-The **Buffer features** enables users to apply influence buffers around linear and areal (polygonal) disturbances features. 
+The **Buffer features** enables users to apply buffers (or zones of influence) to linear and areal (polygonal) disturbances features. 
 
 Users have two options:
 
-  - Apply an overall buffer on the respective layers using sliders, or 
-  - Enable custom buffer sizes based on industry and feature types. 
+  - Apply an overall buffer to the respective layers using sliders, or 
+  - Enable custom buffer sizes based on industry and disturbance types. 
   
 Choosing **Use custom buffers** will switch the map view to display the table where disturbances are summarized by industry/disturbance type. The value inside the 'BUFFER_SIZE' column can be edited.
 <br><br>
@@ -55,7 +55,7 @@ Choosing **Use custom buffers** will switch the map view to display the table wh
 In the left sidebar, **Set minimum patch size of undisturbed areas** can be set using the slider. 
 This function will remove undisturbed patches that are smaller than the set minimum size from the final undisturbed areas map.
 
-The user can choose to include **other disturbances**, **fires**, and **mining claims** in generating the undisturbed and disturbed areas map if the required spatial layers were uploaded in the **Select study area** step. 
+The user can choose to include **other disturbances**, **fires**, and **mining claims** in generating the undisturbed and disturbed areas maps if the required spatial layers were uploaded in the **Select study area** step. 
 If these spatial layers are not provided, the corresponding options will be disabled. 
 Default values are provided for buffer sizes as well as the minimum fire size, but these can be adjusted before generating the maps.
 
@@ -63,7 +63,7 @@ Default values are provided for buffer sizes as well as the minimum fire size, b
 <center><img src="pics/setOptions.png" width="600"><br>Figure 3. Inclusion of fires and mining claims. The "Include other disturbances" option is disabled because no additional disturbances were provided.</center>
 <br><br>
 
-#### Generate undisturbed  and disturbed areas
+#### Generate undisturbed and disturbed areas maps
 
 Click on **Generate undisturbed areas** to trigger the generation of undisturbed and disturbed areas maps. When the generation is completed, two new layers will appear on the 
 map and legend: (1) The "disturbed area" layer is comprised of buffered areal and linear disturbances, and if selected, other disturbances, mining claims, and/or fires. (2) The "undisturbed area" layer shows all regions within the study region that 
@@ -76,15 +76,14 @@ are not intersected by disturbed areas.
 
 The "Statistics" tab on the right panel provides summaries for the study area. 
 If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets.
-The table also displays the statistics on fires, mining claims, and protected areas if provided.
+The table also displays statistics on fires, mining claims, and protected areas if the spatial layers were uploaded.
 <br><br>
 <center><img src="pics/stats.png" width="600"><br>Figure 5. Statistics generated for the study area (red box - top right) includes % area undisturbed and disturbed.</center>
 <br><br>
 
 ### Download data
 
-Finally, users can navigate to the **Download data** panel to download the undisturbed and disturbed area maps as spatial layers in a GeoPackage format, 
-which can be further viewed and analyzed in a GIS application such as QGIS.
+Finally, users can navigate to **Download data** on the left sidebar to download the undisturbed and disturbed area maps as spatial layers in a GeoPackage which can be further viewed and analyzed in a GIS application such as QGIS.
 <br><br>
 <center><img src="pics/dwd.png" width="600"><br>Figure 6. Download the GeoPackage.</center>
 <br><br>
