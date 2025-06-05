@@ -14,7 +14,7 @@ In this step, the user uploads spatial data into the App.
 
    **Upload a Geopackage**: Browse to the GeoPackage for the study area and click "Open".
 
-   Note: users are responsible for ensuring that all required spatial layers (and associated attributes) are included in the Geopackage and that all layers share a consistent coordinate reference system.
+   Note: Users are responsible for ensuring that all required spatial layers (and associated attributes) are included in the Geopackage and that all layers share a consistent coordinate reference system.
    Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, as well as their respective data structure.
 
    **Define classification per disturbance type**: Click this option to classify linear and areal disturbances by industry (e.g., transporation) and/or disturbance (e.g., highway) type. This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2).    This table is required in the next step if custom buffer sizes are to be applied to industry and/or disturbance types. Use the drop-down menus to identify industry and/or disturbance types for linear and areal disturbance features.
