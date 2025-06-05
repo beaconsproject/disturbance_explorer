@@ -45,7 +45,6 @@ These can be incorporated into the mapping process or used for viewing purposes 
 #### Download undisturbed and disturbed areas
     
   - Download a GeoPackage of the **undisturbed areas** and **disturbed areas** created by the app, as well as the input spatial layers (e.g., linear and areal disturbances).
-<br>
   
 ### Disturbance Explorer workflow diagram
 
