@@ -13,7 +13,7 @@ Please refer to the **Dataset Requirements** tab for details on the required spa
 ### Functionality
     
 The app consists of three sections:
-<br><br>
+<br>
 
 #### Select study area:
 
@@ -23,7 +23,7 @@ These can be incorporated into the mapping process or used for viewing purposes 
   - View the spatial layers (i.e., linear and areal anthropogenic disturbances, fires, mining claims, etc.)
 
 📌 Note: All layers in the GeoPackage must have the same projection. Additionally, the study area must capture the full extent of disturbance layers to ensure accurate analysis.
-<br><br>
+<br>
 
 #### Buffer features:
     
@@ -41,12 +41,12 @@ These can be incorporated into the mapping process or used for viewing purposes 
   - Optional: Include fires and specify a minimum size threshold and the years to include.
 
   - Optional: Include mining claims and specify a buffer.
-<br><br>
+<br>
   
 #### Download undisturbed and disturbed areas:
     
   - Download a GeoPackage of the **undisturbed areas** and **disturbed areas** created by the app, as well as the input spatial layers (e.g., linear and areal disturbances).
-<br><br>
+<br>
   
   
 ### Disturbance Explorer workflow diagram
