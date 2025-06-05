@@ -12,18 +12,18 @@ In this step, the user uploads spatial data into the App.
    
 2. **Upload a custom GeoPackage (gpkg)** - If selected, the panel options will expand.
 
-**Upload a Geopackage**: Browse to the GeoPackage for the study area and click "Open".
+   **Upload a Geopackage**: Browse to the GeoPackage for the study area and click "Open".
 
-Note: users are responsible for ensuring that all required spatial layers (and associated attributes) are included in the Geopackage and that all layers share a consistent coordinate reference system.
-Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, as well as their respective data structure.
+   Note: users are responsible for ensuring that all required spatial layers (and associated attributes) are included in the Geopackage and that all layers share a consistent coordinate reference system.
+   Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, as well as their respective data structure.
 
-**Define classification per disturbance type**: Click this option to classify linear and areal disturbances by industry (e.g., transporation) and/or disturbance (e.g., highway) type. This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2). This table is required in the next step if custom buffer sizes are to be applied to industry and/or disturbance types. Use the drop-down menus to identify industry and/or disturbance types for linear and areal disturbance features.
+   **Define classification per disturbance type**: Click this option to classify linear and areal disturbances by industry (e.g., transporation) and/or disturbance (e.g., highway) type. This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2).    This table is required in the next step if custom buffer sizes are to be applied to industry and/or disturbance types. Use the drop-down menus to identify industry and/or disturbance types for linear and areal disturbance features.
 
 
 <br><br>
 <center><img src="pics/SelectSA.png" width="600"><br>Figure 1. Mapping study area and underlying dataset with the option to classify disturbances per industry/type.</center>
 <br><br>
 
-**Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.).
+   **Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile.       Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.).
 
 Pressing the **Confirm button** loads the spatial layers, allowing the user to toggle individual layers on and off in the map legend.
