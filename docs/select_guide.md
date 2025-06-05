@@ -4,7 +4,7 @@ format: md
 
 ## Select study area
 
-In this step, the user uploads spatial data into the App. 
+In this step, the user uploads spatial data into Disturbance Explorer.
 
 **Select source dataset** offers two options:
 
@@ -22,11 +22,6 @@ In this step, the user uploads spatial data into the App.
    **Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
    Press the **Confirm button** to load the spatial layers. The layers will appear in a map where the user can turn layers on and off in the map legend. From here, move on to **Buffer features**.
-   
-<br><br>
-<center><img src="pics/SelectSA.png" width="600"><br>Figure 1. Mapping study area and underlying dataset with the option to classify disturbances per industry/type.</center>
-<br><br>
-
 
 
 
