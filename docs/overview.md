@@ -16,11 +16,11 @@ The app consists of three sections:
 
 
 
-#### Select study area
+#### Select study area:
 
   - Use the demo dataset or upload a custom GeoPackage ("gpkg" extension) containing all required spatial layers.
 
-  - View the spatial layers i.e., linear and areal anthropogenic disturbances, fires, mining claims, etc.
+  - View the spatial layers (i.e., linear and areal anthropogenic disturbances, fires, mining claims, etc.)
 
 If a custom GeoPackage is provided, users can also upload additional linear and areal disturbance features as shapefiles. 
 These can be incorporated into the mapping process or used for viewing purposes only.
