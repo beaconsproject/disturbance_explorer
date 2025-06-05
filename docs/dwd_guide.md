@@ -5,8 +5,9 @@ format: md
 
 ## Download data
 
-Finally, users can navigate to the **Download data** panel to initiate the download. This will export the undisturbed and disturbed maps as layers in a GeoPackage format, 
-which can be further viewed and analyzed in a GIS application such as QGIS.
+Here, the user can download a GeoPackage containing spatial layers of undisturbed and disturbed areas as well as all input layers (e.g., fire).
+
+Click the **Download data** button to download the GeoPackage. The GeoPackage will be saved to the Downloads folder.
 <br><br>
 <center><img src="pics/dwd.png" width="600"><br>Figure 6. Download the GeoPackage.</center>
 <br><br>
