@@ -33,7 +33,7 @@ These can be incorporated into the mapping process or used for viewing purposes 
   - Apply buffers to disturbance features. Choose between:
   
   
-    - A uniform buffer applied to all features.
+    - A uniform buffer size applied to all features, or
 
     - Custom buffer sizes specific to disturbance types.
 
@@ -48,7 +48,7 @@ These can be incorporated into the mapping process or used for viewing purposes 
   
 #### Download undisturbed and disturbed areas:
     
-  - Download a GeoPackage of the input spatial layers and the **undisturbed areas** and **disturbed areas** created by the app.
+  - Download a GeoPackage of the **undisturbed areas** and **disturbed areas** created by the app, as well as the input spatial layers (e.g., linear and areal disturbances).
 <br><br>
   
   
