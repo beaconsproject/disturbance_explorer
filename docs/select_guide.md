@@ -8,7 +8,7 @@ In this step, the user uploads spatial data into the App.
 
 **Select source dataset** offers two options:
 
-1. **Use demo dataset** - This dataset is embedded in the app and is for a watershed located in the southeast Yukon. It includes all spatial layers required to run the app. If selected, click the **Confirm** button to load the demo dataset. Once loaded, the spatial layers will appear in the map. From here, move on to **Buffer features**.
+1. **Use demo dataset** - This dataset is embedded in the app and is for a watershed located in the southeast Yukon. It includes all spatial layers required to run the app. If selected, click the **Confirm** button to load the demo dataset. Once loaded, the spatial layers will appear in the map and can be turned on and off. From here, move on to **Buffer features**.
    
 2. **Upload a custom GeoPackage (gpkg)** - If selected, the panel options will expand.
 
