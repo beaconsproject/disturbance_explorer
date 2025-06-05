@@ -1,6 +1,6 @@
 ## Welcome to the Disturbance Explorer 
 
-The **Disturbance Explorer** app lets users interactively generate maps of undisturbed landscape,  or alternatively, maps highlighting human disturbance. 
+The **Disturbance Explorer** generates maps of undisturbed and disturbed landscapes. 
 It also provides tools to evaluate how buffer size, minimum patch size, fire events, and potential future disturbances such as mining claims affect both undisturbed and disturbed area outputs. 
 A built-in **User Guide** tab provides step-by-step instructions and function descriptions, while the **Dataset Requirements** tab details data formats and 
 layers needed to run the app.
