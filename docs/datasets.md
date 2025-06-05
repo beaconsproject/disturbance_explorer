@@ -13,7 +13,7 @@ This page outlines the required and optional layers that are used by the **Distu
 
 #### Optional - GeoPackage
 
-- **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the fire e.g., 1995. and, (2) confirming with Melina ... "AREA" - the size of the fire in hectares. Example source: https://cwfis.cfs.nrcan.gc.ca/datamart
+- **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the fire e.g., 1995. and, (2) "CAUSE" - cause of ignition of the fire. Can either be 'Human', 'Lightning' or 'Unknown'. Example source: https://cwfis.cfs.nrcan.gc.ca/datamart
 - **Intact_FL_2000** : Distribution of intact forest landscapes in the year 2000. Example source: https://intactforests.org
 - **Intact_FL_2020** : Distribution of intact forest landscapes in the year 2020. Example source: https://intactforests.org
 - **protected_areas** : Distribution of protected areas e.g., Canadian Protected and Conserved Areas Database. Example source: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
