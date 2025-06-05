@@ -62,12 +62,13 @@ server = function(input, output, session) {
   # Observe on Others disturbances 
   observe({
     disable("includeOthers")
-    req(!is.null(input$upload_lineothers) || !is.null(input$upload_polyothers))
-    enable("includeOthers")
     div(
-        style = "color: darkgrey;",
+      style = "color: darkgrey;",
       updateCheckboxInput(session = getDefaultReactiveDomain(), "includeOthers", label = "Include others disturbances", value = FALSE)
     )
+    req(input$selectInput == "usegpkg" && (!is.null(input$upload_lineothers) || !is.null(input$upload_polyothers)))
+    enable("includeOthers")
+
   })
   
   observe({
@@ -937,13 +938,13 @@ server = function(input, output, session) {
       dist_names_new <- c(dist_names_new,"Linear disturbances")
     }
     other_polydist <- isolate(other_polydist())
-    if(!is.null(other_polydist)){
+    if(!is.null(other_polydist) && input$selectInput =="usegpkg"){
       other_polydist <- st_transform(other_polydist, 4326)
       leafletProxy("map1") %>% addPolylines(data = other_polydist, color = "#FF9966", fill=T, fillColor='#FF9966', fillOpacity=0.8, weight=1, group="Other areal disturbances")
       dist_names_new <- c(dist_names_new, "Other areal disturbances")
     }
     other_linedist <- isolate(other_linedist())
-    if(!is.null(other_linedist)){
+    if(!is.null(other_linedist) && input$selectInput =="usegpkg"){
       other_linedist <- st_transform(other_linedist, 4326)
       leafletProxy("map1") %>% addPolylines(data = other_linedist, color = "#FF6600",  weight=2 , group="Other linear disturbances")
       dist_names_new <- c(dist_names_new, "Other linear disturbances")
@@ -1130,11 +1131,11 @@ server = function(input, output, session) {
     other_polylabel <- "Other areal disturbances (km2)"
     
     # If the user uploaded a shapefile via `other_dist()`
-    if (!is.null(other_linedist())) {
+    if (!is.null(other_linedist()) && input$includeOthers) {
       other_linevalue <- round(sum(st_length(other_linedist())) / 1000, 1)
       other_linelabel <- "Other linear disturbances (km)"
     }
-    if (!is.null(other_polydist())) {
+    if (!is.null(other_polydist()) && input$includeOthers) {
       other_polyvalue <- round(sum(st_area(other_polydist())) / 1e6, 1)
       other_polylabel <- "Other areal disturbances (km2)"
     }
