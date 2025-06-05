@@ -23,8 +23,6 @@ These can be incorporated into the mapping process or used for viewing purposes 
     
   - View the spatial layers (i.e., linear and areal anthropogenic disturbances, fires, mining claims, etc.)
 
-
-
 📌 Note: All layers in the GeoPackage must have the same projection. Additionally, the study area must capture the full extent of disturbance layers to ensure accurate analysis.
 <br><br>
 
