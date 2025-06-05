@@ -103,19 +103,19 @@ ui = dashboardPage(skin="black",
                        checkboxInput("includeOthers", "Include other disturbances", value=FALSE),
                        conditionalPanel(
                          condition="input.includeOthers",
-                         sliderInput("otherlinesize", label="Apply buffer size (m) on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE),
-                         sliderInput("otherpolysize", label="Apply a buffer size (m)on other areal disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         sliderInput("otherlinesize", label="Set buffer size (m) on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE),
+                         sliderInput("otherpolysize", label="Set a buffer size (m)on other areal disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                          
                        ),
                        checkboxInput("forceclaims", "Include mining claims", value=FALSE),
                        conditionalPanel(
                          condition="input.forceclaims",
-                         sliderInput("minesize", label="Mine claims buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
+                         sliderInput("minesize", label="Set mining claims buffer size (m):", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                        ),
                        checkboxInput("forcefire", "Include fires", value=FALSE),
                        conditionalPanel(
                          condition="input.forcefire",
-                         sliderInput("firesize", label="Include minimum fire size (m):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
+                         sliderInput("firesize", label="Set minimum fire size (ha):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
                          sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1960, 2023), sep = "")
                        ),
                        actionButton("goButton", "Generate undisturbed areas", class = "btn-warning", style='color: #000')
