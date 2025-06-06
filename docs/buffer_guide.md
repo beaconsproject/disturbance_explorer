@@ -11,6 +11,8 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
   1. **Use custom buffers** - Select this option if variable buffer widths are desired e.g., 1000-m buffer for highways and 500-m buffer for trails. If selected, the **mapview** will be replaced with the table summarizing linear and area disturbances under the **custom buffers** tab. Variable buffer widths are assigned via the table by editing the widths in the column named "BUFFER_SIZE_M". The default buffer width assigned to all disturbances is 500 m.
 
+     When editing is complete, select "Buffer features" on the left sidebar to continue.
+
 
 
 Users have two options:
