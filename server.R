@@ -657,7 +657,7 @@ server = function(input, output, session) {
               ) %>%
               st_drop_geometry() %>%
               group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
-              summarize(AREA_KM2 = round(sum(area_km2, na.rm = TRUE), 2), .groups = "drop")
+              summarize(AREA_KM2 = round(sum(area_km2, na.rm = TRUE), 5), .groups = "drop")
           }
           
           poly_tibble <- poly_tibble %>%
