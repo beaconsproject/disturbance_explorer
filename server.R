@@ -722,7 +722,8 @@ server = function(input, output, session) {
         
         if (is.null(input$selectBuffer)){
           showModal(modalDialog(
-            title = "Please select a buffer type",
+            title = "Missing buffer type confirmation",
+            "Before proceeding, please confirm how disturbance layers will be buffered.",
             easyClose = TRUE,
             footer = NULL)
           )
@@ -1073,8 +1074,20 @@ server = function(input, output, session) {
         footer = NULL)
       )
     }
-    
+    #browser()
     req(input$distType)
+    
+    if(is.null(input$selectBuffer)){
+      showModal(modalDialog(
+        title = "Missing buffer type confirmation",
+        "Before proceeding, please confirm how disturbance layers will be buffered.",
+        easyClose = TRUE,
+        footer = NULL)
+      )
+    }
+    
+    req(input$selectBuffer)
+    
     # show pop-up ...
     showModal(modalDialog(
       title = "Generating footprint and intactness map. Please wait...",
