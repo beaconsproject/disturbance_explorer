@@ -578,7 +578,7 @@ server = function(input, output, session) {
               data %>%
                 mutate(
                   TYPE_FEATURE = "Linear",
-                  BUFFER_SIZE = input$buffer2,
+                  BUFFER_SIZE_M = input$buffer2,
                   TYPE_INDUSTRY = industry_col,
                   TYPE_DISTURBANCE = dist_col
                 )
@@ -606,7 +606,7 @@ server = function(input, output, session) {
             left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
         
           mline <- unique(line_tibble) %>%
-            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "LENGTH_KM"))) %>%
+            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M", "LENGTH_KM"))) %>%
             as.matrix()
         
           # Return the matrixInput to UI
@@ -635,7 +635,7 @@ server = function(input, output, session) {
               data %>%
                 mutate(
                   TYPE_FEATURE = "Areal",
-                  BUFFER_SIZE = input$buffer2,
+                  BUFFER_SIZE_M = input$buffer2,
                   TYPE_INDUSTRY = industry_col,
                   TYPE_DISTURBANCE = dist_col
                 )
@@ -664,7 +664,7 @@ server = function(input, output, session) {
             left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
           
           mpoly <- unique(poly_tibble) %>%
-            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE", "AREA_KM2"))) %>%
+            dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M", "AREA_KM2"))) %>%
             as.matrix()
           
           matrixInput("areal_buffers",
@@ -694,6 +694,18 @@ server = function(input, output, session) {
   # Buffer disturbances and calculate footprint and intactness
   ##############################################################################
   footprint_sf <- reactive({
+    
+    if(input$distType[1]==0){
+      showModal(modalDialog(
+        title = "Missing source dataset confirmation",
+        "Before proceeding, please confirm the source dataset in the Select study area section.",
+        easyClose = TRUE,
+        footer = NULL)
+      )
+    }
+    
+    req(input$distType)
+    
     if (!is.null(poly()) | !is.null(line()) | !is.null(fires()) | !is.null(mines_all())  | !is.null(other_linedist()) | !is.null(other_polydist())) {
       if (!is.null(poly()) | !is.null(line()) ) {
         if(input$selectInput =="usedemo"){
@@ -719,8 +731,8 @@ server = function(input, output, session) {
           #return()
         } else if (input$selectBuffer== "custom_buffers") {
           if (!is.null(line())) {
-            m1sub <- as_tibble(input$linear_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>%      
-              mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+            m1sub <- as_tibble(input$linear_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M"))) %>%      
+              mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             line <- line() %>%
               mutate(
                 #TYPE_INDUSTRY = !!sym(industry_line),
@@ -729,12 +741,12 @@ server = function(input, output, session) {
                 TYPE_DISTURBANCE = if (!is.null(disttype_line) && disttype_line %in% colnames(.)) .[[disttype_line]] else "NONE"
               ) %>%
               left_join(m1sub, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE")) %>% 
-              filter(!is.na(BUFFER_SIZE))
-            v1 <- st_union(st_buffer(line, line$BUFFER_SIZE))
+              filter(!is.na(BUFFER_SIZE_M))
+            v1 <- st_union(st_buffer(line, line$BUFFER_SIZE_M))
           } else { v1 <- NULL}
           if (!is.null(poly())) {
-            m2sub <- as_tibble(input$areal_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE"))) %>% 
-              mutate(BUFFER_SIZE=as.integer(BUFFER_SIZE))
+            m2sub <- as_tibble(input$areal_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M"))) %>% 
+              mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             poly <- poly() %>%
               mutate(
                 #TYPE_INDUSTRY = !!sym(industry_poly),
@@ -743,9 +755,9 @@ server = function(input, output, session) {
                 TYPE_DISTURBANCE = if (!is.null(disttype_line) && disttype_line %in% colnames(.)) .[[disttype_line]] else "NONE"
               ) %>%
               left_join(m2sub, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE")) %>% 
-              filter(!is.na(BUFFER_SIZE))
+              filter(!is.na(BUFFER_SIZE_M))
           
-            v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE))
+            v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE_M))
           } else { v2 <- NULL}
         }else {
           if (!is.null(line())) {
