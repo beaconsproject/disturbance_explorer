@@ -37,7 +37,7 @@ If fires were included in the GeoPackage uploaded in the **Select study area** s
 
 #### Generate undisturbed areas
 
-To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the App is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
+To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the app is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
 (2) "undisturbed" layer which shows all regions within the study region that are not intersected by the disturbed areas. 
 
 #### View statistics
