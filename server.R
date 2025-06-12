@@ -1292,9 +1292,9 @@ server = function(input, output, session) {
         if (!is.null(other_linedist())) st_write(other_linedist(), dsn=file, layer='other_linear_disturbances', append=TRUE)
         if (!is.null(other_polydist())) st_write(other_polydist(), dsn=file, layer='other_areal_disturbances', append=TRUE)
         if (!is.null(pa2021())) st_write(pa2021(), dsn=file, layer='protected_areas', append=TRUE)
-        if (!is.null(pa2021())) st_write(placers(), dsn=file, layer='placers_claims', append=TRUE)
-        if (!is.null(pa2021())) st_write(quartz(), dsn=file, layer='quartz_claims', append=TRUE)
-        if (!is.null(pa2021())) st_write(mines(), dsn=file, layer='mining_claims', append=TRUE)
+        if (!is.null(placers())) st_write(placers(), dsn=file, layer='Placers_Claims', append=TRUE)
+        if (!is.null(quartz())) st_write(quartz(), dsn=file, layer='Quartz_Claims', append=TRUE)
+        if (!is.null(mines())) st_write(mines(), dsn=file, layer='mining_claims', append=TRUE)
         if (input$goButton) {
           x <- data.frame(Undisturbed_per = additionalAttributes()[1,2],
                           Disturbed_per  = additionalAttributes()[2,2])
