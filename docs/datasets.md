@@ -1,6 +1,6 @@
 ## Datasets
   
-This page outlines the required and optional spatial layers that are used by **Disturbance Explorer**. The required layers are uploaded via a single GeoPackage. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names shown below.** All spatial layers must have the same projection.
+This page outlines the required and optional spatial layers used by **Disturbance Explorer**. The required layers are uploaded via a single GeoPackage. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names shown below.** All spatial layers must have the same projection.
   
 ### Map layers
 
@@ -8,8 +8,8 @@ This page outlines the required and optional spatial layers that are used by **D
 
 - **studyarea** : A polygon of the study area e.g., watershed, ecoregion or any other user-defined area.
 - **linear_disturbance and/or areal_disturbance** 
-  - **linear_disturbance** : Linear anthropogenic surface disturbance features e.g., roads, seismic line. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Linear_Features/
-  - **areal_disturbance** : Areal (polygonal) anthropogenic surface disturbance features e.g., mine, town site, cutblock. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Areal_Features/
+  - **linear_disturbance** : Linear human surface disturbance features e.g., roads, seismic line. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Linear_Features/
+  - **areal_disturbance** : Areal (polygonal) human surface disturbance features e.g., mine, town site, cutblock. Example source: https://map-data.service.yukon.ca/geoyukon/Environmental_Monitoring/Surface_Disturbance_Areal_Features/
 
 #### Optional - GeoPackage 
 
