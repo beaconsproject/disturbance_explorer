@@ -31,10 +31,6 @@ The user can choose to include other human or natural disturbances (linear and a
 
 If mining claims were included in the GeoPackage uploaded in the **Select study area** step, the option to include mining claims will be active. To include mining claims, check the box and set the buffer width using the slider. 
 
-<br><br>
-<center><img src="pics/setOptions.png" width="600"><br>Figure 3. Inclusion of fires and mining claims. The "Include other disturbances" option is disabled because no additional disturbances were provided.</center>
-<br><br>
-
 **Include fires**
 
 If fires were included in the GeoPackage uploaded in the **Select study area** step, the option to include fires will be active. To include fires, check the box and set the mininum fire size (ha), as well as fire years, to include in the generation of the undisturbed and disturbed areas maps. 
@@ -43,9 +39,6 @@ If fires were included in the GeoPackage uploaded in the **Select study area** s
 
 To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas**. When the App is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
 (2) "undisturbed" layer which shows all regions within the study region that are not intersected by the disturbed areas. 
-<br><br>
-<center><img src="pics/mapping.png" width="600"><br>Figure 4. Mapping undisturbed and disturbed areas.</center>
-<br><br>
 
 #### View statistics
 
