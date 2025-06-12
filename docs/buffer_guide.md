@@ -37,14 +37,10 @@ If fires were included in the GeoPackage uploaded in the **Select study area** s
 
 #### Generate undisturbed areas
 
-To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas**. When the App is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
+To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the App is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
 (2) "undisturbed" layer which shows all regions within the study region that are not intersected by the disturbed areas. 
 
 #### View statistics
 
-The "Statistics" table on the right panel provides stats on the area and length of disturbances in the area of interest, as well as the percent coverage of fires, mining and protected areas if provided. 
+The "Statistics" table on the right panel provides stats on the area and length of disturbances in the study area, as well as the percent area of fires, mining and protected areas if provided. 
 If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets.
-
-<br><br>
-<center><img src="pics/stats.png" width="600"><br>Figure 5. Statistics on generated undisturbed and disturbed areas.</center>
-<br><br>
