@@ -19,28 +19,18 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
      If selected, use the sliders to set buffers. The slider options provide increments of 10 m. If the slider options are not sufficient, use the custom buffers option above. 
 
-**Set minimum undisturbed patch size (km2):**
+**Set minimum undisturbed patch size (km2)**: In the left sidebar, a minimum patch size for undisturbed areas can be set using the slider. This function will remove patches smaller than the minimum patch size from undisturbed areas map. 
 
-In the left sidebar, a minimum patch size for undisturbed areas can be set using the slider. This function will remove patches smaller than the minimum patch size from undisturbed areas map. 
+**Include other disturbances**: The user can choose to include other human or natural disturbances (linear and areal) if these spatial layers were uploaded during the **Select study area** step.  To include other disturbances, check the box and set the buffer width using the slider(s). 
 
-**Include other disturbances**
+**Include mining claims**: If mining claims were included in the GeoPackage uploaded in the **Select study area** step, the option to include mining claims will be active. To include mining claims, check the box and set the buffer width using the slider. 
 
-The user can choose to include other human or natural disturbances (linear and areal) if these spatial layers were uploaded during the **Select study area** step.  To include other disturbances, check the box and set the buffer width using the slider(s). 
+**Include fires**: If fires were included in the GeoPackage uploaded in the **Select study area** step, the option to include fires will be active. To include fires, check the box and set the mininum fire size (ha), as well as fire years, to include in the generation of the undisturbed and disturbed areas maps. 
 
-**Include mining claims**
+**Generate undisturbed areas**: To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the app is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
+(2) "undisturbed" layer comprised of all regions within the study region that are not intersected by the disturbed areas. 
 
-If mining claims were included in the GeoPackage uploaded in the **Select study area** step, the option to include mining claims will be active. To include mining claims, check the box and set the buffer width using the slider. 
-
-**Include fires**
-
-If fires were included in the GeoPackage uploaded in the **Select study area** step, the option to include fires will be active. To include fires, check the box and set the mininum fire size (ha), as well as fire years, to include in the generation of the undisturbed and disturbed areas maps. 
-
-#### Generate undisturbed areas
-
-To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the app is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
-(2) "undisturbed" layer which shows all regions within the study region that are not intersected by the disturbed areas. 
-
-#### View statistics
+### View statistics
 
 The "Statistics" table on the right panel provides stats on the area and length of disturbances in the study area, as well as the percent area of fires, mining and protected areas if provided. 
 If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets.
