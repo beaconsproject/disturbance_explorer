@@ -909,7 +909,7 @@ server = function(input, output, session) {
     )
     
     leafletProxy("map1") %>% 
-      clearGroup("Study region") %>%
+      clearGroup("Study area") %>%
       clearGroup("Linear disturbance") %>%
       clearGroup("Areal disturbance") %>%
       clearGroup("Other linear disturbances") %>%
@@ -928,11 +928,11 @@ server = function(input, output, session) {
     
     leafletProxy("map1") %>%
         fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
-        addPolygons(data=sa, color='black', fill=F, opacity = 1, weight=2, group="Study region", options = leafletOptions(pane = "top")) %>%
+        addPolygons(data=sa, color='black', fill=F, opacity = 1, weight=2, group="Study area", options = leafletOptions(pane = "top")) %>%
       
         addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study region"),
+                       overlayGroups = c("Study area"),
                        options = layersControlOptions(collapsed = FALSE)) 
       
     dist_names_new <- c()
@@ -1017,7 +1017,7 @@ server = function(input, output, session) {
     leafletProxy("map1") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                         overlayGroups = c("Study region", dist_names_new, group_names()),
+                         overlayGroups = c("Study area", dist_names_new, group_names()),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c(group_names()))
     
@@ -1121,7 +1121,7 @@ server = function(input, output, session) {
     leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study region", "Undisturbed areas", footprint_names_new(), dist_names_new, group_names()),
+                       overlayGroups = c("Study area", "Undisturbed areas", footprint_names_new(), dist_names_new, group_names()),
                        options = layersControlOptions(collapsed = FALSE)) %>%
       #hideGroup(c("Footprint", group_names()))
       hideGroup(c(footprint_names_new(), group_names()))
@@ -1141,7 +1141,7 @@ server = function(input, output, session) {
     req(input$selectInput == "usedemo" || (input$selectInput == "usegpkg" && !is.null(input$upload_gpkg)))
     aoi <- sum(st_area(studyarea()))
 
-    tibble(Attribute = "Area of interest (km2)", Value = as.numeric(round(aoi / 1000000, 0)))
+    tibble(Attribute = "Study area (km2)", Value = as.numeric(round(aoi / 1000000, 0)))
   })
 
   # Reactive for the attributes updated by `usedemo` or `upload_gpkg`
@@ -1213,7 +1213,7 @@ server = function(input, output, session) {
           tags$strong("Disturbed areas"), " refers to regions of the landscape that have been altered by human activity and/or fire, based on the user's selection (e.g., disturbances included in the GPKG and whether fires were marked as included)."
         ), 
         tags$p("\u00B2",
-          tags$strong("Undisturbed areas"), " are defined as all regions within the study region that are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions."
+          tags$strong("Undisturbed areas"), " are defined as all regions within the study area that are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions."
         )
       )
     )
