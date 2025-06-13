@@ -20,8 +20,8 @@ Bold text is the required name of the spatial layer in the GeoPackage.
 - **Quartz_Claims** : Quartz mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Quartz_Claims_50k/
 - **Placer_Claims** : Placer mining claims. Example source: https://map-data.service.yukon.ca/geoyukon/Mining/Placer_Claims_50k/
 - **Mining_Claims** : Mining claims.
-- **Intact_FL_2000** : Distribution of intact forest landscapes in the year 2000. Example source: https://intactforests.org
-- **Intact_FL_2020** : Distribution of intact forest landscapes in the year 2020. Example source: https://intactforests.org
+- **Intact_FL_2000** : Distribution of intact forest landscapes in the year 2000 (Potapov et al. 2017; https://intactforests.org).
+- **Intact_FL_2020** : Distribution of intact forest landscapes in the year 2020 (Potapov et al. 2017; https://intactforests.org).
 
 #### Optional - Shapefile
 
@@ -29,6 +29,9 @@ There are no requirements for the shapefile name.
 
 - **Other disturbances** (linear and areal) can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
 
-
 📌 Note: All layers in the GeoPackage and the shapefiles for **Other disturbances** must have the same projection. Additionally, the study area must contain the full extent of disturbance layers for
 accurate analysis.
+
+**References**
+
+Potapov, P., Hansen, M. C., Laestadius L., Turubanova S., Yaroshenko A., Thies C., Smith W., Zhuravleva I., Komarova A., Minnemeyer S., Esipova E. The last frontiers of wilderness: Tracking loss of intact forest landscapes from 2000 to 2013. Science Advances, 2017; 3:e1600821
