@@ -1208,12 +1208,12 @@ server = function(input, output, session) {
       ),
       tags$div(
         style = "font-size: 0.85em; color: grey;",
-        "Elements in Map Legend may not show on the Map if not present in the GPKG.",
+        "Elements in Map Legend appear on the map if present in the GeoPackage (gpkg).",
         tags$p("\u00B9",
-          tags$strong("Disturbed areas"), " refers to regions of the landscape that have been altered by human activity and/or fire, based on the user's selection (e.g., disturbances included in the GPKG and whether fires were marked as included)."
+          tags$strong("Disturbed areas"), " are regions of the study area that have been altered by human disturbance (i.e., mapped linear and areal features) and associated zone of influence (i.e., buffer). Disturbed areas may also include natural disturbances such as fire and/or potential future human disturbances by including mining claims, for example."
         ), 
         tags$p("\u00B2",
-          tags$strong("Undisturbed areas"), " are defined as all regions within the study area that are not intersected by the disturbed areas. These areas are presumed to retain natural ecological conditions."
+          tags$strong("Undisturbed areas"), " are regions within the study area that are not intersected by disturbed areas."
         )
       )
     )
