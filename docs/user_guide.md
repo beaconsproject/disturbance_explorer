@@ -14,6 +14,7 @@ The **User Guide** describes the step-by-step process for creating these maps.
 
 The **Welcome** section includes the **Overview** landing page that provides a concise introduction to the app and its functionality. It also includes this guide and **Dataset Requirements** 
 which outlines the description, naming convention, and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
+<br><br>
 
 To get started, click 'Select study area' on the left-side panel. 
 
@@ -38,7 +39,7 @@ In this step, the user uploads spatial data into Disturbance Explorer.
    **Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
    Press the **Confirm** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. From here, move on to **Buffer features**.
-
+<br><br>
 
 ### Buffer features
 
@@ -66,7 +67,7 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
 **Generate undisturbed areas**: To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the app is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
 (2) "undisturbed" layer comprised of all regions within the study region that are not intersected by the disturbed areas. 
-
+<br><br>
 
 ### Download data
 
