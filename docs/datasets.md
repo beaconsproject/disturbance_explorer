@@ -1,8 +1,17 @@
 ## Datasets
   
-This page outlines the required and optional spatial layers used by **Disturbance Explorer**. The required layers are uploaded via a single GeoPackage. For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names shown below.** All spatial layers must have the same projection.
-  
-### Map layers
+This page outlines the required and optional spatial layers used by **Disturbance Explorer**. The required layers are uploaded via a single GeoPackage. Optional layers are uploaded in the same Geopackage with the exception of **Other disturbances** (see below).
+
+📌 For the app to recognize the spatial layers in the GeoPackage, the layer names **must exactly match the expected names shown below.** 
+
+📌 All spatial layers must have the same projection. 
+
+📌 For accurate analysis, the study area must contain the full extent of disturbance layers.
+
+<br> 
+
+### Map layers 
+<br>
 
 #### Required - GeoPackage
 
@@ -10,6 +19,7 @@ This page outlines the required and optional spatial layers used by **Disturbanc
 - **linear_disturbance and/or areal_disturbance** 
   - **linear_disturbance**: Linear human surface disturbance features e.g., roads, seismic line. 
   - **areal_disturbance**: Areal (polygonal) human surface disturbance features e.g., mine, town site, cutblock. 
+<br>
 
 #### Optional - GeoPackage 
 
@@ -22,15 +32,14 @@ Bold text is the required name of the spatial layer in the GeoPackage.
 - **Mining_Claims**: Generic option for mining claims.
 - **Intact_FL_2000**: Distribution of intact forest landscapes in the year 2000 (Potapov et al. 2017).
 - **Intact_FL_2020**: Distribution of intact forest landscapes in the year 2020 (Potapov et al. 2017).
+<br>
 
 #### Optional - Shapefile
 
 There are no requirements for the shapefile name.
 
 - **Other disturbances** (linear and areal) can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
-
-📌 Note: All layers in the GeoPackage and the shapefiles for **Other disturbances** must have the same projection. Additionally, the study area must contain the full extent of disturbance layers for
-accurate analysis.
+<br>
 
 ### Demo Dataset
 
@@ -46,6 +55,7 @@ The demo dataset contains the following spatial layers:
 - protected_areas: https://open.canada.ca/data/en/dataset/6c343726-1e92-451a-876a-76e17d398a1c
 - Intact_FL_2000: https://intactforests.org
 - Intact_FL_2020:  https://intactforests.org
+<br><br>
 
 ### References
 
