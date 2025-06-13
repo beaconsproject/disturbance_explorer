@@ -137,7 +137,7 @@ ui = dashboardPage(skin="black",
                                         tabBox(id = "landing", width = 12,
                                                tabPanel("Overview", includeMarkdown("docs/overview.md")),
                                                tabPanel("User Guide", includeMarkdown("docs/user_guide.md")),
-                                               tabPanel("Datasets Requirements", includeMarkdown("docs/datasets.md"))
+                                               tabPanel("Dataset Requirements", includeMarkdown("docs/datasets.md"))
                                         )
                                  ),
                                  absolutePanel(
