@@ -70,7 +70,6 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
 ### Download data
 
-Finally, users can navigate to **Download data** on the left sidebar to download the undisturbed and disturbed area maps as spatial layers in a GeoPackage which can be further viewed and analyzed in a GIS application such as QGIS.
-<br><br>
-<center><img src="pics/dwd.png" width="600"><br>Figure 6. Download the GeoPackage.</center>
-<br><br>
+Here, the user can download a GeoPackage containing spatial layers of undisturbed and disturbed areas as well as all input layers (e.g., fire).
+
+Click the **Download data** button to download the GeoPackage. The GeoPackage will be saved to the Downloads folder.
