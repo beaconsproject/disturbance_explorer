@@ -11,15 +11,13 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
   1. **Use custom buffers** - Select this option if variable buffer widths are desired e.g., 1000-m buffer for highways and 500-m buffer for trails.
      
-     If selected, the **mapview** will be replaced with the table summarizing linear and area disturbances under the **custom buffers** tab (Figure 1). Variable buffer widths are assigned in metres via the table by editing the widths in the column named "BUFFER_SIZE_M". The default buffer width assigned to all disturbances is 500 m.
-
-     When editing is complete, select "Buffer features" on the left sidebar to continue.
+     If selected, the **mapview** will be replaced with the table summarizing linear and area disturbances under the **custom buffers** tab. Variable buffer widths are assigned in metres via the table by editing the widths in the column named "BUFFER_SIZE_M". The default buffer width assigned to all disturbances is 500-m.
 
   2. **Use overall buffers:** Select this option if a single buffer width is to be applied to linear and areal disturbances. Different buffer widths can be applied to the linear and areal disturbances.
 
-     If selected, use the sliders to set buffers. The slider options provide increments of 10 m. If the slider options are not sufficient, use the custom buffers option above. 
+     Use the sliders to set buffers. The slider options provide increments of 10-m. If the slider options are not sufficient, use the custom buffers option above. 
 
-**Set minimum undisturbed patch size (km2)**: In the left sidebar, a minimum patch size for undisturbed areas can be set using the slider. This function will remove patches smaller than the minimum patch size from undisturbed areas map. 
+**Set minimum undisturbed patch size (km2)**: In the left sidebar, a minimum patch size for undisturbed areas can be set using the slider. This function will remove patches smaller than the minimum patch size from the undisturbed areas map. 
 
 **Include other disturbances**: The user can choose to include other human or natural disturbances (linear and areal) if these spatial layers were uploaded during the **Select study area** step.  To include other disturbances, check the box and set the buffer width using the slider(s). 
 
