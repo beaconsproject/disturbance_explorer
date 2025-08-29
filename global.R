@@ -5,7 +5,7 @@ required_packages <- c("leaflet", "tidyverse", "cli","shinydashboard", "shinycss
    "markdown", "dplyr", "tidyr", "sf", "shinyMatrix"
 )
 
-options(shiny.maxRequestSize=100*1024^2) 
+options(shiny.maxRequestSize=500*1024^2) 
 
 # Install any missing packages
 #missing_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]

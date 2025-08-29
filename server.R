@@ -34,6 +34,42 @@ server = function(input, output, session) {
     group_names(updated_groups)  # Update the reactiveVal
   }
   
+  # read_shp_from_upload: read a shapefile from fileInput
+  read_shp_from_upload <- function(upload_input) {
+    req(upload_input)
+    required_extensions <- c("shp", "shx", "dbf", "prj")
+    infile <- upload_input
+    browser()
+    file_extensions <- tools::file_ext(infile$name)
+    if (all(required_extensions %in% file_extensions)) {
+      dir <- unique(dirname(infile$datapath))
+      outfiles <- file.path(dir, infile$name)
+      name <- tools::file_path_sans_ext(infile$name[1])
+      purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
+      shp_path <- file.path(dir, paste0(name, ".shp"))
+      if (file.exists(shp_path)) {
+        #return(sf::st_read(shp_path))
+        shp <- sf::st_read(shp_path)
+        assign(name, shp)
+        return(shp)
+      } else {
+        showModal(modalDialog(
+          title = "Shapefile (.shp) is missing.",
+          easyClose = TRUE,
+          footer = modalButton("OK")
+        ))
+        return()
+      }
+    } else {
+      showModal(modalDialog(
+        title = "Extension file is missing",
+        "Please upload all necessary files for the shapefile (.shp, .shx, .dbf and .prj).",
+        easyClose = TRUE,
+        footer = modalButton("OK")
+      ))
+      return()
+    }
+  }
   ##############################################################################
   # Observe on layers names in gpkg
   lyr_names <- eventReactive(input$selectInput, {

@@ -26,8 +26,8 @@ ui = dashboardPage(skin="black",
                          icon = icon("life-ring"),  # Life-ring icon triggering dropdown
                          headerText = "",  # No header text in dropdown
                          menuItem("Website", href = "https://beaconsproject.ualberta.ca/", icon = icon("globe")),
-                         menuItem("GitHub", href = "https://github.com/beaconsproject/", icon = icon("github")),
-                         menuItem("Contact us", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
+                         menuItem("GitHub", href = "https://github.com/beaconsproject/disturbance_explorer", icon = icon("github")),
+                         menuItem("Contact us at beacons@ualberta.ca", href = "mailto: beacons@ualberta.ca", icon = icon("address-book"))
                        ),
                        # Plain Text "About Us" Positioned Next to Dropdown
                        tags$span(
