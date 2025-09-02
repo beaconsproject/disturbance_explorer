@@ -72,7 +72,8 @@ server = function(input, output, session) {
   }
   ##############################################################################
   # Observe on layers names in gpkg
-  lyr_names <- eventReactive(input$selectInput, {
+  lyr_names <- reactive({
+    file <- NULL
     if (input$selectInput == 'usedemo') {
       file <- 'www/demo.gpkg'
     } else if (!is.null(input$upload_gpkg)) {
@@ -108,6 +109,13 @@ server = function(input, output, session) {
   })
   
   observe({
+    if (!is.null(line()) || !is.null(poly())) {
+      enable("createMatrix")
+    } else {
+      disable("createMatrix")
+    }
+  })
+  observe({
     disable("otherpolysize")
     req(!is.null(input$upload_polyothers))
     enable("otherpolysize")
@@ -128,6 +136,8 @@ server = function(input, output, session) {
           style = "color: darkgrey;",
           updateCheckboxInput(session = getDefaultReactiveDomain(), "forceclaims", label = "Include mining claims", value = FALSE)
         )
+      }else{
+        enable("forceclaims")
       }
     }
   })
@@ -171,6 +181,8 @@ server = function(input, output, session) {
     if (!is.null(input$upload_gpkg)){
       if (!("linear_disturbance") %in% lyr_names()){
         disable("buffer1")
+      }else{
+        enable("buffer1")
       }
     }
   })
@@ -182,6 +194,8 @@ server = function(input, output, session) {
     if (!is.null(input$upload_gpkg)){
       if (!("areal_disturbance") %in% lyr_names()){
         disable("buffer2")
+      }else{
+        enable("buffer2")
       }
     }
   })
@@ -192,6 +206,8 @@ server = function(input, output, session) {
     if (!is.null(input$upload_gpkg)){
       if (!any(c("linear_disturbance", "areal_disturbance") %in% lyr_names())){
         disable("selectBuffer")
+      }else{
+        enable("selectBuffer")
       }
     }
   })
@@ -569,7 +585,15 @@ server = function(input, output, session) {
   
   ########################################################
  observeEvent(input$distType, {
-    if (input$selectInput == "usedemo") {
+   
+    if (is.null(input$selectInput)){
+      showModal(modalDialog(
+        title = "Missing type of source dataset",
+        "Before proceeding, please select the source dataset.",
+        easyClose = TRUE,
+        footer = NULL)
+      )
+    } else if (input$selectInput == "usedemo") {
       if (!is.null(line())) {
         industry_line("TYPE_INDUSTRY")
         disttype_line("TYPE_DISTURBANCE")
@@ -578,7 +602,7 @@ server = function(input, output, session) {
         industry_poly("TYPE_INDUSTRY")
         disttype_poly("TYPE_DISTURBANCE")
       }
-    } else if (input$selectInput == "usegpkg"){
+    }else{
       req(!is.null(input$upload_gpkg))
       req(input$createMatrix == TRUE)
       
@@ -1110,7 +1134,7 @@ server = function(input, output, session) {
         footer = NULL)
       )
     }
-    #browser()
+    
     req(input$distType)
     
     if(is.null(input$selectBuffer)){
