@@ -16,16 +16,16 @@ This page outlines the required and optional spatial layers used by **Disturbanc
 #### Required - GeoPackage
 
 - **studyarea**: A polygon of the study area e.g., watershed, ecoregion or any other user-defined area.
-- **linear_disturbance and/or areal_disturbance** 
+- At least one of the following disturbance layers:
   - **linear_disturbance**: Linear human surface disturbance features e.g., roads, seismic line. 
   - **areal_disturbance**: Areal (polygonal) human surface disturbance features e.g., mine, town site, cutblock. 
+  - **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the fire e.g., 1995 and (2) "CAUSE" - cause of ignition of the fire which can either be 'Human', 'Lightning' or 'Unknown'.  
 <br>
 
 #### Optional - GeoPackage 
 
 Bold text is the required name of the spatial layer in the GeoPackage.
 
-- **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the fire e.g., 1995 and (2) "CAUSE" - cause of ignition of the fire which can either be 'Human', 'Lightning' or 'Unknown'.  
 - **protected_areas**: Distribution of protected areas e.g., Canadian Protected and Conserved Areas Database. 
 - **Quartz_Claims**: Quartz mining claims for hard rock mining. 
 - **Placer_Claims**: Placer mining claims for the mining of waterways (e.g., stream beds, wetlands) for mineral deposits (e.g., gold).
