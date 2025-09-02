@@ -18,7 +18,9 @@ In this step, the user uploads spatial data into Disturbance Explorer.
    Refer to the **Dataset Requirements** tab for a detailed description of required and optional layers, as well as their respective data structure.
 
    **Define classification per disturbance type**: Click this option to classify linear and areal disturbances by industry (e.g., transporation) and/or disturbance (e.g., highway) type. This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2).    The table is under the **Custom buffers** tab located across the top and is required in the next step if custom buffer sizes are to be applied to industry and/or disturbance types. Use the drop-down menus to identify the industry and/or disturbance attributes for linear and areal disturbance features in the GeoPackage. If attributes are not assigned, the table will simply summarize the features as "linear" and "areal".
-
+   
+   *Note*: The option will be disable if the uploaded GeoPackage only include fires
+   
    **Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
    Press the **Confirm** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. From here, move on to **Buffer features**.

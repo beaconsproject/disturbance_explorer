@@ -36,6 +36,8 @@ In this step, the user uploads spatial data into Disturbance Explorer.
 
    **Define classification per disturbance type**: Click this option to classify linear and areal disturbances by industry (e.g., transporation) and/or disturbance (e.g., highway) type. This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2).    The table is located under the **Custom buffers** tab across the top and is required in the next step if custom buffer sizes are to be applied to industry and/or disturbance types. Use the drop-down menus to identify the industry and/or disturbance attributes for linear and areal disturbance features in the GeoPackage. If attributes are not assigned, the table will simply summarize the features as "linear" and "areal".
 
+   *Note*: The option will be disable if the uploaded GeoPackage only include fires
+   
    **Upload other linear disturbances (shp)** and **Upload other areal disturbances (shp)**: Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
    Press the **Confirm** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. From here, move on to **Buffer features**.
@@ -57,13 +59,15 @@ In this step, the user specifies the disturbance layers and associated buffers f
 
      If selected, use the sliders to set buffers. The slider options provide increments of 10 m. If the slider options are not sufficient, use the custom buffers option above. 
 
+   *Note*: The option will be disable if the uploaded GeoPackage only include fires
+
 **Set minimum undisturbed patch size (km2)**: In the left sidebar, a minimum patch size for undisturbed areas can be set using the slider. This function will remove patches smaller than the minimum patch size from undisturbed areas map. 
 
-**Include other disturbances**: The user can choose to include other human or natural disturbances (linear and areal) if these spatial layers were uploaded during the **Select study area** step.  To include other disturbances, check the box and set the buffer width using the slider(s). 
+**Include other disturbances**: The user can choose to include other human or natural disturbances (linear and areal) if these spatial layers were uploaded during the **Select study area** step.  To include other disturbances, check the box and set the buffer width using the slider(s). The option is disable in the absence of layer representing other disturbances. 
 
-**Include mining claims**: If mining claims were included in the GeoPackage uploaded in the **Select study area** step, the option to include mining claims will be active. To include mining claims, check the box and set the buffer width using the slider. 
+**Include mining claims**: If mining claims were included in the GeoPackage uploaded in the **Select study area** step, the option to include mining claims will be active. To include mining claims, check the box and set the buffer width using the slider. The option is disable in the absence of layer representing mining claims. 
 
-**Include fires**: If fires were included in the GeoPackage uploaded in the **Select study area** step, the option to include fires will be active. To include fires, check the box and set the mininum fire size (ha), as well as fire years, to include in the generation of the undisturbed and disturbed areas maps. 
+**Include fires**: If fires were included in the GeoPackage uploaded in the **Select study area** step, the option to include fires will be active. To include fires, check the box and set the mininum fire size (ha), as well as fire years, to include in the generation of the undisturbed and disturbed areas maps. The option is disable in the absence of layer representing fires. 
 
 **Generate undisturbed areas**: To create the undisturbed and disturbed area maps, click on **Generate undisturbed areas** buttom. When the app is done creating the maps, two new layers will appear in the map: (1) "disturbed" layer comprised of buffered disturbances and 
 (2) "undisturbed" layer comprised of all regions within the study region that are not intersected by the disturbed areas. 
