@@ -39,7 +39,6 @@ server = function(input, output, session) {
     req(upload_input)
     required_extensions <- c("shp", "shx", "dbf", "prj")
     infile <- upload_input
-    browser()
     file_extensions <- tools::file_ext(infile$name)
     if (all(required_extensions %in% file_extensions)) {
       dir <- unique(dirname(infile$datapath))
