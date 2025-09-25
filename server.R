@@ -17,7 +17,9 @@ server = function(input, output, session) {
   disttype_line <- reactiveVal(NULL)
   industry_poly <- reactiveVal(NULL)
   disttype_poly <- reactiveVal(NULL)
-  
+  display1_name <- reactiveVal()
+  display2_name <- reactiveVal()
+  display3_name <- reactiveVal()
   
   # Function to add a new group to group_names
   addGroup <- function(new_group) {
@@ -210,7 +212,26 @@ server = function(input, output, session) {
       }
     }
   })
-  
+  ################################################################################################
+  # Observe on Extra layers
+  observe({
+    req(input$display4)
+    file <- input$display4$datapath
+    layers <- st_layers(file)$name
+    updateSelectInput(session = getDefaultReactiveDomain(), "display4a", choices = c("Select a layer", layers))
+  })
+  observe({
+    req(input$display4)
+    file <- input$display4$datapath
+    layers <- st_layers(file)$name
+    updateSelectInput(session = getDefaultReactiveDomain(), "display4b", choices = c("Select a layer", layers))
+  })
+  observe({
+    req(input$display4)
+    file <- input$display4$datapath
+    layers <- st_layers(file)$name
+    updateSelectInput(session = getDefaultReactiveDomain(), "display4c", choices = c("Select a layer", layers))
+  })
   ##############################################################################
   # Read input data - REQUIRED
   ##############################################################################
@@ -361,6 +382,119 @@ server = function(input, output, session) {
     
     return(layer)
   })
+  
+  ################################################################################################
+  ## extra layers
+  ################################################################################################
+  # Display1
+  display1_sf <- eventReactive(input$confExtra,{
+    req(input$confExtra)  
+    i <- NULL
+    
+    if(input$extraupload == "extrashp"){
+      if(!is.null(input$display1)){
+        req(input$display1)
+        i <- read_shp_from_upload(input$display1) %>%
+          st_zm(drop = TRUE, what = "ZM")  %>%
+          st_make_valid()
+        
+        shp_file <- input$display1$name[grepl("\\.shp$", input$display1$name)][1]
+        name <- tools::file_path_sans_ext(shp_file)
+        display1_name(name)
+        
+        geom_type <- unique(sf::st_geometry_type(i))
+        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+        }
+      }
+    } else if (input$extraupload == "extragpkg"){
+      req(input$display4)
+      req(input$display4a)
+      if(input$display4a != "Select a layer"){
+        i <- st_read(input$display4$datapath, layer = input$display4a, quiet = TRUE) 
+        name <- substr(input$display4a, 1, 25)
+        display1_name(name)
+      }
+    }
+    return(i)
+  })
+  
+  display2_sf <- eventReactive(input$confExtra,{
+    req(input$confExtra)  
+    i <- NULL
+    
+    if(input$extraupload == "extrashp"){
+      if(!is.null(input$display2)){
+        req(input$display2)
+        i <- read_shp_from_upload(input$display2) %>%
+          st_zm(drop = TRUE, what = "ZM")  %>%
+          st_make_valid()
+        
+        shp_file <- input$display2$name[grepl("\\.shp$", input$display2$name)][1]
+        name <- tools::file_path_sans_ext(shp_file)
+        display2_name(name)
+        
+        geom_type <- unique(sf::st_geometry_type(i))
+        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+        }
+      }
+    } else if (input$extraupload == "extragpkg"){
+      req(input$display4)
+      req(input$display4b)
+      if(input$display4b != "Select a layer"){
+        i <- st_read(input$display4$datapath, layer = input$display4b, quiet = TRUE)
+        name <- substr(input$display4b, 1, 25)
+        display2_name(name)
+      }
+    }
+    return(i)
+  })  
+  
+  display3_sf <- eventReactive(input$confExtra,{
+    req(input$confExtra)  
+    i <- NULL
+    
+    if(input$extraupload == "extrashp"){
+      if(!is.null(input$display3)){
+        req(input$display3)
+        i <- read_shp_from_upload(input$display3) %>%
+          st_zm(drop = TRUE, what = "ZM")  %>%
+          st_make_valid()
+        
+        shp_file <- input$display3$name[grepl("\\.shp$", input$display3$name)][1]
+        name <- tools::file_path_sans_ext(shp_file)
+        display3_name(name)
+        
+        geom_type <- unique(sf::st_geometry_type(i))
+        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+        }
+      }
+    } else if (input$extraupload == "extragpkg"){
+      req(input$display4)
+      req(input$display4c)
+      if(input$display4c != "Select a layer"){
+        i <- st_read(input$display4$datapath, layer = input$display4c, quiet = TRUE)
+        name <- substr(input$display4c, 1, 25)
+        display3_name(name)
+      }
+    }
+    return(i)
+  })  
+  
   ################################################################################################
   # Render UI for the selection of column name for disturbances 
   ################################################################################################
@@ -509,6 +643,25 @@ server = function(input, output, session) {
       } else {
         # Optionally, handle the case where the "protected_areas" layer is missing
         removeGroup("Protected areas")
+        return(NULL)  
+      }
+    }
+  })
+  
+  herds <- reactive({
+    if (input$selectInput=='usedemo') {
+      la <-st_read('www/demo.gpkg', 'Caribou_Herds', quiet=T)
+      addGroup("Caribou Herds")
+      return(la)
+    } else if (!is.null(input$upload_gpkg)){
+      if ("Caribou_Herds" %in% lyr_names()) {
+        # Read the "Caribou_Herds" layer from the uploaded file if it exists
+        la <-st_read(input$upload_gpkg$datapath, 'Caribou_Herds', quiet = TRUE)
+        addGroup("Caribou Herds")
+        return(la)
+      } else {
+        # Optionally, handle the case where the "Caribou_Herds" layer is missing
+        removeGroup("Caribou Herds")
         return(NULL)  
       }
     }
@@ -956,7 +1109,7 @@ server = function(input, output, session) {
                    options = layersControlOptions(collapsed = FALSE))
   })
   
-  observe({
+  observeEvent(input$distType,{
     req(input$distType)
     req(studyarea())
     
@@ -980,7 +1133,8 @@ server = function(input, output, session) {
       clearGroup("Intact FL 2020") %>%
       clearGroup("Mining Claims") %>%
       clearGroup("Placer Claims") %>%
-      clearGroup("Quartz Claims")
+      clearGroup("Quartz Claims") %>%
+      clearGroup("Caribou Herds")
      
     sa <- st_transform(studyarea(), 4326)
     map_bounds1 <- sa %>% st_bbox() %>% as.character()
@@ -995,7 +1149,7 @@ server = function(input, output, session) {
                        options = layersControlOptions(collapsed = FALSE)) 
       
     dist_names_new <- c()
-    
+    group_names_new <- c()
     # Disturbance
     poly <- isolate(poly())
     if(!is.null(poly)){
@@ -1038,50 +1192,62 @@ server = function(input, output, session) {
         )
         
         leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", options = leafletOptions(pane = "top")) 
-        #leafletProxy("map1") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", label = ~CAUSE_LABEL, options = leafletOptions(pane = "top")) %>%
-        #  addLegend(position = "bottomright", pal = pal, values = fires$CAUSE_LABEL, title = "Cause of fires", group = "Fires" )
+        group_names_new <- c(group_names_new, "Fires")
     }
     ifl2000 <- isolate(ifl2000())
     if(!is.null(ifl2000)){
-        ifl2000 <- st_transform(ifl2000, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#3366FF', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
+      ifl2000 <- st_transform(ifl2000, 4326)
+      leafletProxy("map1") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#3366FF', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Intact FL 2000")
     }
     ifl2020 <- isolate(ifl2020())
     if(!is.null(ifl2020)){
-        ifl2020 <- st_transform(ifl2020, 4326)
-        leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#000066', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
+      ifl2020 <- st_transform(ifl2020, 4326)
+      leafletProxy("map1") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#000066', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Intact FL 2020")
     }
     pa2021 <- isolate(pa2021())
     if(!is.null(pa2021)){
-        pa2021 <- st_transform(pa2021, 4326)
-        leafletProxy("map1") %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#699999', fillOpacity=1,  group="Protected areas", options = leafletOptions(pane = "ground")) 
+      pa2021 <- st_transform(pa2021, 4326)
+      leafletProxy("map1") %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#699999', fillOpacity=1,  group="Protected areas", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Protected areas")
+    }
+    herds <- isolate(herds())
+    if(!is.null(herds)){
+      herds <- st_transform(herds, 4326)
+      leafletProxy("map1") %>% addPolygons(data=herds, color= '#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Caribou Herds", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Caribou Herds")
     }
     placers <- isolate(placers())
     if(!is.null(placers)){
-        placers <- st_transform(placers, 4326)
-        leafletProxy("map1") %>% addPolygons(data=placers, color= '#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Placer Claims", options = leafletOptions(pane = "ground")) 
+      placers <- st_transform(placers, 4326)
+      leafletProxy("map1") %>% addPolygons(data=placers, color= '#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Placer Claims", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Placer Claims")
     }
     quartz <- isolate(quartz())
     if(!is.null(quartz)){
-        quartz <- st_transform(quartz, 4326)
-        leafletProxy("map1") %>% addPolygons(data=quartz, color = '#CCCCCC', fill=T, fillColor='#CCCCCC', weight=1, fillOpacity = 1, group="Quartz Claims", options = leafletOptions(pane = "ground")) 
+      quartz <- st_transform(quartz, 4326)
+      leafletProxy("map1") %>% addPolygons(data=quartz, color = '#CCCCCC', fill=T, fillColor='#CCCCCC', weight=1, fillOpacity = 1, group="Quartz Claims", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Quartz Claims")
     }
     
     mines <- isolate(mines())
     if(!is.null(mines)){
       mines <- st_transform(mines, 4326)
       leafletProxy("map1") %>% addPolygons(data=mines, color='#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Mining Claims", options = leafletOptions(pane = "ground")) 
+      group_names_new <- c(group_names_new, "Mining Claims")
     } 
     
     leafletProxy("map1") %>%
         addLayersControl(position = "topright",
                          baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                         overlayGroups = c("Study area", dist_names_new, group_names()),
+                         overlayGroups = c("Study area", dist_names_new, group_names_new),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c(group_names()))
     
     # Close the modal once processing is done
     dist_names(dist_names_new)
+    group_names(group_names_new)
     removeModal()
     
         ################################################################################################
@@ -1120,6 +1286,71 @@ server = function(input, output, session) {
     }
   })
   
+  ###########################
+  # Map extra layers
+  observeEvent(input$confExtra,{ 
+    
+    map1 <- leafletProxy("map1") %>%
+      clearGroup(display1_name()) %>%
+      clearGroup(display2_name()) %>%
+      clearGroup(display3_name())
+    
+    group_names_new <- group_names()
+    
+    if (isMappable(display1_sf())) { 
+      display1 <- st_transform(display1_sf(), 4326)
+      geom_type <- unique(sf::st_geometry_type(display1))
+      if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+        map1 <- map1 %>% addPolygons(data=display1,  fillColor='#663300', stroke=F, fill = T, fillOpacity = 0.5, group=display1_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+        map1 <- map1 %>% addPolylines(data = display1, color = '#663300', weight = 2, group = display1_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+        map1 <- map1 %>% addCircleMarkers(data = display1, color = '#663300', radius = 5, fillOpacity = 0.7, group = display1_name(), options = leafletOptions(pane = "ground"))
+      } else {
+        showNotification("Unsupported geometry type", type = "error")
+      }
+
+      group_names_new <- c(group_names_new,display1_name())
+    } 
+    if (isMappable(display2_sf())) { 
+      display2 <- st_transform(display2_sf(), 4326)
+      geom_type <- unique(sf::st_geometry_type(display2))
+      if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+        map1 <- map1 %>% addPolygons(data=display2,  fillColor='#330066', stroke=F, fill = T, fillOpacity = 0.5, group=display2_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+        map1 <- map1 %>% addPolylines(data = display2, color = '#330066', weight = 2, group = display2_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+        map1 <- map1 %>% addCircleMarkers(data = display2, color = '#330066', radius = 5, fillOpacity = 0.7, group = display2_name(), options = leafletOptions(pane = "ground"))
+      } else {
+        showNotification("Unsupported geometry type", type = "error")
+      }
+
+      group_names_new <- c(group_names_new,display2_name())
+    } 
+    if (isMappable(display3_sf())) { 
+      display3 <- st_transform(display3_sf(), 4326)
+      geom_type <- unique(sf::st_geometry_type(display3))
+      if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+        map1 <- map1 %>% addPolygons(data=display3,  fillColor='#003333', stroke=F, fill = T, fillOpacity = 0.5, group=display3_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+        map1 <- map1 %>% addPolylines(data = display3, color = '#003333', weight = 2, group = display3_name(), options = leafletOptions(pane = "ground"))
+      } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+        map1 <- map1 %>% addCircleMarkers(data = display3, color = '#003333', radius = 5, fillOpacity = 0.7, group = display3_name(), options = leafletOptions(pane = "ground"))
+      } else {
+        showNotification("Unsupported geometry type", type = "error")
+      }
+      group_names_new <- c(group_names_new,display3_name())
+    } 
+    group_names(group_names_new)
+    browser()
+    leafletProxy("map1") %>%
+      addLayersControl(position = "topright",
+                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                       overlayGroups = c("Study area", group_names_new),
+                       options = layersControlOptions(collapsed = FALSE)) %>%
+      hideGroup(c("Streams", "Catchments", group_names_new))
+  })  
+  
   ##############################################################################
   # Update map with intactness/footprint
   ##############################################################################
@@ -1154,8 +1385,6 @@ server = function(input, output, session) {
       footer = NULL)
     )
 
-    dist_names_new <- dist_names()
-    
     if(is.null(footprintfire_sf())){
       fp_sf <- st_transform(footprint_sf(), 4326)
     }else{
@@ -1169,24 +1398,14 @@ server = function(input, output, session) {
       addPolygons(data=intact_sf, color='#336633', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
       addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=footprint_names_new(), options = leafletOptions(pane = "top")) 
 
-    #footprintfires <- isolate(footprintfire_sf())
-    #if(!is.null(footprintfires)){
-    #  footprintfires <- st_transform(footprintfires, 4326)
-    #  leafletProxy("map1") %>% addPolygons(data=footprintfires, color = '#663300', fill=T, stroke=F, fillColor='#663300', fillOpacity=0.5, group="Footprint + fires", options = leafletOptions(pane = "top")) 
-    #  #dist_names_new <- c("Footprint + fires", dist_names_new)
-    #  dist_names_new <- c(footprint_names(), dist_names_new)
-    #}
-    
     leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study area", "Undisturbed areas", footprint_names_new(), dist_names_new, group_names()),
+                       overlayGroups = c("Study area", "Undisturbed areas", footprint_names_new(), dist_names(), group_names()),
                        options = layersControlOptions(collapsed = FALSE)) %>%
-      #hideGroup(c("Footprint", group_names()))
       hideGroup(c(footprint_names_new(), group_names()))
     
     # Close the modal once processing is done
-    dist_names(dist_names_new)
     footprint_names_old(footprint_names_new())
     removeModal()
     
@@ -1351,9 +1570,14 @@ server = function(input, output, session) {
         if (!is.null(other_linedist())) st_write(other_linedist(), dsn=file, layer='other_linear_disturbances', append=TRUE)
         if (!is.null(other_polydist())) st_write(other_polydist(), dsn=file, layer='other_areal_disturbances', append=TRUE)
         if (!is.null(pa2021())) st_write(pa2021(), dsn=file, layer='protected_areas', append=TRUE)
-        if (!is.null(placers())) st_write(placers(), dsn=file, layer='Placers_Claims', append=TRUE)
+        if (!is.null(placers())) st_write(placers(), dsn=file, layer='Placer_Claims', append=TRUE)
         if (!is.null(quartz())) st_write(quartz(), dsn=file, layer='Quartz_Claims', append=TRUE)
         if (!is.null(mines())) st_write(mines(), dsn=file, layer='mining_claims', append=TRUE)
+        if (!is.null(mines())) st_write(herds(), dsn=file, layer='Caribou_Herds', append=TRUE)
+        if (!is.null(display1_sf())) st_write(display1_sf(), dsn=file, layer=display1_name(), append=TRUE)
+        if (!is.null(display2_sf())) st_write(display2_sf(), dsn=file, layer=display2_name(), append=TRUE)
+        if (!is.null(display3_sf())) st_write(display3_sf(), dsn=file, layer=display3_name(), append=TRUE)
+
         if (input$goButton) {
           x <- data.frame(Undisturbed_per = additionalAttributes()[1,2],
                           Disturbed_per  = additionalAttributes()[2,2])
