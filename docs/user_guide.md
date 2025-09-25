@@ -43,6 +43,15 @@ In this step, the user uploads spatial data into Disturbance Explorer.
    Press the **Confirm** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. From here, move on to **Buffer features**.
 <br><br>
 
+
+### Add display elements (OPTIONAL)
+
+This section allows users to add a maximum of three layers to the map for visualization purposes only. Additional layers can be 
+uploaded as Shapefiles or as layers from a GeoPackage. These can be vector data (points, lines, or polygons) but 
+cannot be rasters. Layers will appear on the map using their original names, and colors are assigned as indicated in the side panel. They aren't considered in the analysis. 
+
+<br><br>
+
 ### Buffer features
 
 In this step, the user specifies the disturbance layers and associated buffers for creating the undisturbed and disturbed areas maps. The disturbance layer options include linear and areal anthropogenic disturbances, other disturbances, mining claims, and fire, assuming the spatial layers have been uploaded in the previous step.

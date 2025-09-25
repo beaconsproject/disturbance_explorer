@@ -192,7 +192,25 @@ ui = dashboardPage(skin="black",
                                                  tags$h4("Define areal buffer sizes:"),
                                                  uiOutput("areal_matrix_ui")
                                         ),
-                                        tabPanel("User guide", uiOutput("guide_ui"))
+                                        tabPanel("User Guide",
+                                                 # Dynamically update the content of Guidance based on selected tab
+                                                 conditionalPanel(
+                                                   condition = "input.tabs == 'select'",
+                                                   includeMarkdown("./docs/select_doc.md")
+                                                 ),
+                                                 conditionalPanel(
+                                                   condition = "input.tabs == 'addLayers'",
+                                                   includeMarkdown("./docs/addLayers_doc.md")
+                                                 ),
+                                                 conditionalPanel(
+                                                   condition = "input.tabs == 'buffer'",
+                                                   includeMarkdown("./docs/buffer_doc.md")
+                                                 ),
+                                                 conditionalPanel(
+                                                   condition = "input.tabs == 'download'",
+                                                   includeMarkdown("./docs/dwd_doc.md")
+                                                 )
+                                        )
                                  ),
                                  tabBox(
                                    id = "two", width="4",

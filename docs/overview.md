@@ -24,6 +24,14 @@ These can be incorporated into the mapping process or used for viewing purposes 
 📌 Note: All layers in the GeoPackage must have the same projection. Additionally, the study area must capture the full extent of disturbance layers to ensure accurate analysis.
 <br>
 
+#### Add display elements (OPTIONAL)
+
+This section allows users to add additional features for visualization. These features must be vector data (points, lines, or polygons) and 
+cannot be rasters. A maximum of three additional features can be added. The file or layer names are automatically used as display names on 
+the map. Colors are assigned by the app and cannot be modified.
+
+<br>
+
 #### Buffer features
     
   - Apply buffers to disturbance features. Choose between:
