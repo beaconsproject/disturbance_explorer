@@ -71,6 +71,17 @@ server = function(input, output, session) {
       return()
     }
   }
+
+  ################################################################################################
+  # Observe on selectInput
+  ################################################################################################
+  observe({
+    req(input$upload_gpkg)
+    file <- input$upload_gpkg$datapath
+    layers <- st_layers(file)$name
+    updateSelectInput(session = getDefaultReactiveDomain(), "saLayer", choices = c("Select a layer", layers))
+  })
+  
   ##############################################################################
   # Observe on layers names in gpkg
   lyr_names <- reactive({
@@ -235,30 +246,20 @@ server = function(input, output, session) {
   ##############################################################################
   # Read input data - REQUIRED
   ##############################################################################
-  studyarea <- eventReactive({
+  studyarea <- reactive({
     # Trigger only when these inputs change
-    list(input$selectInput, input$upload_gpkg)
-  }, {
-    req(input$selectInput)  # Ensure `selectInput` is not NULL
+    req(input$selectInput)
     
     if (input$selectInput == "usedemo") {
       st_read('www/demo.gpkg', 'studyarea', quiet = TRUE)
     } else if (input$selectInput == "usegpkg") {
-      # Validation checks
       req(input$upload_gpkg)
-      has_studyarea <- "studyarea" %in% lyr_names()
-      
-      if (!has_studyarea) {
-        showModal(modalDialog(
-          title = "Missing required 'studyarea' layer in the GeoPackage.",
-          easyClose = TRUE,
-          footer = NULL)
-        ) 
+
+      if(input$saLayer != "Select a layer" && input$saLayer != ""){
+        st_read(input$upload_gpkg$datapath, input$saLayer, quiet = TRUE)
+      }else{
+        return(NULL)
       }
-      req(has_studyarea)
-      
-      # Ensure upload_gpkg is not NULL before reading the file
-      st_read(input$upload_gpkg$datapath, 'studyarea', quiet = TRUE)
     }
   })
   
@@ -650,9 +651,10 @@ server = function(input, output, session) {
   
   herds <- reactive({
     if (input$selectInput=='usedemo') {
-      la <-st_read('www/demo.gpkg', 'Caribou_Herds', quiet=T)
-      addGroup("Caribou Herds")
-      return(la)
+      return(NULL)  
+      #la <-st_read('www/demo.gpkg', 'Caribou_Herds', quiet=T)
+      #addGroup("Caribou Herds")
+      #return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Caribou_Herds" %in% lyr_names()) {
         # Read the "Caribou_Herds" layer from the uploaded file if it exists
@@ -1342,7 +1344,7 @@ server = function(input, output, session) {
       group_names_new <- c(group_names_new,display3_name())
     } 
     group_names(group_names_new)
-    browser()
+    
     leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),

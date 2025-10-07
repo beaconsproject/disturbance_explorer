@@ -57,6 +57,7 @@ ui = dashboardPage(skin="black",
                        conditionalPanel(
                          condition="input.selectInput=='usegpkg'",
                          fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg"),
+                         div(style = "margin-top: -20px;", selectInput("saLayer", "Select study area layer", choices = NULL,  multiple = FALSE)),
                          div(
                            style = "margin-top: -40px;",  # move it up
                            checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)
