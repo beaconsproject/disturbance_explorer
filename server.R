@@ -256,7 +256,10 @@ server = function(input, output, session) {
       req(input$upload_gpkg)
 
       if(input$saLayer != "Select a layer" && input$saLayer != ""){
-        st_read(input$upload_gpkg$datapath, input$saLayer, quiet = TRUE)
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
+        file.copy(input$upload_gpkg$datapath, gpkg_path, overwrite = TRUE)
+        st_read(gpkg_path, input$saLayer, quiet = TRUE)
+        #st_read(input$upload_gpkg$datapath, input$saLayer, quiet = TRUE)
       }else{
         return(NULL)
       }
@@ -265,7 +268,8 @@ server = function(input, output, session) {
   
   line <- reactive({
     req(input$selectInput)
-
+    req(studyarea())
+    
     if (input$selectInput == "usedemo") {
       line_sf <- st_read("www/demo.gpkg", "linear_disturbance", quiet = TRUE)
       return(line_sf)
@@ -273,7 +277,10 @@ server = function(input, output, session) {
     if (input$selectInput == "usegpkg") {
       req(input$upload_gpkg)
       if ("linear_disturbance" %in% lyr_names()) {
-        line_sf <- st_read(input$upload_gpkg$datapath, "linear_disturbance", quiet = TRUE)
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
+        line_sf <- st_read(gpkg_path, "linear_disturbance", quiet = TRUE)
+        
+        #line_sf <- st_read(input$upload_gpkg$datapath, "linear_disturbance", quiet = TRUE)
         return(line_sf)
       } else {
         return(NULL)  
@@ -284,7 +291,7 @@ server = function(input, output, session) {
   
   poly <- reactive({
     req(input$selectInput)
-
+    req(studyarea())
     if (input$selectInput == "usedemo") {
       poly_sf <- st_read("www/demo.gpkg", "areal_disturbance", quiet = TRUE)
       return(poly_sf)
@@ -293,7 +300,9 @@ server = function(input, output, session) {
       req(input$upload_gpkg)
 
       if ("areal_disturbance" %in% lyr_names()) {
-        poly_sf <- st_read(input$upload_gpkg$datapath, "areal_disturbance", quiet = TRUE)
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
+        poly_sf <- st_read(gpkg_path, "areal_disturbance", quiet = TRUE)
+        #poly_sf <- st_read(input$upload_gpkg$datapath, "areal_disturbance", quiet = TRUE)
         return(poly_sf)
       } else {
         return(NULL)  
@@ -388,109 +397,115 @@ server = function(input, output, session) {
   ## extra layers
   ################################################################################################
   # Display1
-  display1_sf <- eventReactive(input$confExtra,{
-    req(input$confExtra)  
+  display1_sf <- reactive({
     i <- NULL
     
-    if(input$extraupload == "extrashp"){
-      if(!is.null(input$display1)){
-        req(input$display1)
-        i <- read_shp_from_upload(input$display1) %>%
-          st_zm(drop = TRUE, what = "ZM")  %>%
-          st_make_valid()
-        
-        shp_file <- input$display1$name[grepl("\\.shp$", input$display1$name)][1]
-        name <- tools::file_path_sans_ext(shp_file)
-        display1_name(name)
-        
-        geom_type <- unique(sf::st_geometry_type(i))
-        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
-        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
-        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
-          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+    if(input$confExtra){
+      req(input$confExtra)
+      if(input$extraupload == "extrashp"){
+        if(!is.null(input$display1)){
+          req(input$display1)
+          i <- read_shp_from_upload(input$display1) %>%
+            st_zm(drop = TRUE, what = "ZM")  %>%
+            st_make_valid()
+          
+          shp_file <- input$display1$name[grepl("\\.shp$", input$display1$name)][1]
+          name <- tools::file_path_sans_ext(shp_file)
+          display1_name(name)
+          
+          geom_type <- unique(sf::st_geometry_type(i))
+          if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+          } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+          } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+            i <- suppressWarnings(sf::st_cast(i, "POINT"))
+          }
         }
-      }
-    } else if (input$extraupload == "extragpkg"){
-      req(input$display4)
-      req(input$display4a)
-      if(input$display4a != "Select a layer"){
-        i <- st_read(input$display4$datapath, layer = input$display4a, quiet = TRUE) 
-        name <- substr(input$display4a, 1, 25)
-        display1_name(name)
+      } else if (input$extraupload == "extragpkg"){
+        req(input$display4)
+        req(input$display4a)
+        if(input$display4a != "Select a layer"){
+          i <- st_read(input$display4$datapath, layer = input$display4a, quiet = TRUE) 
+          name <- substr(input$display4a, 1, 25)
+          display1_name(name)
+        }
       }
     }
     return(i)
   })
   
-  display2_sf <- eventReactive(input$confExtra,{
-    req(input$confExtra)  
+  display2_sf <- reactive({
     i <- NULL
-    
-    if(input$extraupload == "extrashp"){
-      if(!is.null(input$display2)){
-        req(input$display2)
-        i <- read_shp_from_upload(input$display2) %>%
-          st_zm(drop = TRUE, what = "ZM")  %>%
-          st_make_valid()
-        
-        shp_file <- input$display2$name[grepl("\\.shp$", input$display2$name)][1]
-        name <- tools::file_path_sans_ext(shp_file)
-        display2_name(name)
-        
-        geom_type <- unique(sf::st_geometry_type(i))
-        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
-        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
-        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
-          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+
+    if(input$confExtra){
+      req(input$confExtra)
+      if(input$extraupload == "extrashp"){
+        if(!is.null(input$display2)){
+          req(input$display2)
+          i <- read_shp_from_upload(input$display2) %>%
+            st_zm(drop = TRUE, what = "ZM")  %>%
+            st_make_valid()
+          
+          shp_file <- input$display2$name[grepl("\\.shp$", input$display2$name)][1]
+          name <- tools::file_path_sans_ext(shp_file)
+          display2_name(name)
+          
+          geom_type <- unique(sf::st_geometry_type(i))
+          if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+          } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+          } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+            i <- suppressWarnings(sf::st_cast(i, "POINT"))
+          }
         }
-      }
-    } else if (input$extraupload == "extragpkg"){
-      req(input$display4)
-      req(input$display4b)
-      if(input$display4b != "Select a layer"){
-        i <- st_read(input$display4$datapath, layer = input$display4b, quiet = TRUE)
-        name <- substr(input$display4b, 1, 25)
-        display2_name(name)
+      } else if (input$extraupload == "extragpkg"){
+        req(input$display4)
+        req(input$display4b)
+        if(input$display4b != "Select a layer"){
+          i <- st_read(input$display4$datapath, layer = input$display4b, quiet = TRUE)
+          name <- substr(input$display4b, 1, 25)
+          display2_name(name)
+        }
       }
     }
     return(i)
   })  
   
-  display3_sf <- eventReactive(input$confExtra,{
-    req(input$confExtra)  
+  display3_sf <- reactive({
     i <- NULL
     
-    if(input$extraupload == "extrashp"){
-      if(!is.null(input$display3)){
-        req(input$display3)
-        i <- read_shp_from_upload(input$display3) %>%
-          st_zm(drop = TRUE, what = "ZM")  %>%
-          st_make_valid()
-        
-        shp_file <- input$display3$name[grepl("\\.shp$", input$display3$name)][1]
-        name <- tools::file_path_sans_ext(shp_file)
-        display3_name(name)
-        
-        geom_type <- unique(sf::st_geometry_type(i))
-        if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
-        } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
-          i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
-        } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
-          i <- suppressWarnings(sf::st_cast(i, "POINT"))
+    if(input$confExtra){
+      req(input$confExtra)
+      if(input$extraupload == "extrashp"){
+        if(!is.null(input$display3)){
+          req(input$display3)
+          i <- read_shp_from_upload(input$display3) %>%
+            st_zm(drop = TRUE, what = "ZM")  %>%
+            st_make_valid()
+          
+          shp_file <- input$display3$name[grepl("\\.shp$", input$display3$name)][1]
+          name <- tools::file_path_sans_ext(shp_file)
+          display3_name(name)
+          
+          geom_type <- unique(sf::st_geometry_type(i))
+          if (any(geom_type %in% c("POLYGON", "MULTIPOLYGON"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTIPOLYGON"))
+          } else if (any(geom_type %in% c("LINESTRING", "MULTILINESTRING"))) {
+            i <- suppressWarnings(sf::st_cast(i, "MULTILINESTRING"))
+          } else if (any(geom_type %in% c("POINT", "MULTIPOINT"))) {
+            i <- suppressWarnings(sf::st_cast(i, "POINT"))
+          }
         }
-      }
-    } else if (input$extraupload == "extragpkg"){
-      req(input$display4)
-      req(input$display4c)
-      if(input$display4c != "Select a layer"){
-        i <- st_read(input$display4$datapath, layer = input$display4c, quiet = TRUE)
-        name <- substr(input$display4c, 1, 25)
-        display3_name(name)
+      } else if (input$extraupload == "extragpkg"){
+        req(input$display4)
+        req(input$display4c)
+        if(input$display4c != "Select a layer"){
+          i <- st_read(input$display4$datapath, layer = input$display4c, quiet = TRUE)
+          name <- substr(input$display4c, 1, 25)
+          display3_name(name)
+        }
       }
     }
     return(i)
@@ -560,10 +575,14 @@ server = function(input, output, session) {
       addGroup("Fires")
       return(fi)
     } else if (!is.null(input$upload_gpkg)){
+      req(studyarea())
       if ("fires" %in% lyr_names()) {
+        
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "fires" layer from the uploaded file if it exists
-        fi <-st_read(input$upload_gpkg$datapath, 'fires', quiet = TRUE) %>%
-          suppressWarnings(st_cast('MULTIPOLYGON')) %>% 
+        fi <-st_read(gpkg_path, 'fires', quiet = TRUE) %>%
+          suppressWarnings() %>%
+          st_cast('MULTIPOLYGON') %>% 
           st_zm(drop = TRUE, what = "ZM")  %>%
           st_make_valid() %>%
           mutate(area_ha = as.numeric(st_area(geom)/10000))
@@ -595,8 +614,9 @@ server = function(input, output, session) {
       return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Intact_FL_2000" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "intactness_2000" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Intact_FL_2000', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Intact_FL_2000', quiet = TRUE)
         addGroup("Intact FL 2000")
         return(la)
       } else {
@@ -616,8 +636,9 @@ server = function(input, output, session) {
       return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Intact_FL_2020" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "intactness_2020" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Intact_FL_2020', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Intact_FL_2020', quiet = TRUE)
         addGroup("Intact FL 2020")
         return(la)
       } else {
@@ -637,8 +658,9 @@ server = function(input, output, session) {
       return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("protected_areas" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "protected_areas" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'protected_areas', quiet = TRUE)
+        la <-st_read(gpkg_path, 'protected_areas', quiet = TRUE)
         addGroup("Protected areas")
         return(la)
       } else {
@@ -657,8 +679,9 @@ server = function(input, output, session) {
       #return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Caribou_Herds" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Caribou_Herds" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Caribou_Herds', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Caribou_Herds', quiet = TRUE)
         addGroup("Caribou Herds")
         return(la)
       } else {
@@ -676,8 +699,9 @@ server = function(input, output, session) {
       return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Placer_Claims" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Placer_Claims" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Placer_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Placer_Claims', quiet = TRUE)
         addGroup("Placer Claims")
         return(la)
       } else {
@@ -695,8 +719,9 @@ server = function(input, output, session) {
       return(la)
     } else if (!is.null(input$upload_gpkg)){
       if ("Quartz_Claims" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Quartz_Claims" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Quartz_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Quartz_Claims', quiet = TRUE)
         addGroup("Quartz Claims")
         return(la)
       } else {
@@ -713,8 +738,9 @@ server = function(input, output, session) {
       return(NULL)
     } else if (!is.null(input$upload_gpkg)){
       if ("Mining_Claims" %in% lyr_names()) {
+        gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Mining_Claims" layer from the uploaded file if it exists
-        la <-st_read(input$upload_gpkg$datapath, 'Mining_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Mining_Claims', quiet = TRUE)
         addGroup("Mining Claims")
         return(la)
       } else {
@@ -1022,7 +1048,6 @@ server = function(input, output, session) {
           v5 <- st_union(v5a, v5b)
         }
       } else { v5 <- NULL}
-      
       v_list <- list(v1, v2, v3, v4, v5)
       v_valid <- Filter(Negate(is.null), v_list)
       if (length(v_valid) > 0) {
@@ -1553,6 +1578,7 @@ server = function(input, output, session) {
   output$downloadData <- downloadHandler(
     filename = function() { paste("disturbance_explorer-", Sys.Date(), ".gpkg", sep="") },
     content = function(file) {
+      
         x <- data.frame(Area_km2 = aoiAttributes()[1,2],
                         Lineardist_km  = baseAttributes()[1,2],
                         Arealdist_km2 = baseAttributes()[2,2],
