@@ -259,7 +259,6 @@ server = function(input, output, session) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         file.copy(input$upload_gpkg$datapath, gpkg_path, overwrite = TRUE)
         st_read(gpkg_path, input$saLayer, quiet = TRUE)
-        #st_read(input$upload_gpkg$datapath, input$saLayer, quiet = TRUE)
       }else{
         return(NULL)
       }
@@ -277,10 +276,10 @@ server = function(input, output, session) {
     if (input$selectInput == "usegpkg") {
       req(input$upload_gpkg)
       if ("linear_disturbance" %in% lyr_names()) {
+       #browser()
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
-        line_sf <- st_read(gpkg_path, "linear_disturbance", quiet = TRUE)
-        
-        #line_sf <- st_read(input$upload_gpkg$datapath, "linear_disturbance", quiet = TRUE)
+        line_sf <- st_read(gpkg_path, "linear_disturbance", quiet = TRUE) %>%
+          st_intersection(studyarea())
         return(line_sf)
       } else {
         return(NULL)  
@@ -301,8 +300,8 @@ server = function(input, output, session) {
 
       if ("areal_disturbance" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
-        poly_sf <- st_read(gpkg_path, "areal_disturbance", quiet = TRUE)
-        #poly_sf <- st_read(input$upload_gpkg$datapath, "areal_disturbance", quiet = TRUE)
+        poly_sf <- st_read(gpkg_path, "areal_disturbance", quiet = TRUE) %>%
+          st_intersection(studyarea())
         return(poly_sf)
       } else {
         return(NULL)  
@@ -337,7 +336,8 @@ server = function(input, output, session) {
         name <- tools::file_path_sans_ext(infile$name[1])
         
         purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
-        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE)
+        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE) %>%
+          st_intersection(studyarea())
         
         # Handle cases where 'geometry' might not be named correctly
         if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
@@ -376,7 +376,8 @@ server = function(input, output, session) {
         name <- tools::file_path_sans_ext(infile$name[1])
         
         purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
-        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE)
+        layer <- sf::st_read(file.path(dir,paste0(name, ".shp")), quiet = TRUE) %>%
+          st_intersection(studyarea())
         
         # Handle cases where 'geometry' might not be named correctly
         if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
@@ -581,6 +582,7 @@ server = function(input, output, session) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "fires" layer from the uploaded file if it exists
         fi <-st_read(gpkg_path, 'fires', quiet = TRUE) %>%
+          st_intersection(studyarea()) %>%
           suppressWarnings() %>%
           st_cast('MULTIPOLYGON') %>% 
           st_zm(drop = TRUE, what = "ZM")  %>%
@@ -616,7 +618,8 @@ server = function(input, output, session) {
       if ("Intact_FL_2000" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "intactness_2000" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'Intact_FL_2000', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Intact_FL_2000', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Intact FL 2000")
         return(la)
       } else {
@@ -638,7 +641,8 @@ server = function(input, output, session) {
       if ("Intact_FL_2020" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "intactness_2020" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'Intact_FL_2020', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Intact_FL_2020', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Intact FL 2020")
         return(la)
       } else {
@@ -660,7 +664,8 @@ server = function(input, output, session) {
       if ("protected_areas" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "protected_areas" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'protected_areas', quiet = TRUE)
+        la <-st_read(gpkg_path, 'protected_areas', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Protected areas")
         return(la)
       } else {
@@ -701,7 +706,8 @@ server = function(input, output, session) {
       if ("Placer_Claims" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Placer_Claims" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'Placer_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Placer_Claims', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Placer Claims")
         return(la)
       } else {
@@ -721,7 +727,8 @@ server = function(input, output, session) {
       if ("Quartz_Claims" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Quartz_Claims" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'Quartz_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Quartz_Claims', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Quartz Claims")
         return(la)
       } else {
@@ -740,7 +747,8 @@ server = function(input, output, session) {
       if ("Mining_Claims" %in% lyr_names()) {
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         # Read the "Mining_Claims" layer from the uploaded file if it exists
-        la <-st_read(gpkg_path, 'Mining_Claims', quiet = TRUE)
+        la <-st_read(gpkg_path, 'Mining_Claims', quiet = TRUE) %>%
+          st_intersection(studyarea())
         addGroup("Mining Claims")
         return(la)
       } else {
