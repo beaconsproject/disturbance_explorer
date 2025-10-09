@@ -276,7 +276,6 @@ server = function(input, output, session) {
     if (input$selectInput == "usegpkg") {
       req(input$upload_gpkg)
       if ("linear_disturbance" %in% lyr_names()) {
-       #browser()
         gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
         line_sf <- st_read(gpkg_path, "linear_disturbance", quiet = TRUE) %>%
           st_intersection(studyarea())
@@ -427,7 +426,9 @@ server = function(input, output, session) {
         req(input$display4)
         req(input$display4a)
         if(input$display4a != "Select a layer"){
-          i <- st_read(input$display4$datapath, layer = input$display4a, quiet = TRUE) 
+          gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$display4$name))
+          file.copy(input$display4$datapath, gpkg_path, overwrite = TRUE)
+          i <- st_read(gpkg_path, input$display4a, quiet = TRUE)
           name <- substr(input$display4a, 1, 25)
           display1_name(name)
         }
@@ -465,7 +466,9 @@ server = function(input, output, session) {
         req(input$display4)
         req(input$display4b)
         if(input$display4b != "Select a layer"){
-          i <- st_read(input$display4$datapath, layer = input$display4b, quiet = TRUE)
+          gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$display4$name))
+          file.copy(input$display4$datapath, gpkg_path, overwrite = TRUE)
+          i <- st_read(gpkg_path, input$display4b, quiet = TRUE)
           name <- substr(input$display4b, 1, 25)
           display2_name(name)
         }
@@ -503,7 +506,9 @@ server = function(input, output, session) {
         req(input$display4)
         req(input$display4c)
         if(input$display4c != "Select a layer"){
-          i <- st_read(input$display4$datapath, layer = input$display4c, quiet = TRUE)
+          gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$display4$name))
+          file.copy(input$display4$datapath, gpkg_path, overwrite = TRUE)
+          i <- st_read(gpkg_path, input$display4c, quiet = TRUE)
           name <- substr(input$display4c, 1, 25)
           display3_name(name)
         }
@@ -1347,6 +1352,7 @@ server = function(input, output, session) {
 
       group_names_new <- c(group_names_new,display1_name())
     } 
+    
     if (isMappable(display2_sf())) { 
       display2 <- st_transform(display2_sf(), 4326)
       geom_type <- unique(sf::st_geometry_type(display2))
@@ -1376,14 +1382,16 @@ server = function(input, output, session) {
       }
       group_names_new <- c(group_names_new,display3_name())
     } 
-    group_names(group_names_new)
+    
     
     leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study area", group_names_new),
+                       overlayGroups = c("Study area", dist_names(), group_names(), display1_name(), display2_name(), display3_name()),
                        options = layersControlOptions(collapsed = FALSE)) %>%
-      hideGroup(c("Streams", "Catchments", group_names_new))
+      hideGroup(c("Streams", "Catchments", group_names()))
+    
+    group_names(group_names_new)
   })  
   
   ##############################################################################
@@ -1469,11 +1477,11 @@ server = function(input, output, session) {
     other_polylabel <- "Other areal disturbances (km2)"
     
     # If the user uploaded a shapefile via `other_dist()`
-    if (!is.null(other_linedist()) && input$includeOthers) {
+    if (!is.null(other_linedist())) {
       other_linevalue <- round(sum(st_length(other_linedist())) / 1000, 1)
       other_linelabel <- "Other linear disturbances (km)"
     }
-    if (!is.null(other_polydist()) && input$includeOthers) {
+    if (!is.null(other_polydist())) {
       other_polyvalue <- round(sum(st_area(other_polydist())) / 1e6, 1)
       other_polylabel <- "Other areal disturbances (km2)"
     }
