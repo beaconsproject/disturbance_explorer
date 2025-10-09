@@ -28,3 +28,7 @@ library(dplyr)
 library(tidyr)
 library(sf)
 library(shinyMatrix)
+
+isMappable <- function(x) {
+  !is.null(x) && inherits(x, "sf") && nrow(x) > 0
+}
