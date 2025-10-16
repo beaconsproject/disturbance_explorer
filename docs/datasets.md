@@ -13,18 +13,28 @@ This page outlines the required and optional spatial layers used by **Disturbanc
 ### Map layers 
 <br>
 
-#### Required - GeoPackage
+#### Required 
 
-- **studyarea**: A polygon of the study area e.g., watershed, ecoregion or any other user-defined area.
+- A polygon that define the extent of the analysis (referred as study area in the app) e.g., watershed, ecoregion or any other user-defined area.
+
+
 - At least one of the following disturbance layers:
+
+  In the GeoPackage:
+  
   - **linear_disturbance**: Linear human surface disturbance features e.g., roads, seismic line. 
   - **areal_disturbance**: Areal (polygonal) human surface disturbance features e.g., mine, town site, cutblock. 
   - **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the fire e.g., 1995 and (2) "CAUSE" - cause of ignition of the fire which can either be 'Human', 'Lightning' or 'Unknown'.  
+  
+  Or as ShapeFile:
+  
+  - **Other disturbances** (linear and areal): Only an overall buffer size can be applied to those disturbances.
+
 <br>
 
 #### Optional - GeoPackage 
 
-Bold text is the required name of the spatial layer in the GeoPackage.
+Bold text is the required name of the spatial layer in the GeoPackage in order to be recognized by the app.
 
 - **protected_areas**: Distribution of protected areas e.g., Canadian Protected and Conserved Areas Database. 
 - **Quartz_Claims**: Quartz mining claims for hard rock mining. 
@@ -36,9 +46,8 @@ Bold text is the required name of the spatial layer in the GeoPackage.
 
 #### Optional - Shapefile
 
-There are no requirements for the shapefile name.
+If disturbances are provided in the GeoPackage, the user can still upload extra features using the ShapeFile upload and included in the analysis. There are no requirements for the shapefile name.
 
-- **Other disturbances** (linear and areal) can be uploaded as shapefiles and included in the analysis. However, only an overall buffer size can be applied to additional disturbances.
 <br>
 
 ### Demo Dataset
