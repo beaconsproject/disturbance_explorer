@@ -177,7 +177,6 @@ ui = dashboardPage(skin="black",
                                  ),
                                  absolutePanel(
                                    right = 0, top = 0, width = 250, height = "100%",
-                                   #style = "background-color: white; padding: 0px; overflow-y: auto; z-index: 1000;",
                                    style = "background-color: white; padding: 0;margin: 0;border: none; right: 0;overflow: hidden;z-index: 1000;",
                                    tags$img(src = "intact.jpg",width = "100%", style = "display: block;")
                                  )
@@ -211,13 +210,32 @@ ui = dashboardPage(skin="black",
                                                    condition = "input.tabs == 'download'",
                                                    includeMarkdown("./docs/dwd_doc.md")
                                                  )
+                                        ),
+                                        tabPanel("Summary statistics",
+                                                 tags$h4("Summary statistics"),
+                                                 div(
+                                                   style = "overflow-x: auto; white-space: nowrap; font-size: 12px;",
+                                                   tableOutput("stat_tab")
+                                                  ),
+                                                  div(style = "display: flex; justify-content: center; margin-top: 10px;",
+                                                      downloadButton("downloadStats", "Download statistics table", style='color: #000')
+                                                  ),
+                                                  uiOutput("stats_ui"),
                                         )
                                  ),
                                  tabBox(
                                    id = "two", width="4",
-                                   tabPanel("Statistics", tableOutput("tab1"),
-                                   br(),  
-                                   uiOutput("acronym_definitions"))
+                                   tabPanel("Statistics",                             
+                                     
+                                   tagList(# tab content
+                                     tableOutput("tab1"),
+                                     hidden(actionButton("save_stats", "Add statistics to summary statistics", icon = icon("plus"), 
+                                                  class = "btn-xs", style = "font-size: 14px; margin-left: 8px;"))
+                                     ),
+                                     br(),
+                                     uiOutput("acronym_definitions")
+                                   
+                                   )
                                  )
                                )
                        )

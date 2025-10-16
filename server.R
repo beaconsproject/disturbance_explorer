@@ -20,8 +20,8 @@ server = function(input, output, session) {
   display1_name <- reactiveVal()
   display2_name <- reactiveVal()
   display3_name <- reactiveVal()
-  
-  # Function to add a new group to group_names
+  summaryStats <- reactiveVal(stats)
+
   addGroup <- function(new_group) {
     current_groups <- group_names()  # Retrieve the current value
     if (!(new_group %in% current_groups)) {  # Check if the group is not already in the vector
@@ -36,42 +36,6 @@ server = function(input, output, session) {
     group_names(updated_groups)  # Update the reactiveVal
   }
   
-  # read_shp_from_upload: read a shapefile from fileInput
-  read_shp_from_upload <- function(upload_input) {
-    req(upload_input)
-    required_extensions <- c("shp", "shx", "dbf", "prj")
-    infile <- upload_input
-    file_extensions <- tools::file_ext(infile$name)
-    if (all(required_extensions %in% file_extensions)) {
-      dir <- unique(dirname(infile$datapath))
-      outfiles <- file.path(dir, infile$name)
-      name <- tools::file_path_sans_ext(infile$name[1])
-      purrr::walk2(infile$datapath, outfiles, ~file.rename(.x, .y))
-      shp_path <- file.path(dir, paste0(name, ".shp"))
-      if (file.exists(shp_path)) {
-        #return(sf::st_read(shp_path))
-        shp <- sf::st_read(shp_path)
-        assign(name, shp)
-        return(shp)
-      } else {
-        showModal(modalDialog(
-          title = "Shapefile (.shp) is missing.",
-          easyClose = TRUE,
-          footer = modalButton("OK")
-        ))
-        return()
-      }
-    } else {
-      showModal(modalDialog(
-        title = "Extension file is missing",
-        "Please upload all necessary files for the shapefile (.shp, .shx, .dbf and .prj).",
-        easyClose = TRUE,
-        footer = modalButton("OK")
-      ))
-      return()
-    }
-  }
-
   ################################################################################################
   # Observe on selectInput
   ################################################################################################
@@ -268,7 +232,7 @@ server = function(input, output, session) {
   line <- reactive({
     req(input$selectInput)
     req(studyarea())
-    
+  
     if (input$selectInput == "usedemo") {
       line_sf <- st_read("www/demo.gpkg", "linear_disturbance", quiet = TRUE)
       return(line_sf)
@@ -973,7 +937,7 @@ server = function(input, output, session) {
           disttype_poly <- input$polydisttype
         }
         
-        if (is.null(input$selectBuffer)){
+        if (is.null(input$selectBuffer) && (!is.null(line()) || !is.null(poly()))){
           showModal(modalDialog(
             title = "Missing buffer type confirmation",
             "Before proceeding, please confirm how disturbance layers will be buffered.",
@@ -982,9 +946,9 @@ server = function(input, output, session) {
           )
           v1<- NULL
           v2 <- NULL
-          #return()
+          
         } else if (input$selectBuffer== "custom_buffers") {
-          if (!is.null(line())) {
+          if (!is.null(line()) && nrow(line()) > 0) {
             m1sub <- as_tibble(input$linear_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M"))) %>%      
               mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             line <- line() %>%
@@ -998,7 +962,7 @@ server = function(input, output, session) {
               filter(!is.na(BUFFER_SIZE_M))
             v1 <- st_union(st_buffer(line, line$BUFFER_SIZE_M))
           } else { v1 <- NULL}
-          if (!is.null(poly())) {
+          if (!is.null(poly()) && nrow(poly()) > 0) {
             m2sub <- as_tibble(input$areal_buffers) %>% dplyr::select(any_of(c("TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M"))) %>% 
               mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             poly <- poly() %>%
@@ -1014,11 +978,11 @@ server = function(input, output, session) {
             v2 <- st_union(st_buffer(poly, poly$BUFFER_SIZE_M))
           } else { v2 <- NULL}
         }else {
-          if (!is.null(line())) {
+          if (!is.null(line()) && nrow(line()) > 0) {
             v1 <- st_union(st_buffer(line(), input$buffer1)) %>%
               st_sf()
           } else { v1 <- NULL}
-          if (!is.null(poly())) {
+          if (!is.null(poly()) && nrow(poly()) > 0) {
             v2 <- st_union(st_buffer(poly(), input$buffer2)) %>%
               st_sf()
           } else { v2 <- NULL}
@@ -1067,7 +1031,8 @@ server = function(input, output, session) {
         v_combined <- do.call(c, lapply(v_valid, st_geometry))
         v_combined_sf <- st_sf(geometry = v_combined)
         v_union <- st_union(v_combined_sf)
-        v <- st_intersection(v_union, studyarea())
+        v <- st_intersection(v_union, studyarea()) %>% 
+          st_sf()
       } else {
         v <- NULL
       }
@@ -1080,12 +1045,13 @@ server = function(input, output, session) {
     #if('fires' %in% lyr_names()) {
         fires_sf <- fires() %>%
         dplyr::filter(area_ha > input$firesize)
-      v5 <- st_union(fires_sf) %>% 
+      v6 <- st_union(fires_sf) %>% 
         st_sf()
       if(!is.null(footprint_sf())){
-        v_union <- st_union(footprint_sf(), v5)
+        v_union <- st_union(footprint_sf(), v6) %>% 
+          st_sf()
       }else{
-        v_union <- v5
+        v_union <- v6
       }
       v <- st_intersection(v_union, studyarea())
     } else { v <- NULL}
@@ -1094,14 +1060,26 @@ server = function(input, output, session) {
   })
   
   intactness_sf <- reactive({
+    req(studyarea())
+    
     footprint_names_init <- c()
     if (input$forcefire &  !is.null(footprintfire_sf())) {
-      ifl <- st_difference(studyarea(), footprintfire_sf())
-      footprint_names_init <- "Disturbed areas (human + fires)"
+      if(is.null(nrow(footprintfire_sf()))){
+        ifl <- studyarea()
+        footprint_names_init <- "No disturbed areas"
+      }else{
+        ifl <- st_difference(studyarea(), footprintfire_sf())
+        footprint_names_init <- "Disturbed areas (human + fires)"
+      }
     } else {
-      req(footprint_sf())
-      ifl <- st_difference(studyarea(), footprint_sf())
-      footprint_names_init <- "Disturbed areas (human)"
+      #req(footprint_sf())
+      if(length(footprint_sf())==0){
+        ifl <- studyarea()
+        footprint_names_init <- "No disturbed areas"
+      }else{
+        ifl <- st_difference(studyarea(), footprint_sf())
+        footprint_names_init <- "Disturbed areas (human)"
+      }
     }
     
     footprint_names_new(footprint_names_init)
@@ -1162,8 +1140,8 @@ server = function(input, output, session) {
     
     leafletProxy("map1") %>% 
       clearGroup("Study area") %>%
-      clearGroup("Linear disturbance") %>%
-      clearGroup("Areal disturbance") %>%
+      clearGroup("Linear disturbances") %>%
+      clearGroup("Areal disturbances") %>%
       clearGroup("Other linear disturbances") %>%
       clearGroup("Other areal disturbances") %>%
       clearGroup("Undisturbed areas") %>%
@@ -1399,6 +1377,8 @@ server = function(input, output, session) {
   ##############################################################################
   observeEvent(input$goButton,{
     
+    shinyjs::show("save_stats")
+    
     if(input$distType[1]==0){
       showModal(modalDialog(
         title = "Missing source dataset confirmation",
@@ -1410,7 +1390,7 @@ server = function(input, output, session) {
     
     req(input$distType)
     
-    if(is.null(input$selectBuffer)){
+    if(is.null(input$selectBuffer) && (!is.null(line()) || !is.null(poly()))){
       showModal(modalDialog(
         title = "Missing buffer type confirmation",
         "Before proceeding, please confirm how disturbance layers will be buffered.",
@@ -1419,36 +1399,56 @@ server = function(input, output, session) {
       )
     }
     
-    req(input$selectBuffer)
-    
     # show pop-up ...
     showModal(modalDialog(
       title = "Generating footprint and intactness map. Please wait...",
       easyClose = TRUE,
       footer = NULL)
     )
-
+    
     if(is.null(footprintfire_sf())){
-      fp_sf <- st_transform(footprint_sf(), 4326)
+      if(is.null(footprint_sf())){
+        showModal(modalDialog(
+          title = "No disturbance found inside the studyarea",
+          easyClose = FALSE,
+          footer = modalButton("OK")
+        ))
+        fp_sf <- NULL
+      }else{
+        fp_sf <- footprint_sf() %>% 
+          st_as_sf() %>%
+          st_transform(4326)
+      }  
     }else{
-      fp_sf <- st_transform(footprintfire_sf(), 4326)
+      fp_sf <- footprintfire_sf() %>% 
+        st_as_sf() %>%
+        st_transform(4326) 
     }
+    
     intact_sf <- st_transform(intactness_sf(), 4326)
     
-    leafletProxy("map1") %>%
+    map1 <- leafletProxy("map1") %>%
       clearGroup('Undisturbed areas') %>%
-      clearGroup(footprint_names_old()) %>% 
-      addPolygons(data=intact_sf, color='#336633', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
-      addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=footprint_names_new(), options = leafletOptions(pane = "top")) 
-
-    leafletProxy("map1") %>%
-      addLayersControl(position = "topright",
-                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study area", "Undisturbed areas", footprint_names_new(), dist_names(), group_names()),
-                       options = layersControlOptions(collapsed = FALSE)) %>%
-      hideGroup(c(footprint_names_new(), group_names()))
+      clearGroup(footprint_names_old())
     
-    # Close the modal once processing is done
+    if (isMappable(intact_sf)) { 
+      map1 <- map1 %>% addPolygons(data=intact_sf, color='#336633', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
+        addLayersControl(position = "topright",
+                         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                         overlayGroups = c("Study area", "Undisturbed areas", dist_names(), group_names()),
+                         options = layersControlOptions(collapsed = FALSE)) %>%
+        hideGroup(c(footprint_names_new(), group_names()))
+    }  
+    if (isMappable(fp_sf)) { 
+      map1 <- map1 %>% addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=footprint_names_new(), options = leafletOptions(pane = "top")) %>%
+        addLayersControl(position = "topright",
+                         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                         overlayGroups = c("Study area", "Undisturbed areas", footprint_names_new(), dist_names(), group_names()),
+                         options = layersControlOptions(collapsed = FALSE)) %>%
+        hideGroup(c(footprint_names_new(), group_names()))
+    } 
+    
+   # Close the modal once processing is done
     footprint_names_old(footprint_names_new())
     removeModal()
     
@@ -1588,6 +1588,82 @@ server = function(input, output, session) {
     all
   })
   
+  
+  observeEvent(input$save_stats,{
+    req(additionalAttributes()) 
+    
+    aoi <- aoiAttributes()
+    base <- baseAttributes()
+    
+    # Add additional attributes if the button has been pressed
+    additional <- additionalAttributes()
+    if (!is.null(additional)) {
+      all <- bind_rows(aoi, additional, base)
+    } else{
+      all <- bind_rows(aoi, base)
+    }
+    all_wide <- all %>%
+         tidyr::pivot_wider(names_from = Attribute, values_from = Value)
+    
+    # set name
+    if(input$selectInput =="usedemo"){
+      all_wide$name <- "studyarea"
+    } else{
+      all_wide$name <- input$saLayer
+    }
+      
+    # set_custom
+    if(is.null(line()) && is.null(poly())){
+      all_wide$set_custom <- "NA"
+    } else if (is.null(line()) && !is.null(poly())){
+      all_wide$set_custom <- ifelse(input$selectBuffer=="custom_buffers", "TRUE", paste0("FALSE_line0_poly", as.character(input$buffer2)))
+    } else if (!is.null(line()) && is.null(poly())){
+      all_wide$set_custom <- ifelse(input$selectBuffer=="custom_buffers", "TRUE", paste0("FALSE_line", as.character(input$buffer1),"_poly0"))
+    } else{
+      all_wide$set_custom <- ifelse(input$selectBuffer=="custom_buffers", "TRUE", paste0("FALSE_line", as.character(input$buffer1),"_poly", as.character(input$buffer2)))
+    }
+    
+    # include_others
+    if(input$includeOthers){
+      if(is.null(upload_lineothers()) && is.null(upload_polyothers())){
+        all_wide$set_includeOthers <- "FALSE"
+      } else if (is.null(upload_lineothers()) && !is.null(upload_polyothers())){
+        all_wide$set_includeOthers <- paste0("TRUE_otherline0_otherpoly", as.character(input$otherpolysize))
+      } else if (!is.null(upload_lineothers()) && is.null(upload_polyothers())){
+        all_wide$set_includeOthers <- paste0("TRUE_otherline", as.character(input$otherlinesize),"_otherpoly0")
+      } else{
+        all_wide$set_includeOthers <- paste0("TRUE_otherline", as.character(input$otherlinesize),"_otherpoly", as.character(input$otherpolysize))
+      } 
+    } else{
+      all_wide$set_includeOthers <- "FALSE"
+    }
+     
+    # include_mines
+    if(input$forceclaims){
+      all_wide$set_mines <- paste0("TRUE_", as.character(input$minesize))
+    } else{
+      all_wide$set_mines <- "FALSE"
+    }
+    
+    # include_fires
+    if(input$forcefire){
+      all_wide$set_fires <- "TRUE"
+    } else{
+      all_wide$set_fires <- "FALSE"
+    }
+    
+    colnames(all_wide) <- c("Area_km2", "Undisturbed_per", "Disturbed_per", "Lineardist_km", "Arealdist_km2",
+       "otherLinear_km", "otherAreal_km2", "Fires_per", "Mines_per", "PA2021_per", "IntactFL2000_per",
+       "IntactFL2020_per", "Name", "set_custom", "set_includeOthers", "set_mines", "set_fires")
+    
+    updated_tbl <- bind_rows(summaryStats(), all_wide)
+    summaryStats(updated_tbl)
+  })
+  
+  output$stat_tab <- renderTable({
+    summaryStats()
+  })
+
   ##############################################################################
   # Save features to a geopackage
   ##############################################################################
@@ -1635,6 +1711,16 @@ server = function(input, output, session) {
             st_write(footprint_sf(), dsn=file, layer='disturbed', append=TRUE)
           }
         }
+    }
+  )
+  
+  ##############################################################################
+  # Save features to a geopackage
+  ##############################################################################
+  output$downloadStats <- downloadHandler(
+    filename = function() { paste("disturbance_explorer_stats-", Sys.Date(), ".csv", sep="") },
+    content = function(file) {
+      write.csv(summaryStats(), file, row.names = FALSE)
     }
   )
 }
