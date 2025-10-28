@@ -89,3 +89,14 @@ read_shp_from_upload <- function(upload_input) {
     return()
   }
 }
+
+#viridis
+gradient_rast1 <- "display:inline-block; width:80px; height:15px; 
+                 background: linear-gradient(to right, #440154, #31688e, #35b779, #fde725);
+                 margin-right:8px; border:1px solid #000;"
+
+#heat
+gradient_rast2 <- "display:inline-block; width:80px; height:15px; 
+                 background: linear-gradient(to right, #0000FF, #FFFF00, #FF0000);
+                 margin-right:8px; border:1px solid #000;"
+

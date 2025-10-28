@@ -20,6 +20,8 @@ server = function(input, output, session) {
   display1_name <- reactiveVal()
   display2_name <- reactiveVal()
   display3_name <- reactiveVal()
+  rast1_name <- reactiveVal()
+  rast2_name <- reactiveVal()
   summaryStats <- reactiveVal(stats)
   layers_rv <- reactiveValues(line = NULL,
                                 poly = NULL,
@@ -285,12 +287,18 @@ server = function(input, output, session) {
     gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name))
     if ("linear_disturbance" %in% lyr_names()) {
       line_sf <- st_read(gpkg_path, "linear_disturbance", quiet = TRUE) %>%
-        st_intersection(studyarea())
+        st_intersection(studyarea()) %>%
+        st_make_valid() %>%
+        st_collection_extract("LINESTRING") %>%
+        st_cast("MULTILINESTRING")
       layers_rv$line <- line_sf
     } 
     if ("areal_disturbance" %in% lyr_names()) {
       poly_sf <- st_read(gpkg_path, "areal_disturbance", quiet = TRUE) %>%
-        st_intersection(studyarea())
+        st_intersection(studyarea()) %>%
+        st_make_valid() %>%
+        st_collection_extract("POLYGON") %>%
+        st_cast("MULTIPOLYGON")
       layers_rv$poly <- poly_sf
     }
   }, ignoreInit = TRUE)
@@ -465,10 +473,11 @@ server = function(input, output, session) {
   # Display1
   display1_sf <- reactive({
     i <- NULL
-    
     if(input$confExtra){
       req(input$confExtra)
-      if(input$extraupload == "extrashp"){
+      if(is.null(input$extraupload)){
+        return(NULL)
+      } else if (input$extraupload == "extrashp"){
         if(!is.null(input$display1)){
           req(input$display1)
           i <- read_shp_from_upload(input$display1) %>%
@@ -508,7 +517,9 @@ server = function(input, output, session) {
 
     if(input$confExtra){
       req(input$confExtra)
-      if(input$extraupload == "extrashp"){
+      if(is.null(input$extraupload)){
+        return(NULL)
+      } else if(input$extraupload == "extrashp"){
         if(!is.null(input$display2)){
           req(input$display2)
           i <- read_shp_from_upload(input$display2) %>%
@@ -548,7 +559,9 @@ server = function(input, output, session) {
     
     if(input$confExtra){
       req(input$confExtra)
-      if(input$extraupload == "extrashp"){
+      if(is.null(input$extraupload)){
+        return(NULL)
+      } else if(input$extraupload == "extrashp"){
         if(!is.null(input$display3)){
           req(input$display3)
           i <- read_shp_from_upload(input$display3) %>%
@@ -582,6 +595,36 @@ server = function(input, output, session) {
     }
     return(i)
   })  
+  
+  rast1 <- reactive({
+    i <- NULL
+    if(input$confExtra){
+      req(input$confExtra)
+      if(!is.null(input$rast1)){
+        req(input$rast1)
+        path <- input$rast1$datapath
+        i <- raster::raster(path)  # Load raster using the raster package
+        name <- sub("\\..*$", "", input$rast1$name)
+        rast1_name(name)
+      }
+    }
+    return(i)
+  }) 
+  
+  rast2 <- reactive({
+    i <- NULL
+    if(input$confExtra){
+      req(input$confExtra)
+      if(!is.null(input$rast2)){
+        req(input$rast2)
+        path <- input$rast2$datapath
+        i <- raster::raster(path)  # Load raster using the raster package
+        name <- sub("\\..*$", "", input$rast2$name)
+        rast2_name(name)
+      }
+    }
+    return(i)
+  }) 
   
   ################################################################################################
   # Render UI for the selection of column name for disturbances 
@@ -858,8 +901,6 @@ server = function(input, output, session) {
               mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             line <- layers_rv$line %>%
               mutate(
-                #TYPE_INDUSTRY = !!sym(industry_line),
-                #TYPE_DISTURBANCE = !!sym(disttype_line)
                 TYPE_INDUSTRY = if (!is.null(industry_line) && industry_line %in% colnames(.)) .[[industry_line]] else "NONE",
                 TYPE_DISTURBANCE = if (!is.null(disttype_line) && disttype_line %in% colnames(.)) .[[disttype_line]] else "NONE"
               ) %>%
@@ -872,8 +913,6 @@ server = function(input, output, session) {
               mutate(BUFFER_SIZE_M=as.integer(BUFFER_SIZE_M))
             poly <- layers_rv$poly %>%
               mutate(
-                #TYPE_INDUSTRY = !!sym(industry_poly),
-                #TYPE_DISTURBANCE = !!sym(disttype_poly)
                 TYPE_INDUSTRY = if (!is.null(industry_line) && industry_line %in% colnames(.)) .[[industry_line]] else "NONE",
                 TYPE_DISTURBANCE = if (!is.null(disttype_line) && disttype_line %in% colnames(.)) .[[disttype_line]] else "NONE"
               ) %>%
@@ -1207,7 +1246,8 @@ server = function(input, output, session) {
     map1 <- leafletProxy("map1") %>%
       clearGroup(display1_name()) %>%
       clearGroup(display2_name()) %>%
-      clearGroup(display3_name())
+      clearGroup(display3_name()) %>%
+      clearGroup(rast1_name())
     
     group_names_new <- group_names()
     
@@ -1257,11 +1297,33 @@ server = function(input, output, session) {
       group_names_new <- c(group_names_new,display3_name())
     } 
     
+    if (!is.null(rast1())) { 
+      rast1 <- raster::projectRaster(rast1(), crs = "EPSG:4326")
+      
+      values_rast <- raster::values(rast1)
+      values_rast <- values_rast[!is.na(values_rast)]  # remove NA values
+      
+      pal <- colorNumeric(palette = viridis::viridis(256), domain = values_rast, na.color = "transparent")
+      map1 <- map1 %>% addRasterImage(rast1,  colors = pal, opacity = 0.5, group=rast1_name(), options = leafletOptions(pane = "ground"))
+      
+      group_names_new <- c(group_names_new, rast1_name())
+    }
     
+    if (!is.null(rast2())) { 
+      rast2 <- raster::projectRaster(rast2(), crs = "EPSG:4326")
+      
+      values_rast <- raster::values(rast2)
+      values_rast <- values_rast[!is.na(values_rast)]  # remove NA values
+      
+      pal <- colorNumeric(palette = colorRampPalette(c("#0000FF", "#FFFF00", "#FF0000"))(256), domain = values_rast, na.color = "transparent")
+      map1 <- map1 %>% addRasterImage(rast2,  colors = pal, opacity = 0.5, group=rast2_name(), options = leafletOptions(pane = "ground"))
+      
+      group_names_new <- c(group_names_new, rast2_name())
+    }
     leafletProxy("map1") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
-                       overlayGroups = c("Study area", dist_names(), group_names(), display1_name(), display2_name(), display3_name()),
+                       overlayGroups = c("Study area", dist_names(), group_names_new),
                        options = layersControlOptions(collapsed = FALSE)) %>%
       hideGroup(c("Streams", "Catchments", group_names()))
     
