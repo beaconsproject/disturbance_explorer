@@ -46,9 +46,8 @@ In this step, the user uploads spatial data into Disturbance Explorer.
 
 ### Add display elements (OPTIONAL)
 
-This section allows users to add a maximum of three layers to the map for visualization purposes only. Additional layers can be 
-uploaded as Shapefiles or as layers from a GeoPackage. These can be vector data (points, lines, or polygons) but 
-cannot be rasters. Layers will appear on the map using their original names, and colors are assigned as indicated in the side panel. They aren't considered in the analysis. 
+This section allows users to add a maximum of three vector layers and two raster layers to the map for visualization purposes only. Additional vector layers can be 
+uploaded either as Shapefiles or as layers from a GeoPackage. These layers may consist of points, lines, or polygons. On the map, layers are displayed using their original names, with colors assigned according to the side panel. Note that these layers are for visualization only and are not included in the analysis.
 
 <br><br>
 

@@ -91,7 +91,7 @@ ui = dashboardPage(skin="black",
                      # EXTRA LAYERS
                      conditionalPanel(
                        condition="input.tabs=='addLayers'",
-                       radioButtons("extraupload", "Select source for vectorial layers to be displayed:",
+                       radioButtons("extraupload", "Select source for vector layers to be displayed:",
                                     choices = list("Shapefile" = "extrashp", 
                                                    "GeoPackage" = "extragpkg"),
                                     selected = character(0), 
@@ -114,8 +114,8 @@ ui = dashboardPage(skin="black",
                          div(style = "margin-top: -20px;", selectInput("display4c", label = HTML('<span style="display:inline-block; width:15px; height:15px; background-color:#003333; margin-right:8px; border:1px solid #000;"></span>Layer 3'), choices = NULL))
                        ),
                        hr(),
+                       div(style = "margin-left: 15px; margin-top: 30px; font-size:14px; font-weight: bold;",HTML("Select source for raster layers to be displayed:")),
                        br(),
-                       div(style = "margin-left: 15px; margin-top: 30px; font-size:14px; font-weight: bold;",HTML("Select source for rasterized layers to be <br /> displayed:")),
                        div(style = "margin-top: -10px;",fileInput(inputId = "rast1",   label = HTML('<span style="', gradient_rast1,'"></span>Raster 1'),
                                                                   multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster")),
                        div(style = "margin-top: -30px;",fileInput(inputId = "rast2", label = HTML('<span style="', gradient_rast2, '"></span>Raster 2'),
