@@ -1,4 +1,4 @@
-## Disturbance Explorer
+# Disturbance Explorer
 
 April 24, 2025
 
@@ -7,6 +7,8 @@ The Disturbance Explorer is an R shiny app that enables users to generate human 
 -   Upload anthropogenic disturbances (linear and areal) and an area of interest (AOI) as a geopackage
 -   Calculate the regional human footprint (or landscape intactness) applying user-defined buffers of influence around linear or areal disturbances
 -   Save footprint and intactness maps as a geopackage for use in QGIS or ArcGIS
+
+## Running the App
 
 The app is located at: <https://beaconsproject.shinyapps.io/disturbance_explorer>
 
