@@ -101,7 +101,6 @@ server = function(input, output, session) {
   
   observe({
     req(!is.null(lyr_names()))
-    #browser()
     #line_layer <- layers_rv$line
     #poly_layer <- layers_rv$poly
     if(any(c("linear_disturbance","areal_disturbance") %in% lyr_names())){
@@ -1011,16 +1010,17 @@ server = function(input, output, session) {
         ifl <- studyarea()
         footprint_names_init <- "No disturbed areas"
       }else{
-        ifl <- st_difference(studyarea(), footprintfire_sf())
+        ifl <- st_difference(studyarea(), footprintfire_sf()) %>%
+          dplyr::select(any_of(c("geom", "geometry")))
         footprint_names_init <- "Disturbed areas (human + fires)"
       }
     } else {
-      #req(footprint_sf())
       if(length(footprint_sf())==0){
         ifl <- studyarea()
         footprint_names_init <- "No disturbed areas"
       }else{
-        ifl <- st_difference(studyarea(), footprint_sf())
+        ifl <- st_difference(studyarea(), footprint_sf()) %>%
+          dplyr::select(any_of(c("geom", "geometry")))
         footprint_names_init <- "Disturbed areas (human)"
       }
     }
@@ -1641,7 +1641,6 @@ server = function(input, output, session) {
                         IntactFL2020_per = baseAttributes()[9,2])
         colnames(x) <-c("Area_km2","Lineardist_km","Arealdist_km2","otherLinear_km","otherAreal_km2","Fires_per", "Mines_per", "PA2021_per","IntactFL2000_per","IntactFL2020_per")
         aoi <- cbind(st_union(studyarea()), x)
-        st_write(aoi, dsn=file, layer='studyarea')
         if (!is.null(layers_rv$line)) st_write(layers_rv$line, dsn=file, layer='linear_disturbance', append=TRUE)
         if (!is.null(layers_rv$poly)) st_write(layers_rv$poly, dsn=file, layer='areal_disturbance', append=TRUE)
         if (!is.null(fires())) st_write(fires(), dsn=file, layer='fires', append=TRUE)
