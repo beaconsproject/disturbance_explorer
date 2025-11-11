@@ -1426,6 +1426,16 @@ server = function(input, output, session) {
   # Reactive for the attributes updated by `usedemo` or `upload_gpkg`
   baseAttributes <- reactive({
     req(input$selectInput == "usedemo" || (input$selectInput == "usegpkg" && !is.null(input$upload_gpkg)))
+    
+    if(input$distType && input$saLayer =="Select a layer"){
+      showModal(modalDialog(
+        title = "Please select the layer name representing the study area before proceeding.",
+        easyClose = TRUE,
+        footer = NULL)
+      ) 
+      return()
+    }
+    req(studyarea())
     aoi <- sum(st_area(studyarea()))
     
     # Other dist --Default to NA
