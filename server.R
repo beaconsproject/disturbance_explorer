@@ -125,7 +125,7 @@ server = function(input, output, session) {
   observe({
     req(input$upload_gpkg)
     if (!is.null(input$upload_gpkg)){
-      if (!any(c("Mining_Claims", "Placer_Claims", "Quartz_Claims") %in% lyr_names())){
+      if (is.null(layers_rv$quartz) && is.null(layers_rv$placers) && is.null(layers_rv$mines)) {
         disable("forceclaims")
         div(
           style = "color: darkgrey;",
@@ -142,12 +142,14 @@ server = function(input, output, session) {
   observe({
     req(input$upload_gpkg)
     if (!is.null(input$upload_gpkg)){
-      if (!("fires") %in% lyr_names()){
+      if (is.null(layers_rv$fire_sf)){
         disable("forcefire")
         div(
           style = "color: darkgrey;",
           updateCheckboxInput(session = getDefaultReactiveDomain(), "forcefire", label = "Include fires", value = FALSE)
         )
+      }else{
+        enable("forcefire")
       }
     }
   })
@@ -316,6 +318,7 @@ server = function(input, output, session) {
     
     gpkg_path <- file.path(tempdir(), paste0("uploaded_", input$upload_gpkg$name)) 
     if ("fires" %in% lyr_names()) {
+      
       fi <-st_read(gpkg_path, 'fires', quiet = TRUE) %>% 
         st_intersection(studyarea()) %>%
         suppressWarnings() %>%
@@ -323,26 +326,34 @@ server = function(input, output, session) {
         st_zm(drop = TRUE, what = "ZM")  %>%
         st_make_valid() %>%
         mutate(area_ha = as.numeric(st_area(geom)/10000))
-      addGroup("Fires")
-      layers_rv$fire_sf <- fi
+      if(nrow(fi)>0){
+        addGroup("Fires")
+        layers_rv$fire_sf <- fi
+      }
     }
     if ("Intact_FL_2000" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Intact_FL_2000', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Intact FL 2000")
-      layers_rv$ifl2000 <- la
+      if(nrow(la)>0){
+        addGroup("Intact FL 2000")
+        layers_rv$ifl2000 <- la
+      }
     }
     if ("Intact_FL_2020" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Intact_FL_2020', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Intact FL 2020")
-      layers_rv$ifl2020 <- la
+      if(nrow(la)>0){
+        addGroup("Intact FL 2020")
+        layers_rv$ifl2020 <- la
+      }
     }
     if ("protected_areas" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'protected_areas', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Protected areas")
-      layers_rv$pa2021 <- la
+      if(nrow(la)>0){
+        addGroup("Protected areas")
+        layers_rv$pa2021 <- la
+      }
     }
     if ("Caribou_Herds" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Caribou_Herds', quiet = TRUE)
@@ -352,20 +363,26 @@ server = function(input, output, session) {
     if ("Placer_Claims" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Placer_Claims', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Placer Claims")
-      layers_rv$placers <- la
+      if(nrow(la)>0){
+        addGroup("Placer Claims")
+        layers_rv$placers <- la
+      }
     }
     if ("Quartz_Claims" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Quartz_Claims', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Quartz Claims")
-      layers_rv$quartz <- la
+      if(nrow(la)>0){
+        addGroup("Quartz Claims")
+        layers_rv$quartz <- la
+      }
     }
     if ("Mining_Claims" %in% lyr_names()) {
       la <-st_read(gpkg_path, 'Mining_Claims', quiet = TRUE) %>% 
         st_intersection(studyarea())
-      addGroup("Mining Claims")
-      layers_rv$mines <- la
+      if(nrow(la)>0){
+        addGroup("Mining Claims")
+        layers_rv$mines <- la
+      }
     } 
     
   }, ignoreInit = TRUE)
