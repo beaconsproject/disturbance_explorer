@@ -33,5 +33,3 @@ install.packages(c("sf","leaflet","tidyverse","shinydashboard","shinycssloaders"
 ```         
 shiny::runGitHub("beaconsproject/disturbance_explorer")
 ```
-
-![app](docs/pics/app.png)
