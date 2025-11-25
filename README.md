@@ -2,11 +2,18 @@
 
 April 24, 2025
 
-The Disturbance Explorer is an R shiny app that enables users to generate human footprint or landscape intactness maps using regional-scale anthropogenic surface disturbance data. The app includes the following functionality:
+Disturbance Explorer is an R shiny app that enables users to generate undisturbed areas maps for past, present, and future landscapes using human surface disturbance and/or natural disturbance data. The app includes the following functionality:
 
--   Upload anthropogenic disturbances (linear and areal) and an area of interest (AOI) as a geopackage
--   Calculate the regional human footprint (or landscape intactness) applying user-defined buffers of influence around linear or areal disturbances
--   Save footprint and intactness maps as a geopackage for use in QGIS or ArcGIS
+-   Upload existing and potential future human disturbances (linear and areal), natural disturbances (e.g., wildfire), and an area of interest (AOI) as a geopackage
+-   Identify undisturbed areas with the option to apply user-defined buffers of influence around human linear or areal disturbances
+-   Reconstruct historic landscapes using aged human disturbance datasets
+-   Explore future landscapes by incorporating potential future human disturbances e.g., mining claims, forest harvest plans
+-   Generate and compare statistics describing disturbance for a range of disturbance scenarios e.g., area and length of human disturbances by disturbance type, area burned, area of mining claimings, etc.
+-   Export statistics (csv table) and geopackage of undisturbed and disturbed areas maps for use in QGIS or ArcGIS
+
+**Demo Dataset**
+
+The App includes an embedded demo dataset for a watershed in the southeast Yukon.   
 
 ## Running the App
 
