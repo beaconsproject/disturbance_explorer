@@ -17,7 +17,7 @@ The App includes an embedded demo dataset for a watershed in the southeast Yukon
 
 **Citation**
 
-BEACONs. 2025. Disturbance Explorer. BEACONs Project, University of Alberta, Edmonton, AB. 
+BEACONs. 2025. Disturbance Explorer. BEACONs Project, University of Alberta, Edmonton, AB. and Yukon University, Whitehorse, YT. https://beaconsproject.github.io/
 
 ## Running the App
 
