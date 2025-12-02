@@ -15,6 +15,10 @@ Disturbance Explorer is an R shiny app that enables users to generate undisturbe
 
 The App includes an embedded demo dataset for a watershed in the southeast Yukon.   
 
+**Citation**
+
+BEACONs. 2025. Disturbance Explorer. BEACONs Project, University of Alberta, Edmonton, AB. 
+
 ## Running the App
 
 The app is located at: <https://beaconsproject.shinyapps.io/disturbance_explorer>
