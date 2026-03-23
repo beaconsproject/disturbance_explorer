@@ -1082,8 +1082,9 @@ server = function(input, output, session) {
       addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery") %>%
       addProviderTiles("Esri.WorldTopoMap", group="Esri.WorldTopoMap")%>% 
+      addTiles(urlTemplate = "", group = "Blank Background") %>%
       addLayersControl(position = "topright",
-                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery", "Blank Background"),
                    options = layersControlOptions(collapsed = FALSE))
   })
   
