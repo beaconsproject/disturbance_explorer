@@ -158,7 +158,7 @@ ui = dashboardPage(skin="black",
                        conditionalPanel(
                          condition="input.forcefire",
                          sliderInput("firesize", label="Set minimum fire size (ha):", min=0, max=2000, value = 0, step=50, ticks=FALSE),
-                         sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1960, 2023), sep = "")
+                         sliderInput("fireyear", label="Set range of years to include:", min=1900, max=2024, value = c(1946, 2024), sep = "")
                        ),
                        actionButton("goButton", "Generate undisturbed areas", class = "btn-warning", style='color: #000')
                      ),
