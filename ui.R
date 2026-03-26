@@ -54,39 +54,33 @@ ui = dashboardPage(skin="black",
                                                    "Upload a GeoPackage (gpkg)" = "usegpkg"),
                                     selected = character(0), 
                                     inline = FALSE),
+                       # Upload GPKG
                        conditionalPanel(
                          condition="input.selectInput=='usegpkg'",
-                         fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg"),
-                         div(style = "margin-top: -20px;", selectInput("saLayer", "Select study area layer", choices = NULL,  multiple = FALSE)),
-                         div(
-                           style = "margin-top: -40px;",  # move it up
-                           checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)
-                         ),
-                         conditionalPanel(
-                           condition="input.createMatrix==true",
-                           div(
-                             style = "margin-left: 10px; margin-top: 30px;",
-                             h5(strong("Classify Disturbance Layer"))
-                           ),
-                           div(
-                             style = "margin-left: 10px;",
-                             h5("Select linear disturbance attributes that describe:")
-                           ),
-                           uiOutput("lineIndustryUI"),
-                           uiOutput("lineDistTypeUI"),
-                           div(
-                             style = "margin-left: 10px;",
-                             h5("Select areal distrubance attributes that describe:")
-                           ),
-                           uiOutput("polyIndustryUI"),
-                           uiOutput("polyDistTypeUI")
-                         ),
-                         br(),
-                         fileInput(inputId = "upload_lineothers", label = "Upload other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
-                         fileInput(inputId = "upload_polyothers", label = "Upload other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
-                         hr()
+                         div(style = "margin-top: -20px;", fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg")),
+                         div(style = "margin-top: -20px;", selectInput("saLayer", "Select study area layer", choices = NULL,  multiple = FALSE))
                        ),
-                       actionButton("distType", "Confirm", class = "btn-warning", style='color: #000')
+                       hr(),
+                       div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Change disturbance layer classification"))),
+                       checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F),
+                       # Optional - classify dist
+                       conditionalPanel(
+                         condition="input.createMatrix==true",
+                         div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("Classify Disturbance Layer"))),
+                         div(style = "margin-left: 10px;", h5("Select linear disturbance attributes that describe:")),
+                         uiOutput("lineIndustryUI"),
+                         uiOutput("lineDistTypeUI"),
+                         div(style = "margin-left: 10px;", h5("Select areal distrubance attributes that describe:")),
+                         uiOutput("polyIndustryUI"),
+                         uiOutput("polyDistTypeUI")
+                       ),
+                       br(),
+                       div(style = "margin-top: -20px;", actionButton("confClassify", "Submit & Continue", class = "btn-warning", style='color: #000')),
+                       hr(),
+                       div(style = "margin-left: 10px;", h5(strong("OPTIONAL - Upload other disturbances"))),
+                       fileInput(inputId = "upload_lineothers", label = "Upload other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                       div(style = "margin-top: -20px;", fileInput(inputId = "upload_polyothers", label = "Upload other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"))),
+                       div(style = "margin-top: -10px;", actionButton("confUpload", "Confirm upload", class = "btn-warning", style='color: #000')),
                      ),
                      # EXTRA LAYERS
                      conditionalPanel(
