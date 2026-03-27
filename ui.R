@@ -113,21 +113,19 @@ ui = dashboardPage(skin="black",
                        div(style = "margin-top: -10px;",fileInput(inputId = "rast1",   label = HTML('<span style="', gradient_rast1,'"></span>Raster 1'),
                                                                   multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster")),
                        div(style = "margin-top: -30px;",fileInput(inputId = "rast2", label = HTML('<span style="', gradient_rast2, '"></span>Raster 2'),
-                                                                  multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster"))
-                     ),
-                     conditionalPanel(
-                       condition = "input.tabs == 'addLayers'",
+                                                                  multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster")),
                        br(),
                        hr(),
                        br(),
                        actionButton("confExtra", "Confirm", icon = icon(name = "map-location-dot", lib = "font-awesome"), class = "btn-warning", style="width:250px")
+                       
                      ),
                      conditionalPanel(
                        condition = "input.tabs == 'buffer'",
                        radioButtons("selectBuffer", "Select buffer type:",
                                     choices = list("Use custom buffers" = "custom_buffers", 
                                                    "Use overall buffers" = "slider_buffers"),
-                                    selected = character(0), 
+                                    selected = "slider_buffers", 
                                     inline = FALSE),
                        conditionalPanel(
                          condition="input.selectBuffer=='slider_buffers'",
@@ -172,7 +170,7 @@ ui = dashboardPage(skin="black",
                                  column(width = 8,  # Adjusted from 6 to 8 for better alignment
                                         tabBox(id = "landing", width = 12,
                                                tabPanel("Overview", includeMarkdown("docs/overview.md")),
-                                               tabPanel("User Guide", includeMarkdown("docs/user_guide.md")),
+                                               #tabPanel("User Guide", includeMarkdown("docs/user_guide.md")),
                                                tabPanel("Dataset Requirements", includeMarkdown("docs/datasets.md"))
                                         )
                                  ),
