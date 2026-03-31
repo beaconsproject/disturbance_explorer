@@ -51,6 +51,28 @@ server = function(input, output, session) {
                                    mines = NULL,
                                    fire_sf = NULL)
 
+  
+  
+  ################################################################################################
+  # Control on tabs
+  ################################################################################################
+  # Observe tab changes
+  observeEvent(input$tabs, {
+    
+    if (input$tabs != "select" && is.null(studyarea()) &&input$tabs != "overview") {
+      # Show modal message if tabUpload has not been visited
+      showModal(modalDialog(
+        title = "Action Required",
+        "Please visit the 'Select study area' tab to initialize the map and upload the required dataset before proceeding to the next steps.",
+        easyClose = TRUE,
+        footer = modalButton("Select study area")
+      ))
+      
+      # Redirect user back to tabUpload
+      updateTabItems(session = getDefaultReactiveDomain(), "tabs", "select")
+    }
+  })
+  
   ################################################################################################
   # Observe on selectInput
   ################################################################################################

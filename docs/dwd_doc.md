@@ -5,7 +5,8 @@ format: md
 
 ## Download data
 
-Here, the user can download a GeoPackage containing spatial layers of undisturbed and disturbed areas as well as all input layers (e.g., fire).
+In this step, you can export the results of your analysis as a GeoPackage. The downloaded file includes spatial layers representing undisturbed and disturbed areas, 
+along with all input layers used in the workflow (e.g., fire and other disturbance data).
 
-Click the **Download data** button to download the GeoPackage. The GeoPackage will be saved to the Downloads folder.
-
+Click the **Download data** button to generate and download the GeoPackage. The file will be saved to your Downloads folder and can be opened in most GIS software for 
+further exploration, mapping, or analysis.
