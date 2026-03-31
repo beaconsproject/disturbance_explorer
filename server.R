@@ -1719,7 +1719,6 @@ server = function(input, output, session) {
   output$downloadData <- downloadHandler(
     filename = function() { paste("disturbance_explorer-", Sys.Date(), ".gpkg", sep="") },
     content = function(file) {
-      browser()
         x <- data.frame(Area_km2 = aoiAttributes()[1,2],
                         Lineardist_km  = baseAttributes()[1,2],
                         Arealdist_km2 = baseAttributes()[2,2],
