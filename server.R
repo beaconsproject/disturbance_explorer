@@ -123,10 +123,9 @@ server = function(input, output, session) {
   # View initial set of maps
   ##############################################################################
   output$map <- renderLeaflet({
-    map_bounds1 <- caribouherds %>% st_bbox() %>% as.character()
     
     leaflet(options = leafletOptions(attributionControl=FALSE)) %>%
-      fitBounds(map_bounds1[1], map_bounds1[2], map_bounds1[3], map_bounds1[4]) %>%
+      fitBounds(lng1 = -121, lat1 = 44, lng2 = -65, lat2 = 78) %>%
       addMapPane(name = "ground", zIndex=380) %>%
       addMapPane(name = "top", zIndex=420) %>%
       addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
