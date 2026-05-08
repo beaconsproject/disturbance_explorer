@@ -1,0 +1,428 @@
+---
+title: "Disturbance Explorer Report"
+output:
+  html_document:
+    toc: false
+    theme: readable
+params:
+  stats: NULL
+  matrix_line: NULL
+  matrix_poly: NULL
+  summaryStats: NULL
+  map_path: NULL
+  legend_path: NULL
+  includeOthers: NULL
+  forceclaims: NULL
+  forcefire: NULL
+  bufferType: NULL
+  linearbuff: NULL
+  arealbuff: NULL
+  otherlinesize: NULL
+  otherpolysize: NULL
+  minebuff: NULL
+  firesize: NULL
+  fireyear: NULL
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+###### Date: `r format(Sys.Date(), "%Y-%m-%d")`
+
+```{r}
+stats <- params$stats
+
+area <- stats$Value[stats$Attribute == "Studyarea (km2)"]
+und  <- stats$Value[stats$Attribute == "Undisturbed areas (%)"]
+dist <- stats$Value[stats$Attribute == "Disturbed areas (%)"]
+fires  <- stats$Value[stats$Attribute == "Fires (%)"]
+areal <- stats$Value[stats$Attribute == "Areal disturbances (km2)"]
+linear  <- stats$Value[stats$Attribute == "Linear disturbances (km)"]
+mines <- stats$Value[stats$Attribute == "Mining claims (%)"]
+pas  <- stats$Value[stats$Attribute == "Protected areas (%)"]
+other_linear <- stats$Value[stats$Attribute == "Other linear disturbances (km)"]
+other_areal  <- stats$Value[stats$Attribute == "Other areal disturbances (km2)"]
+
+# flags
+includeOthers <- isTRUE(params$includeOthers)
+forceclaims   <- isTRUE(params$forceclaims)
+forcefire     <- isTRUE(params$forcefire)
+
+############################
+# disturbance text
+############################
+disturbance_text <- c(
+  if (forcefire && (areal > 0 || linear > 0) ) {
+    "buffered anthropogenic disturbances and natural disturbances (fires)"
+  } else if (forcefire && areal == 0 && linear == 0 ){
+    "natural disturbances (fires) only"
+  } else if(isFALSE(forcefire)){
+    "buffered anthropogenic disturbances only"
+  }
+)
+############################
+# Anthropogenic text
+############################
+components <- c(
+  if (linear != 0) sprintf("%.1f km of linear features", linear),
+  if (areal != 0) sprintf("%.1f km² of areal disturbances", areal)
+)
+
+# optional components
+if (forceclaims) {
+  mines_km2 <- area * (mines / 100)
+  
+  components <- c(components,
+                  sprintf("%.1f km² of mining claims", mines_km2)
+  )
+} 
+
+if (includeOthers) {
+  if (!is.na(other_areal) && other_areal > 0) {
+    components <- c(
+      components,
+      sprintf("%.1f km² of other uploaded areal disturbances", other_areal)
+    )
+  }
+  
+  if (!is.na(other_linear) && other_linear > 0) {
+    components <- c(
+      components,
+      sprintf("%.1f km of other uploaded linear disturbances", other_linear)
+    )
+  }
+}
+
+collapse_and <- function(x) {
+  if (length(x) == 0) return(NULL)
+  if (length(x) == 1) return(x)
+  paste0(paste(head(x, -1), collapse = ", "), " and ", tail(x, 1))
+}
+
+# collapse nicely with commas + "and"
+human_disturbance_sentence <- if (length(components) > 0) {
+  paste0("Anthropogenic disturbances include ", collapse_and(components), ".")
+}else{
+  NULL
+}
+
+##################
+## Buffer text
+##################
+# base linear areal
+base_sentence <- if (params$bufferType == "custom_buffers") {
+  "To generate the disturbed areas layer, custom buffers around areal and linear featurea were applied (see table below)."
+} else {
+  parts <- c(
+    if (linear != 0)
+      sprintf("%s m for linear features", params$linearbuff),
+    if (areal != 0)
+      sprintf("%s m for areal disturbances", params$arealbuff)
+  )
+  paste0("To generate the disturbed areas layer, a generic buffer of ", paste(parts, collapse = " and "), " were used.")
+}
+
+# Add uploaded and mines
+components <- c(
+  
+  # always possible extras
+  if (includeOthers && !is.na(params$otherlinesize))
+    sprintf("uploaded linear features which with a %s m distance", params$otherlinesize),
+  
+  if (includeOthers && !is.na(params$otherpolysize))
+    sprintf("uploaded areal features buffered with a %s m distance", params$otherpolysize),
+  
+  if (forceclaims &&!is.na(params$minebuff))
+    sprintf("mining claims buffered with a %s m distance", params$minebuff),
+  
+  if (forcefire)
+    sprintf(
+      "fires that had a minimal size of %s m and restricted to the period %s - %s",
+      params$firesize,
+      params$fireyear[1],
+      params$fireyear[2]
+    )
+)
+
+# build  sentence by merging
+component_sentence <- if (length(components) > 0) {
+  
+  n <- length(components)
+  
+  list_text <- if (n == 1) {
+    components
+  } else if (n == 2) {
+    paste(components, collapse = " and ")
+  } else {
+    paste0(
+      paste(components[1:(n-1)], collapse = ", "),
+      " and ",
+      components[n]
+    )
+  }
+  
+  paste0("Additional features include: ", list_text, ".")
+  
+} else {
+  NULL
+}
+
+# 4. combine base with additional
+buffer_sentence <- paste(
+  base_sentence,
+  component_sentence
+)
+
+##################
+## Exclude text
+##################
+exclude_mines <- (mines != 0 && !forceclaims)
+exclude_fires <- (fires != 0 && !forcefire)
+exclude_areal <- (!is.na(other_linear) && !includeOthers)  # if no force flag, always excluded logic unclear
+exclude_linear <- (!is.na(other_areal) && !includeOthers)
+
+excluded_components <- c(
+  if (exclude_mines) "mining claims",
+  if (exclude_fires) "fires",
+  if (exclude_areal) "areal disturbances",
+  if (exclude_linear) "linear disturbances"
+)
+
+exclude_sentence <- if (length(excluded_components) > 0) {
+  
+  n <- length(excluded_components)
+  
+  list_text <- if (n == 1) {
+    excluded_components
+  } else if (n == 2) {
+    paste(excluded_components, collapse = " and ")
+  } else {
+    paste0(
+      paste(excluded_components[1:(n-1)], collapse = ", "),
+      " and ",
+      excluded_components[n]
+    )
+  }
+  
+  paste0(
+    "The following disturbance types were present within the study area but excluded from the disturbed areas: ",
+    list_text,
+    "."
+  )
+  
+} else {
+  NULL
+}
+##################
+## Absent text
+##################
+absent_components <- c(
+  if (mines==0) "mining claims",
+  if (fires==0) "fires",
+  if (areal==0) "areal disturbances",
+  if (linear==0) "linear disturbances"
+)
+
+absence_sentence <- if (length(absent_components) > 0) {
+  n <- length(absent_components)
+  
+  list_text <- if (n == 1) {
+    absent_components
+  } else if (n == 2) {
+    paste(absent_components, collapse = " and ")
+  } else {
+    paste0(
+      paste(absent_components[1:(n-1)], collapse = ", "),
+      " and ", absent_components[n]
+    )
+  }
+  paste0("No ", list_text, " intersect the study area.")
+} else {
+  NULL
+}
+
+##################
+## Protected areas text
+##################
+pas_sentence <- if (pas > 0) {
+  paste0("Protected areas account for ", sprintf("%.1f", pas), " of the range.")
+} else {
+  "No protected areas intersect the study area."
+}
+```
+
+
+This report summaries disturbance metrics for the chosen study area. The range spans `r sprintf("%.0f", area)` km², of which 
+**`r sprintf("%.1f", und)`%** is classified as undisturbed and **`r sprintf("%.1f", dist)`%** as disturbed. In this analysis, disturbed areas include only features selected for this assessment: `r disturbance_text`. Undisturbed areas are defined as all remaining portions of the study area not intersected by these selected disturbances, regardless of the presence of other disturbance types that may exist within the study area but were not included in the analysis.
+
+`r if (!is.null(human_disturbance_sentence)) human_disturbance_sentence`
+
+`r buffer_sentence`
+
+`r exclude_sentence`
+
+`r if (!is.null(absence_sentence)) absence_sentence` `r pas_sentence`
+
+
+
+### Summary of landscape condition and disturbances 
+
+The following table summarizes disturbance statistics:
+
+```{r}
+stats <- params$stats
+
+knitr::kable(stats) %>%
+    kableExtra::kable_styling(font_size = 13) %>%
+    kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+    kableExtra::row_spec(1:nrow(stats), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+
+```
+
+
+
+### Spatial overview of the study area 
+
+
+<div style="display:flex; gap:20px; align-items:flex-start;">
+
+<div style="flex:3;">
+```{r, echo=FALSE}
+knitr::include_graphics(params$map_path)
+```
+</div>
+
+<div style="flex:1;">
+
+```{r, echo=FALSE, out.width='100%'}
+knitr::include_graphics(params$legend_path)
+```
+</div>
+</div>
+<p style="margin:20px 0; margin-bottom:30px;"></p>
+
+### Distance thresholds used per disturbance type to delineate undisturbed areas
+
+This section describe the zone of influence assigned per disturbance industry/type.
+
+#### Areal disturbances
+```{r, echo=FALSE}
+knitr::kable(params$matrix_poly, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+    kableExtra::kable_styling(font_size = 13) %>%
+  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+  kableExtra::row_spec(1:nrow(params$matrix_poly), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+
+```
+<p style="margin:20px 0;"></p>
+<div style="margin-bottom:30px;">
+#### Linear disturbances
+```{r, echo=FALSE}
+knitr::kable(params$matrix_line, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+    kableExtra::kable_styling(font_size = 13) %>%
+  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+  kableExtra::row_spec(1:nrow(params$matrix_line), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+```
+
+<div style="margin-bottom:30px;">
+
+```{r, echo=FALSE, results='asis'}
+
+sumStats <- params$summaryStats
+
+cat("\n\n")
+cat("### Saved statistics and associated parameters\n\n")
+
+if (!is.null(sumStats) && nrow(sumStats) > 0) {
+
+  cat("This table displays statistics saved during the exploratory analysis. While the application does not restrict the number of saved scenarios, the report is limited to a maximum of three, with the first column always representing the scenario used to generate the report.\n\n")
+
+  sumStats$used_in_report <-
+    sumStats$Area_km2 == stats$Value[stats$Attribute == "Studyarea (km2)"] &
+    sumStats$Undisturbed_per == stats$Value[stats$Attribute == "Undisturbed areas (%)"] &
+    sumStats$Disturbed_per == stats$Value[stats$Attribute == "Disturbed areas (%)"] &
+    sumStats$Lineardist_km == stats$Value[stats$Attribute == "Linear disturbances (km)"]
+  
+  sumStats <- sumStats %>%
+    mutate(priority = ifelse(used_in_report, 0, 1),
+           run_id = case_when(priority == 0 ~ 50,
+                              TRUE ~ row_number())) %>%
+    arrange(desc(run_id)) %>%
+    slice_head(n = 3) %>%
+    dplyr::select(-priority, -signature)
+  
+  sumStats_pivot <- sumStats %>%
+    tidyr::pivot_longer(
+      cols = -c(Name, run_id),
+      names_to = "Attribute",
+      values_to = "value",
+      values_transform = list(value = as.character)
+    ) %>%
+    tidyr::pivot_wider(
+      names_from = run_id,
+      values_from = value
+    ) %>%
+    dplyr::select(-Name)
+  
+  attr_labels <- c(
+    Area_km2 = "Area (km²)",
+    Undisturbed_per = "Undisturbed (%)",
+    Disturbed_per = "Disturbed (%)",
+    Lineardist_km = "Linear disturbance (km)",
+    Arealdist_km2 = "Areal disturbance (km²)",
+    otherLinear_km = "Other linear (km)",
+    otherAreal_km2 = "Other areal (km²)",
+    Fires_per = "Fires (%)",
+    Mines_per = "Mines (%)",
+    PA2021_per = "Protected areas 2021 (%)",
+    IntactFL2000_per = "Intact forest 2000 (%)",
+    IntactFL2020_per = "Intact forest 2020 (%)",
+    set_custom = "Set custom buffer",
+    set_includeOthers = "Include other disturbances",
+    set_mines = "Include mines",
+    set_fires = "Include fires"
+  ) 
+  
+  sumStats_pivot <- sumStats_pivot %>%
+    dplyr::mutate(
+      Attribute = dplyr::recode(Attribute, !!!attr_labels)
+    )
+  
+  #name_map <- sumStats %>%
+  #  distinct(run_id, Name) %>%
+  #  arrange(run_id)
+  
+  colnames(sumStats_pivot)[-1] <- "Studyarea"
+
+  knitr::kable(sumStats_pivot) %>%
+    kableExtra::kable_styling(full_width = FALSE, font_size = 13) %>%
+  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+  kableExtra::row_spec(1:nrow(sumStats_pivot), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+    
+} else {
+   cat("No statistics were saved to the summary statistics table prior to generate the report.\n\n")
+}
+
+```
+
+<div style="margin-bottom:30px;">
+<div style="margin-top:30px;">
+### About this report
+
+This report was generated using the Disturbance Explorer application developed through the BEACONs Project.
+
+If you encounter any issues, have questions regarding the interpretation of the results, or would like additional information, please contact the project team at beacons@ualberta.ca.
+
+When using results or figures derived from this report in presentations, publications, or other materials, please acknowledge the application as follows:
+
+“Generated using the Disturbance Explorer developed through the BEACONs Project.”
+
+The application can be accessed here: https://beaconsproject.shinyapps.io/Disturbance_Explorer/
+
+---
+  
+  

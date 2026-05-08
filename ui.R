@@ -60,27 +60,37 @@ ui = dashboardPage(skin="black",
                          div(style = "margin-top: -20px;", fileInput(inputId = "upload_gpkg", label = "Upload a GeoPackage:", multiple = FALSE, accept = ".gpkg")),
                          div(style = "margin-top: -20px;", selectInput("saLayer", "Select study area layer", choices = NULL,  multiple = FALSE))
                        ),
+                       br(),
+                       actionButton("confSA", "Confirm studyarea", class = "btn-warning", style='color: #000'),
                        hr(),
                        div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Change disturbance layer classification"))),
-                       checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F),
-                       # Optional - classify dist
+                       div(style = "margin-top: -10px;", checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)),
                        conditionalPanel(
                          condition="input.createMatrix==true",
-                         div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("Classify Disturbance Layer"))),
-                         div(style = "margin-left: 10px;", h5("Select linear disturbance attributes that describe:")),
+                         div(
+                           style = "margin-left: 10px; margin-top: 30px;",
+                           h5(strong("Classify Disturbance Layer"))
+                         ),
+                         div(
+                           style = "margin-left: 10px;",
+                           h5("Select linear disturbance attributes that describe:")
+                         ),
                          uiOutput("lineIndustryUI"),
                          uiOutput("lineDistTypeUI"),
-                         div(style = "margin-left: 10px;", h5("Select areal distrubance attributes that describe:")),
+                         div(
+                           style = "margin-left: 10px;",
+                           h5("Select areal distrubance attributes that describe:")
+                         ),
                          uiOutput("polyIndustryUI"),
                          uiOutput("polyDistTypeUI")
                        ),
                        br(),
-                       div(style = "margin-top: -20px;", actionButton("confClassify", "Submit & Continue", class = "btn-warning", style='color: #000')),
+                       actionButton("confClassify", "Submit & Continue", class = "btn-warning", style='color: #000'),
                        hr(),
-                       div(style = "margin-left: 10px;", h5(strong("OPTIONAL - Upload other disturbances"))),
-                       fileInput(inputId = "upload_lineothers", label = "Upload other linear disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
-                       div(style = "margin-top: -20px;", fileInput(inputId = "upload_polyothers", label = "Upload other areal disturbances (shp):", multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"))),
-                       div(style = "margin-top: -10px;", actionButton("confUpload", "Confirm upload", class = "btn-warning", style='color: #000')),
+                       div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Upload other disturbances"))),
+                       fileInput(inputId = "upload_lineothers", label = div(style = "font-size:12px","Linear disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+                       div(style = "margin-top: -30px;", fileInput(inputId = "upload_polyothers", label = div(style = "font-size:12px","Areal disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"))),
+                       actionButton("confUpload", "Confirm upload", class = "btn-warning", style='color: #000'),
                      ),
                      # EXTRA LAYERS
                      conditionalPanel(
@@ -88,11 +98,11 @@ ui = dashboardPage(skin="black",
                        radioButtons("extraupload", "Select source for vector layers to be displayed:",
                                     choices = list("Shapefile" = "extrashp", 
                                                    "GeoPackage" = "extragpkg"),
-                                    selected = character(0), 
+                                    selected = "extrashp", 
                                     inline = TRUE),
                        conditionalPanel(
                          condition = "input.tabs=='addLayers' && input.extraupload == 'extrashp'",
-                         div(style = "margin-top: -10px;",fileInput(inputId = "display1",   label = HTML('<span style="display:inline-block; width:15px; height:15px; background-color:#663300; margin-right:8px; border:1px solid #000;"></span>Select layer 1'),
+                         div(style = "margin-top: -10px;",fileInput(inputId = "display1",   label = HTML('<span style="display:inline-block; width:15px; height:15px; background-color:#EE6363; margin-right:8px; border:1px solid #000;"></span>Select layer 1'),
                                                                     multiple = TRUE, accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj','.cpg'), placeholder = "Select a ShapeFile")),
                          div(style = "margin-top: -30px;",fileInput(inputId = "display2", label = HTML('<span style="display:inline-block; width:15px; height:15px; background-color:#330066; margin-right:8px; border:1px solid #000;"></span>Select layer 2'),
                                                                     multiple = TRUE, accept = c('.shp','.dbf','.sbn','.sbx','.shx','.prj','.cpg'), placeholder = "Select a ShapeFile")),
@@ -113,12 +123,12 @@ ui = dashboardPage(skin="black",
                        div(style = "margin-top: -10px;",fileInput(inputId = "rast1",   label = HTML('<span style="', gradient_rast1,'"></span>Raster 1'),
                                                                   multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster")),
                        div(style = "margin-top: -30px;",fileInput(inputId = "rast2", label = HTML('<span style="', gradient_rast2, '"></span>Raster 2'),
-                                                                  multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster")),
-                       br(),
+                                                                  multiple = FALSE, accept = c(".tif",".tiff"), placeholder = "Select a raster"))
+                     ),
+                     conditionalPanel(
+                       condition = "input.tabs == 'addLayers'",
                        hr(),
-                       br(),
-                       actionButton("confExtra", "Confirm", icon = icon(name = "map-location-dot", lib = "font-awesome"), class = "btn-warning", style="width:250px")
-                       
+                       actionButton("confExtra", "Confirm display elements", icon = icon(name = "map-location-dot", lib = "font-awesome"), class = "btn-warning", style="width:250px")
                      ),
                      conditionalPanel(
                        condition = "input.tabs == 'buffer'",
@@ -169,7 +179,7 @@ ui = dashboardPage(skin="black",
                                fluidRow(
                                  column(width = 8,  # Adjusted from 6 to 8 for better alignment
                                         tabBox(id = "landing", width = 12,
-                                               tabPanel("Overview", includeMarkdown("docs/overview.md")),
+                                               tabPanel("Overview", htmlOutput("overviewMD")),
                                                #tabPanel("User Guide", includeMarkdown("docs/user_guide.md")),
                                                tabPanel("Dataset Requirements", includeMarkdown("docs/datasets.md"))
                                         )
@@ -184,12 +194,27 @@ ui = dashboardPage(skin="black",
                        tabItem(tabName="select",
                                fluidRow(
                                  tabBox(id = "one", width="8",
-                                        tabPanel("Mapview", leafletOutput("map1", height=900) %>% withSpinner()),
+                                        tabPanel("Mapview", 
+                                                 div(style = "text-align: center;", hidden(actionButton("capture_map", "Generate the report using this map", class = "btn-warning", style = "color: #000;"))),
+                                                 div(id = "map_container", leafletOutput("map", height = 900) %>% withSpinner())
+                                                 ),
                                         tabPanel("Custom buffers",
                                                  tags$h4("Define linear buffer sizes:"),
                                                  uiOutput("linear_matrix_ui"),
                                                  tags$h4("Define areal buffer sizes:"),
-                                                 uiOutput("areal_matrix_ui")
+                                                 uiOutput("areal_matrix_ui"),
+                                                 div(style="margin-right:10px;", downloadButton("downloadMatrix", "Download tables as csv", style='color: #000'))
+                                        ),
+                                        tabPanel("Summary statistics",
+                                                 tags$h4("Summary statistics"),
+                                                 div(
+                                                   style = "overflow-x: auto; white-space: nowrap; font-size: 12px;",
+                                                   tableOutput("stat_tab")
+                                                 ),
+                                                 div(style = "display: flex; justify-content: center; margin-top: 10px;",
+                                                     downloadButton("downloadStats", "Download statistics table", style='color: #000')
+                                                 ),
+                                                 uiOutput("stats_ui"),
                                         ),
                                         tabPanel("User Guide",
                                                  # Dynamically update the content of Guidance based on selected tab
@@ -210,16 +235,13 @@ ui = dashboardPage(skin="black",
                                                    includeMarkdown("./docs/dwd_doc.md")
                                                  )
                                         ),
-                                        tabPanel("Summary statistics",
-                                                 tags$h4("Summary statistics"),
-                                                 div(
-                                                   style = "overflow-x: auto; white-space: nowrap; font-size: 12px;",
-                                                   tableOutput("stat_tab")
-                                                  ),
-                                                  div(style = "display: flex; justify-content: center; margin-top: 10px;",
-                                                      downloadButton("downloadStats", "Download statistics table", style='color: #000')
-                                                  ),
-                                                  uiOutput("stats_ui"),
+                                        tabPanel("Reporting",
+                                                 div(style = "display:flex; justify-content: space-between; align-items: center;",
+                                                     h3("Preview report"),
+                                                     downloadButton("download_report", "Download report")
+                                                 ),
+                                                 hr(),
+                                                 uiOutput("report_preview")
                                         )
                                  ),
                                  tabBox(
@@ -228,12 +250,12 @@ ui = dashboardPage(skin="black",
                                      
                                    tagList(# tab content
                                      tableOutput("tab1"),
-                                     hidden(actionButton("save_stats", "Add statistics to summary statistics", icon = icon("plus"), 
-                                                  class = "btn-xs", style = "font-size: 14px; margin-left: 8px;"))
-                                     ),
+                                     div(uiOutput("acronym_definitions"),style = "margin-top: -10px;"),
                                      br(),
-                                     uiOutput("acronym_definitions")
-                                   
+                                     hidden(actionButton("save_stats", "Save statistics to summary statistics", icon = icon("plus"), 
+                                                  class = "btn-warning", style = "color: #000; font-size: 14px; margin-left: 8px;")), 
+                                     uiOutput("legend_definitions"),
+                                     ),
                                    )
                                  )
                                )

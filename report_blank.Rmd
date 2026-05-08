@@ -1,0 +1,14 @@
+---
+title: "Caribou cumulative effects disturbance report"
+output: html_document
+
+---
+  
+###### Date: `r format(Sys.Date(), "%Y-%m-%d")`
+
+This document report the disturbed and undisturbed areas for caribou herds located in the Southeastern Yukon. 
+
+For each herd, the application compiles a consistent set of spatial layers used to represent both natural and anthropogenic disturbances, as well as land use context. 
+These layers are used within the app to visualize disturbance patterns, support comparisons, and enable cumulative effects assessment. It is possible for the user to add extra linear and/or areal disturbances as well as display elements as vector and/or raster format.
+
+To generate and preview the report, please select a herd/range  and run the analysis. 

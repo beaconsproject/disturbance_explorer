@@ -30,7 +30,7 @@ the industry and/or disturbance attributes for linear and areal disturbance feat
    
 *Note*: The option will be disable if the uploaded GeoPackage only include fires. 
    
-Press **Submit and continue** to apply the new classification
+Press **Submit and continue** to apply the new classification.
  
 <br>
 
