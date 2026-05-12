@@ -16,9 +16,8 @@ The application includes the following functionality:
 -   Generate a report summarizing the analysis parameters and outputs used to create the undisturbed areas map.
 -   Export summary statistics (CSV format) and GeoPackages containing undisturbed and disturbed area maps for use in GIS software such as QGIS or ArcGIS.
 
-The landing page of the application provides an overview of the appllication and its key functionalities. The application also has a dedicated **Dataset Requirements** section 
-describing the expected spatial data structure, including required layers, naming conventions, and attribute specifications for use in the **Disturbance 
-Explorer**. In addition, a built-in demo dataset (representing watershed 10AB in southeast Yukon) is provided to allow users to familiarize themselves with 
+The **Disturbance Explorer** landing page provides an overview of the application and its key functionalities. Upon startup, users also have access to a dedicated Dataset Requirements tab, which describes the expected 
+spatial data structure, including required layers, naming conventions, and attribute specifications. In addition, a built-in demo dataset (representing watershed 10AB in southeast Yukon) is provided to allow users to familiarize themselves with 
 the tool and explore its outputs.
 
 ## Running the App
