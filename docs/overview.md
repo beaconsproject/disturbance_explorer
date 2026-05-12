@@ -3,7 +3,7 @@
 
 Understanding human activity is essential for effective conservation planning, land management, and ecological research. Undisturbed areas, often referred to as 
 intact landscapes, are critical for maintaining biodiversity, supporting ecosystem services, and preserving ecological integrity. Conversely, identifying disturbed 
-areasâ€”such as those affected by roads, industrial activities, or firesâ€”helps quantify human impact and guides conservation efforts.
+areas — such as those affected by roads, industrial activities, or fires — helps quantify human impact and guides conservation efforts.
 
 **Disturbance Explorer** produces custom maps of undisturbed and disturbed landscapes with tools to explore the influence of buffer size (or zone of influence), minimum patch size, fire, and potential future disturbances (e.g., mining claims) on these landscapes.
 Users can explore the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed area maps. 
