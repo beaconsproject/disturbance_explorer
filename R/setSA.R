@@ -111,7 +111,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   # Observe on linear disturbances - disable if missing
   observe({
     req(rv$sa())
-    if (!("linear_disturbance") %in% lyr_names()){
+    if (!("linear_disturbances") %in% lyr_names()){
       disable("buffer1")
     }else{
       enable("buffer1")
@@ -122,7 +122,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   # Observe on areal disturbances - disable if missing
   observe({
     req(rv$sa())
-    if (!("areal_disturbance") %in% lyr_names()){
+    if (!("areal_disturbances") %in% lyr_names()){
       disable("buffer2")
     }else{
       enable("buffer2")
@@ -132,7 +132,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   # Observe on linear and areal for custom buffering - disable if both missing
   observe({
     req(rv$sa())
-    if (!any(c("linear_disturbance", "areal_disturbance") %in% lyr_names())){
+    if (!any(c("linear_disturbances", "areal_disturbances") %in% lyr_names())){
       disable("selectBuffer")
     }else{
       enable("selectBuffer")
@@ -370,8 +370,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     shinyjs::hide("save_stats")
     shinyjs::hide("capture_map")
     
-    if ("linear_disturbance" %in% lyr_names()) {
-      line_sf <- st_read(sourceData(), "linear_disturbance", quiet = TRUE)
+    if ("linear_disturbances" %in% lyr_names()) {
+      line_sf <- st_read(sourceData(), "linear_disturbances", quiet = TRUE)
       rv$layers_rv$line <- line_sf
       rv$industry_line("TYPE_INDUSTRY")
       rv$disttype_line("TYPE_DISTURBANCE")
@@ -433,8 +433,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       rv$matrix_line(mline)
     }
     
-    if ("areal_disturbance" %in% lyr_names()) {
-      poly_sf <- st_read(sourceData(), "areal_disturbance", quiet = TRUE)
+    if ("areal_disturbances" %in% lyr_names()) {
+      poly_sf <- st_read(sourceData(), "areal_disturbances", quiet = TRUE)
       rv$layers_rv$poly <- poly_sf
       rv$industry_poly("TYPE_INDUSTRY")
       rv$disttype_poly("TYPE_DISTURBANCE")
@@ -514,8 +514,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$fires <- NULL
       }
     }
-    if ("Intact_FL_2000" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'Intact_FL_2000', quiet=T)
+    if ("intact_fl_2000" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'intact_fl_2000', quiet=T)
       rv$layers_rv$ifl2000 <- la
       li <- la %>%
         st_intersection(rv$sa())
@@ -525,8 +525,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$ifl2000 <- NULL
       }
     }
-    if ("Intact_FL_2020" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'Intact_FL_2020', quiet=T)
+    if ("intact_fl_2020" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'intact_fl_2020', quiet=T)
       rv$layers_rv$ifl2020 <- la
       li <- la %>%
         st_intersection(rv$sa())
@@ -547,8 +547,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$pa2021 <- NULL
       }
     }
-    if ("Placer_Claims" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'Placer_Claims', quiet=T)
+    if ("placer_claims" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'placer_claims', quiet=T)
       rv$layers_rv$placers <- la
       li <- la %>%
         st_intersection(rv$sa())
@@ -558,8 +558,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$placers <- NULL
       }
     }
-    if ("Quartz_Claims" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'Quartz_Claims', quiet=T)
+    if ("quartz_claims" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'quartz_claims', quiet=T)
       rv$layers_rv$quartz <- la
       li <- la %>%
         st_intersection(rv$sa())
@@ -569,8 +569,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$quartz <- NULL
       }
     }
-    if ("Mining_Claims" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'Mining_Claims', quiet=T)
+    if ("mining_claims" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'mining_claims', quiet=T)
       rv$layers_rv$mines <- la
       li <- la %>%
         st_intersection(rv$sa())
@@ -827,9 +827,9 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       clearGroup("Protected areas") %>%
       clearGroup("Intact FL 2000") %>%
       clearGroup("Intact FL 2020") %>%
-      clearGroup("Mining Claims") %>%
-      clearGroup("Placer Claims") %>%
-      clearGroup("Quartz Claims")
+      clearGroup("Mining claims") %>%
+      clearGroup("Placer claims") %>%
+      clearGroup("Quartz claims")
     
     sa <- st_transform(rv$sa(), 4326)
     map_bounds1 <- sa %>% st_bbox() %>% as.character()
@@ -846,21 +846,21 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     placers <- isolate(rv$layers_rv$placers)
     if(!is.null(placers)){
       placers <- st_transform(placers, 4326)
-      leafletProxy("map") %>% addPolygons(data=placers, color= '#333333', fill=T, fillColor='#333333', weight=3, fillOpacity = 1, group="Placer Claims", options = leafletOptions(pane = "ground")) 
-      dist_names_new <- c(dist_names_new, "Placer Claims")
+      leafletProxy("map") %>% addPolygons(data=placers, color= '#333333', fill=T, fillColor='#333333', weight=3, fillOpacity = 1, group="Placer claims", options = leafletOptions(pane = "ground")) 
+      dist_names_new <- c(dist_names_new, "Placer claims")
     }
     quartz <- isolate(rv$layers_rv$quartz)
     if(!is.null(quartz)){
       quartz <- st_transform(quartz, 4326)
-      leafletProxy("map") %>% addPolygons(data=quartz, color = '#999999', fill=T, fillColor='#999999', weight=1, fillOpacity = 1, group="Quartz Claims", options = leafletOptions(pane = "ground")) 
-      dist_names_new <- c(dist_names_new, "Quartz Claims")
+      leafletProxy("map") %>% addPolygons(data=quartz, color = '#999999', fill=T, fillColor='#999999', weight=1, fillOpacity = 1, group="Quartz claims", options = leafletOptions(pane = "ground")) 
+      dist_names_new <- c(dist_names_new, "Quartz claims")
     }
     
     mines <- isolate(rv$layers_rv$mines)
     if(!is.null(mines)){
       mines <- st_transform(mines, 4326)
-      leafletProxy("map") %>% addPolygons(data=mines, color='#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Mining Claims", options = leafletOptions(pane = "ground")) 
-      dist_names_new <- c(dist_names_new, "Mining Claims")
+      leafletProxy("map") %>% addPolygons(data=mines, color='#666666', fill=T, fillColor='#666666', weight=1, fillOpacity = 1, group="Mining claims", options = leafletOptions(pane = "ground")) 
+      dist_names_new <- c(dist_names_new, "Mining claims")
     }       
     # Disturbance
     poly <- isolate(rv$layers_rv$poly)
@@ -926,10 +926,10 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     
     ################################################################################################
     # Add modal if layers are missing
-    if(!any(c('linear_disturbance', 'areal_disturbance', 'fires', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names())){
+    if(!any(c('linear_disturbances', 'areal_disturbances', 'fires', 'placer_claims', 'quartz_claims', 'mining_claims') %in% lyr_names())){
       showModal(modalDialog(
         title = "No disturbance provided in the GPKG.",
-        "Please provide a GPKG that has either 'linear_disturbance', 'areal_disturbance', 'fires' or 'Mining_Claims' as a layer",
+        "Please provide a GPKG that has either 'linear_disturbances', 'areal_disturbances', 'fires' or 'mining_claims' as a layer",
         easyClose = FALSE,
         footer = modalButton("OK")
       ))
@@ -937,7 +937,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     }
     
     
-    if(!any(c('linear_disturbance', 'areal_disturbance', 'Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names()) &&
+    if(!any(c('linear_disturbances', 'areal_disturbances', 'placer_claims', 'quartz_claims', 'mining_claims') %in% lyr_names()) &&
        'fires' %in% lyr_names() &&
        is.null(rv$other_linedist()) &&
        is.null(rv$other_polydist())  
@@ -950,7 +950,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       )  
     }
     
-    if(!all(c('linear_disturbance', 'areal_disturbance', 'fires') %in% lyr_names()) & any(c('Placer_Claims', 'Quartz_Claims', 'Mining_Claims') %in% lyr_names())){
+    if(!all(c('linear_disturbances', 'areal_disturbances', 'fires') %in% lyr_names()) & any(c('placer_claims', 'quartz_claims', 'mining_claims') %in% lyr_names())){
       showModal(modalDialog(
         title = "Only mining claims will be used to generate the footprint and intactness layers",
         easyClose = FALSE,

@@ -1,0 +1,104 @@
+app_name: Disturbance Explorer
+
+version: 1.0
+
+purpose: "R shiny application that enables users to generate undisturbed areas maps using human surface disturbance and/or natural disturbance data."
+
+other:   "The application generates and compares landscape disturbance statistics under different scenarios, including disturbance area and length by type, 
+burned area, mining claim extent, and other disturbance metrics. It also produces a summary report documenting the analysis parameters and outputs used to 
+generate the undisturbed areas map. Users can export summary statistics in CSV format, as well as GeoPackages containing disturbed and undisturbed area maps 
+for use in GIS software such as QGIS or ArcGIS."
+
+access: "https://beaconsproject.shinyapps.io/disturbance_explorer/"
+
+inputs:
+   custom.gpkg:
+    - studyarea
+    - fires
+    - linear_disturbances
+    - areal_disturbances
+
+optional:    
+   custom.gpkg:
+    - footprint_500m
+    - intact_fl_2000
+    - intact_fl_2020
+    - protected_areas
+    - placer_claims
+    - quartz_claims
+    - caribou_herds
+    
+   other_disturbances_areal:
+   
+   other_disturbances_linear:
+    
+   display_element_vect_1:
+   
+   display_element_vect_2:
+   
+   display_element_vect_3:
+   
+   display_element_rast_1:
+   
+   display_element_rast_2:
+
+required_columns:
+  linear_disturbances:
+    TYPE_INDUSTRY:
+      used_by:
+        - Disturbance Explorer
+      format: character
+      allow_null: true
+      expected_values:
+      description: "Used to classify industry type in the demo dataset"
+    TYPE_DISTURBANCE:
+      used_by:
+        - Disturbance Explorer
+      format: character
+      allow_null: true
+      expected_values:
+      description: "Used to classify disturbance type in the demo dataset"
+  areal_disturbances:
+    TYPE_INDUSTRY:
+      used_by:
+        - Disturbance Explorer
+      format: character
+      allow_null: true
+      expected_values:
+      description: "Used to classify industry type in the demo dataset"
+    TYPE_DISTURBANCE:
+      used_by:
+        - Disturbance Explorer
+      format: character
+      allow_null: true
+      expected_values:
+      description: "Used to classify disturbance type in the demo dataset"
+  fires:
+    YEAR:
+      used_by:
+        - Disturbance Explorer
+      format: integer
+      allow_null: false
+      expected_values:
+      description: "Used to filter fires by year range"
+    CAUSE:
+      used_by:
+        - Disturbance Explorer
+      format: character
+      allow_null: true
+      expected_values:
+        - Human
+        - Natural
+        - Undetermined
+      description: "Used by leaflet to map fires. Expected values are : Human, Natural, Undetermined"
+
+outputs:
+  - Disturbance_explorer-YYYY-mm-dd.gpkg
+  - Disturbance_explorer_report_YYYY-mm-dd.pdf
+  - Disturbance_explorer_stats-YYYY-mm-dd.csv
+  - Disturbance_explorer_buffer--YYYY-mm-dd.csv
+  
+next_apps:
+  - Hydrology Explorer App
+  - Caribou CE Explorer App
+  
