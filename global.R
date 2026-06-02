@@ -240,12 +240,12 @@ build_map <- function(rv){
 #  }
   
   # Placers Claims
-  if ("Placer Claims" %in% visible) {
+  if ("Placer claims" %in% visible) {
     placers <- rv$layers_rv$placers
     map <- map +
       tm_shape(placers) +
       tm_polygons(
-        col = '#666666',
+        col = '#333333',
         border.col = NA,
         lwd= 0,
         alpha = 1
@@ -253,12 +253,12 @@ build_map <- function(rv){
   }
   
   # Quartz Claims
-  if ("Quartz Claims" %in% visible) {
+  if ("Quartz claims" %in% visible) {
     quartz <- rv$layers_rv$quartz
     map <- map +
       tm_shape(quartz) +
       tm_polygons(
-        col = '#CCCCCC',
+        col = '#999999',
         border.col = NA,
         lwd= 0,
         alpha = 1
@@ -266,7 +266,7 @@ build_map <- function(rv){
   }
   
   # Mining Claims
-  if ("Mining Claims" %in% visible) {
+  if ("Mining claims" %in% visible) {
     mines <- rv$statslayers_rv$mines
     map <- map +
       tm_shape(mines) +
@@ -418,9 +418,9 @@ create_legend_png <- function(path, visible_layers, display1, display1_name, dis
       "Other areal disturbances",
       "Other linear disturbances",
       "Fires", "Fires", "Fires",
-      "Quartz Claims", 
-      "Placer Claims", 
-      "Mining Claims",
+      "Quartz claims", 
+      "Placer claims", 
+      "Mining claims",
       "Protected areas", 
       "Intact FL 2000", 
       "Intact FL 2020"
@@ -434,9 +434,9 @@ create_legend_png <- function(path, visible_layers, display1, display1_name, dis
               "Fires (Lightning)", 
               "Fires (Human)", 
               "Fires (Unknown)",
-              "Quartz Claims", 
-              "Placer Claims", 
-              "Mining Claims",
+              "Quartz claims", 
+              "Placer claims", 
+              "Mining claims",
               "Protected areas", 
               "Intact FL 2000", 
               "Intact FL 2020"
