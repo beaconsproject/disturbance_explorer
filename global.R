@@ -22,7 +22,7 @@ library(knitr)
 app_version_date <- as.Date(readLines("app_version.txt"))
 
 # Read the Markdown file
-overview_md <- readLines("docs/overview.md")
+overview_md <- readLines("docs/overview.md", encoding = "UTF-8")
 
 # Replace placeholder in the Markdown
 overview_md <- c(
