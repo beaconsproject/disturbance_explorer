@@ -96,9 +96,8 @@ outputs:
   - Disturbance_explorer-YYYY-mm-dd.gpkg
   - Disturbance_explorer_report_YYYY-mm-dd.pdf
   - Disturbance_explorer_stats-YYYY-mm-dd.csv
-  - Disturbance_explorer_buffer--YYYY-mm-dd.csv
+  - Disturbance_explorer_buffer-YYYY-mm-dd.csv
   
 next_apps:
   - Hydrology Explorer App
-  - Caribou CE Explorer App
   
