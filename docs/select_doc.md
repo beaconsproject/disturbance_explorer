@@ -4,9 +4,9 @@ format: md
 
 ## Select study area
 
-In this step, you load the spatial data used in Disturbance Explorer.
+In this step, load the spatial data to be used in Disturbance Explorer.
 
-Start by **Select source dataset**. You have two options:
+Start with **Select source dataset**. You have two options:
 
 1. **Use demo dataset** - This option loads a built-in dataset representing a watershed in southeast Yukon. It includes all required spatial layers, making it a quick way to explore the app.
 The layers will appear on the map and can be toggled on or off. 
@@ -17,18 +17,20 @@ The layers will appear on the map and can be toggled on or off.
 
 📌 Ensure that your GeoPackage: Contains all required spatial layers and attributes, uses a consistent coordinate reference system across all layers
 
-Refer to the Dataset Requirements tab for detailed specifications on required and optional data.
+Refer to the Dataset Requirements tab (in the Welcome section from the main menu) for detailed specifications on required and optional data.
+
+Click **Confirm study area** after selecting a dataset.
 
 <br>   
 
 **(OPTIONAL) Change disturbance layer classification**
 
-Disturbances are classified by default by INDUSTRY_TYPE (e.g., transporation) and DISTURBANCE_TYPE (e.g., highway). 
-This classification generates a table summarizing the industry and/or disturbance types and their associated length (km) or area (km2). 
+Disturbances are classified by default by INDUSTRY_TYPE (e.g., transportation) and DISTURBANCE_TYPE (e.g., access road). 
+This classification generates a table summarizing industry and/or disturbance types in the dataset and their associated length (km) or area (km2). 
 The table is found under the **Custom buffers** tab located across the top. To change the classification, check the box and select the drop-down menus to identify 
 the industry and/or disturbance attributes for linear and areal disturbance features in the GeoPackage. If attributes are not assigned, the table will simply summarize the features as "linear" and "areal".
    
-*Note*: The option will be disable if the uploaded GeoPackage only include fires. 
+*Note*: This option will be disabled if the uploaded GeoPackage includes only fires as disturbance. 
    
 Press **Submit and continue** to apply the new classification.
  
