@@ -2,9 +2,11 @@
 format: md
 ---
 
-## Select study area
+## User Guide
 
-In this step, load the spatial data to be used in Disturbance Explorer.
+This step defines the key inputs to configure the analysis, including loading spatial data, disturbance classifications, and any additional user-provided data. 
+
+### Step 1. Select study area
 
 Start with **Select source dataset**. You have two options:
 
@@ -23,7 +25,7 @@ Click **Confirm study area** after selecting a dataset.
 
 <br>   
 
-**(OPTIONAL) Change disturbance layer classification**
+### Step 2. Change disturbance layer classification (OPTIONAL)
 
 Disturbances are classified by default by INDUSTRY_TYPE (e.g., transportation) and DISTURBANCE_TYPE (e.g., access road). 
 This classification generates a table summarizing industry and/or disturbance types in the dataset and their associated length (km) or area (km2). 
@@ -36,13 +38,13 @@ Press **Submit and continue** to apply the new classification.
  
 <br>
 
-**(OPTIONAL) Upload other disturbances**
+## Step 3.  Upload other disturbances (OPTIONAL)
 
 Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for 
 visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
 Press the **Confirm upload** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. 
    
-From here, you can proceed to **Add display elements (OPTIONAL)** to include additional visualization layers, or move directly to **Buffer features** to continue the analysis.
+From here, users can proceed to **Add display elements (OPTIONAL)** to include additional visualization layers, or move directly to **Buffer features** to continue the analysis.
 
 
