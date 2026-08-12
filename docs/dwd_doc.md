@@ -2,8 +2,9 @@
 format: md
 ---
 
+## User Guide
 
-## Download data
+### Step 8. Download data
 
 In this step, you can export the results of your analysis as a GeoPackage. The downloaded file includes spatial layers representing undisturbed and disturbed areas, 
 along with all input layers used in the workflow (e.g., fire and other disturbance data).
