@@ -3,7 +3,7 @@
 
 Understanding human activity is essential for effective conservation planning, land management, and ecological research. Undisturbed areas, often referred to as 
 intact landscapes, are critical for maintaining biodiversity, supporting ecosystem services, and preserving ecological integrity. Conversely, identifying disturbed 
-areas ? such as those affected by roads, industrial activities, or fires ? helps quantify human impact and guides conservation efforts.
+areas such as those affected by roads, industrial activities, or fires helps quantify human impact and guides conservation efforts.
 
 **Disturbance Explorer** produces custom maps of undisturbed and disturbed landscapes with tools to explore the influence of buffer size (or zone of influence), minimum patch size, fire, and potential future disturbances (e.g., mining claims) on these landscapes.
 Users can explore the influence of buffer size and minimum patch size on the resulting undisturbed and disturbed area maps. 
@@ -11,7 +11,7 @@ Users can explore the influence of buffer size and minimum patch size on the res
 The **Welcome** section includes the **Overview** landing page that provides a concise introduction to the app and its functionality. It also includes this guide and **Dataset Requirements** 
 which outlines the description, naming convention, and data structure of the required spatial layers used by the **Disturbance Explorer** app. 
 
-Guidance is integrated directly into the workflow: each step includes a User Guide tab with clear instructions and explanations of functions. 
+Guidance is integrated directly into the workflow: each step includes a User Guide tab with clear instructions and explanation of functions. 
 
 
 ### Input data
@@ -19,9 +19,9 @@ Guidance is integrated directly into the workflow: each step includes a User Gui
 **Disturbance Explorer** relies on several key spatial layers contained within a single GeoPackage. A demo dataset is included with the app for a watershed in southeast Yukon, Canada. Users may upload their own GeoPackage, provided it follows the required structure. 
 Please refer to the **Dataset Requirements** tab for details on the required spatial layers and associated attributes and formatting.
 
-### Functionality
+### Functionality and Workflow
     
-The app consists of four sections. To get started, click 'Select study area' on the left-side panel. 
+The app consists of four sections. To get started, click **Select study area** on the left-side panel. 
 <br>
 
 #### Select study area
@@ -37,7 +37,7 @@ These can be incorporated into the mapping process or used for viewing purposes 
 #### Add display elements (OPTIONAL)
 
 This section allows users to add additional features for visualization. These features can be vector data (points, lines, or polygons) as well as rasters. 
-The file or layer names are automatically used as display names on the map. Colors are assigned by the app and cannot be modified.
+The file or layer names are automatically used as display names on the map. Colours are assigned by the app and cannot be modified.
 
 <br>
 
@@ -74,7 +74,7 @@ used to generate the undisturbed and disturbed areas.
 
 <br>
 
-#### Download undisturbed and disturbed areas as GeoPackage
+#### Download undisturbed and disturbed areas as a GeoPackage
     
   - Download a GeoPackage of the **undisturbed areas** and **disturbed areas** created by the app, as well as the input spatial layers (e.g., linear and areal disturbances).
   
