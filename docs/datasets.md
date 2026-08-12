@@ -28,7 +28,7 @@ For the app to recognize the spatial layers in the GeoPackage, the layer names *
 
   Or as shapefile:
   
-  - **Other disturbances** (linear and areal): Only an overall buffer size can be applied to those disturbances. There are no requirements for the shapefile name.
+  - **Other disturbances** (linear and areal): Only an overall buffer size can be applied to these disturbances. There are no requirements for the shapefile name.
 
 📌 **Other disturbances** layers do not need to use the same coordinate system as the study area. The app will automatically reproject these layers to match the study 
 area’s coordinate system during processing, ensuring consistent alignment on the map.
@@ -37,7 +37,7 @@ area’s coordinate system during processing, ensuring consistent alignment on t
 
 #### Optional - GeoPackage 
 
-Bold text is the required name of the spatial layer in the GeoPackage in order to be recognized by the app.
+Optional layers must follow the app's naming convention in order to be recognized. Required names for spatial layers in the GeoPackage are in bold text below: 
 
 - **protected_areas**: Distribution of protected areas e.g., Canadian Protected and Conserved Areas Database. 
 - **Quartz_Claims**: Quartz mining claims for hard rock mining. 
@@ -49,7 +49,7 @@ Bold text is the required name of the spatial layer in the GeoPackage in order t
 
 #### Optional - Shapefile
 
-If disturbances are provided in the GeoPackage, the user can still upload extra features using the shapefile upload and include them in the analysis. There are no requirements for the shapefile name.
+If disturbances are provided in the GeoPackage, the user can still upload extra features using the shapefile upload and include them in the analysis. There are no requirements for the shapefile name. 
 
 <br>
 
