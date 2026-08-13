@@ -13,15 +13,15 @@ For the app to recognize the spatial layers in the GeoPackage, the layer names *
 
 #### Required 
 
-- A polygon that define the extent of the analysis (referred as study area in the app) e.g., watershed, ecoregion or any other user-defined area.
+- A polygon that defines the extent of the analysis (referred as study area in the app) e.g., watershed, ecoregion or any other user-defined area.
 
 
 - At least one of the following disturbance layers:
 
   In the GeoPackage:
   
-  - **linear_disturbance**: Linear human surface disturbance features e.g., roads, seismic line. 
-  - **areal_disturbance**: Areal (polygonal) human surface disturbance features e.g., mine, town site, cutblock. 
+  - **linear_disturbance**: Linear human surface disturbance features e.g., roads, seismic lines. 
+  - **areal_disturbance**: Areal (polygonal) human surface disturbance features e.g., mines, town sites, cutblocks. 
   - **fires** : Distribution of wildfire polygons. The layer must have the following two attributes: (1) "YEAR" - an integer  which is the ignition year of the
   fire e.g., 1995 and (2) "CAUSE" - cause of ignition of the fire which can either be 'Human', 'Lightning' or 'Unknown'.  
   
