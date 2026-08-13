@@ -11,7 +11,7 @@ include linear and areal anthropogenic disturbances, other disturbances, mining 
 
 **Select buffer type:** The user has two options.
 
-  a. **Use custom buffers** - Select this option to assign different buffer widths to specific disturbance classes (e.g., 1000 m for highways and 500 m for trails).
+  a. **Use custom buffers** - Select this option to assign different buffer widths to specific disturbance classes (e.g., 1000 m for access roads and 500 m for trails).
 Custom buffers are based on the disturbance classification defined in the previous step. By default, disturbances are grouped by industry and disturbance type. 
 If you modified this classification earlier, the table will reflect your updated categories, allowing you to assign buffer sizes to each class.
 When selected, the app automatically switches to the Custom buffers tab, where a table summarizes linear and areal disturbances. Edit buffer widths (in metres) 
@@ -21,7 +21,7 @@ directly in the **BUFFER_SIZE_M** column. The default buffer width for all class
 
      Use the sliders to set buffers. The slider options provide increments of 10-m. If the slider options are not sufficient, use the custom buffers option above. 
 
-   *Note*: The option will be disable if the uploaded GeoPackage only include fires
+   *Note*: This option will be disabled if the uploaded GeoPackage only includes fire.
    
 <br>
 
@@ -55,7 +55,9 @@ Press the **Generate undisturbed areas** button to create the undisturbed and di
 ### Step 6. View statistics
 
 The "Statistics" table on the right panel provides stats on the area and length of disturbances in the study area, as well as the percent area of fires, mining and protected areas if provided. 
-If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets.
+If Intact Forest Landscapes (IFL) for the years 2000 and 2020 are available, users can compare their generated undisturbed areas to these reference datasets. 
+
+To save analysis statistics, click the **Save statistics to summmary statistics** button below the table on the right. Then, navigate to the **Summary statistics** tab, and click the **Download statistics table** button to save the table in .csv format on your computer. 
 
 ### Step 7. Generate report
 
@@ -63,4 +65,4 @@ Once the user is satisfied with the analysis, click **Generate the report using 
 
 A report preview will appear under the **Reporting** tab. After reviewing the report and making any necessary adjustments, the user may click **Download report** to save and share it. 
 
-From here, users may proceed to **Download data**. 
+From here, users may proceed to **Download data** in the left-side panel. 
