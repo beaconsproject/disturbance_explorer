@@ -18,8 +18,8 @@ When selected, the app automatically switches to the Custom buffers tab, where a
 directly in the **BUFFER_SIZE_M** column. The default buffer width for all classes is 500 m.
 
   b. **Use overall buffers:** Select this option if a single buffer width is to be applied to linear and areal disturbances. Different buffer widths can be applied to the linear and areal disturbances.
-
-     Use the sliders to set buffers. The slider options provide increments of 10-m. If the slider options are not sufficient, use the custom buffers option above. 
+  
+  Use the sliders to set buffers. The slider options provide increments of 10-m. If the slider options are not sufficient, use the custom buffers option above. 
 
    *Note*: This option will be disabled if the uploaded GeoPackage only includes fire.
    
