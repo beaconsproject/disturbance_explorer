@@ -38,13 +38,13 @@ Press **Submit and continue** to apply the new classification.
  
 <br>
 
-## Step 3.  Upload other disturbances (OPTIONAL)
+### Step 3.  Upload other disturbances (OPTIONAL)
 
 Here, the user has the option to upload additional linear and areal disturbances (e.g., proposed development, insect outbreaks, etc.) as shapefiles which can be included in the mapping workflow or used solely for 
 visualization. Use the drop-down menus to browse to the shapefile. Shapefiles are comprised of multiple files, and all files must be selected (e.g., shp, shx, dbf, prj, etc.). Once selected, click "Open".
 
 Press the **Confirm upload** button to load the spatial layers. The layers will appear in a map where the user can turn layers on and off. 
    
-From here, users can proceed to **Add display elements (OPTIONAL)** to include additional visualization layers, or move directly to **Buffer features** to continue the analysis.
+From here, users can proceed to **Add display elements (OPTIONAL)** to include additional visualization layers, or move directly to **Buffer features** to continue the analysis. Both options are found in the left-side panel. 
 
 
