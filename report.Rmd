@@ -116,7 +116,7 @@ human_disturbance_sentence <- if (length(components) > 0) {
 ##################
 # base linear areal
 base_sentence <- if (params$bufferType == "custom_buffers") {
-  "To generate the disturbed areas layer, custom buffers around areal and linear featurea were applied (see table below)."
+  "To generate the disturbed areas layer, custom buffers around areal and linear features were applied (see table below)."
 } else {
   parts <- c(
     if (linear != 0)
@@ -124,7 +124,7 @@ base_sentence <- if (params$bufferType == "custom_buffers") {
     if (areal != 0)
       sprintf("%s m for areal disturbances", params$arealbuff)
   )
-  paste0("To generate the disturbed areas layer, a generic buffer of ", paste(parts, collapse = " and "), " were used.")
+  paste0("To generate the disturbed areas layer, generic buffers of ", paste(parts, collapse = " and "), " were used.")
 }
 
 # Add uploaded and mines
@@ -308,7 +308,7 @@ knitr::include_graphics(params$legend_path)
 
 ### Distance thresholds used per disturbance type to delineate undisturbed areas
 
-This section describe the zone of influence assigned per disturbance industry/type.
+This section describes the zone of influence assigned per disturbance industry/type.
 
 #### Areal disturbances
 ```{r, echo=FALSE}
@@ -404,7 +404,7 @@ if (!is.null(sumStats) && nrow(sumStats) > 0) {
   kableExtra::row_spec(1:nrow(sumStats_pivot), extra_css = "padding-top: 2px; padding-bottom: 2px;")
     
 } else {
-   cat("No statistics were saved to the summary statistics table prior to generate the report.\n\n")
+   cat("No statistics were saved to the summary statistics table prior to generating the report.\n\n")
 }
 
 ```
