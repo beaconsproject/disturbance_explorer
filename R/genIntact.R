@@ -195,6 +195,7 @@ genIntactServer <- function(input, output, session, project, map, rv){
       } else {
         v <- NULL
       }
+      rv$footprint_sf(v)
       return(v)
     }
   })

@@ -93,7 +93,24 @@ required_columns:
       description: "Used by leaflet to map fires. Expected values are : Human, Natural, Undetermined"
 
 outputs:
-  - Disturbance_explorer-YYYY-mm-dd.gpkg
+  - Disturbance_explorer-YYYY-mm-dd.gpkg:
+      - studyarea
+      - undisturbed
+      - disturbed
+      - linear_disturbances
+      - areal_disturbances 
+      - fires 
+      - protected_areas 
+      - placer_claims 
+      - quartz_claims 
+      - mining_claims 
+      - caribou_herds 
+      - other_linear_disturbances (optional)
+      - other_areal_disturbances (optional)
+      - display_element_1 (optional)
+      - display_element_2 (optional)
+      - display_element_3 (optional)
+      
   - Disturbance_explorer_report_YYYY-mm-dd.pdf
   - Disturbance_explorer_stats-YYYY-mm-dd.csv
   - Disturbance_explorer_buffer-YYYY-mm-dd.csv

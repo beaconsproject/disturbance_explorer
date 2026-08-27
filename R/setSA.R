@@ -536,6 +536,28 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$ifl2020 <- NULL
       }
     }
+    if ("footprint_500m" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'footprint_500m', quiet=T)
+      rv$layers_rv$footprint500 <- la
+      li <- la %>%
+        st_intersection(rv$sa())
+      if(nrow(li)>0){
+        rv$statslayers_rv$footprint500 <- li
+      }else{
+        rv$statslayers_rv$footprint500 <- NULL
+      }
+    }
+    if ("undisturbed_areas_500m" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'undisturbed_areas_500m', quiet=T)
+      rv$layers_rv$undisturbed500 <- la
+      li <- la %>%
+        st_intersection(rv$sa())
+      if(nrow(li)>0){
+        rv$statslayers_rv$undisturbed500 <- li
+      }else{
+        rv$statslayers_rv$undisturbed500 <- NULL
+      }
+    }
     if ("protected_areas" %in% lyr_names()) {
       la <-st_read(sourceData(), 'protected_areas', quiet=T)
       rv$layers_rv$pa2021 <- la
@@ -707,7 +729,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   # Read input data - OTHERS
   ##############################################################################
   other_linedist <- reactive({
-    layer <- FALSE
+    layer <- NULL
     
     if(!is.null(input$upload_lineothers)){
       required_extensions <- c("shp", "shx", "dbf", "prj")
@@ -722,7 +744,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
           easyClose = FALSE,
           footer = modalButton("OK")
         ))
-        req(FALSE)
+        req(NULL)
       }else{
         # Proceed if all components are present
         dir <- unique(dirname(infile$datapath))
@@ -742,7 +764,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
             easyClose = FALSE,
            footer = modalButton("OK")
           ))
-          return(FALSE)
+          return(NULL)
         }else{
           # Handle cases where 'geometry' might not be named correctly
           if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
@@ -760,7 +782,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   })
   
   other_polydist <- reactive({
-    layer <- FALSE
+    layer <- NULL
     if(!is.null(input$upload_polyothers)){
       required_extensions <- c("shp", "shx", "dbf", "prj")
       infile <- input$upload_polyothers
@@ -774,7 +796,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
           easyClose = FALSE,
           footer = modalButton("OK")
         ))
-        req(FALSE)
+        req(NULL)
       } else {
         # Proceed if all components are present
         dir <- unique(dirname(infile$datapath))
@@ -794,7 +816,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
             easyClose = FALSE,
             footer = modalButton("OK")
           ))
-          return(FALSE)
+          return(NULL)
         }else{
           # Handle cases where 'geometry' might not be named correctly
           if (!"geometry" %in% names(layer) && "geom" %in% names(layer)) {
@@ -1069,12 +1091,12 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     other_polylabel <- "Other areal disturbances (km2)"
     
     # If the user uploaded a shapefile via `other_dist()`
-    if (!isFALSE(rv$other_linedist())) {
+    if (!is.null(rv$other_linedist())) {
       other_linedist <- rv$other_linedist() %>% st_union()
       other_linevalue <- round(st_length(other_linedist) / 1000, 1)
       other_linelabel <- "Other linear disturbances (km)"
     }
-    if (!isFALSE(rv$other_polydist())) {
+    if (!is.null(rv$other_polydist())) {
       other_polydist <- rv$other_polydist() %>% st_union()
       other_polyvalue <- round(st_area(other_polydist) / 1e6, 1)
       other_polylabel <- "Other areal disturbances (km2)"

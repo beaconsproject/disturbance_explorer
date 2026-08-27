@@ -1,5 +1,23 @@
 addDisplayServer <- function(input, output, session, project, map, rv){
   
+  observe({
+    req(input$tabs == "addLayers")  # Trigger when "Select AOI" is active
+    
+    missing_inputs <- any(
+      is.null(rv$layers_rv$planreg_sf),
+      is.null(rv$layers_rv$streams_sf),
+      is.null(rv$layers_rv$catchments)
+    )
+    
+    if (missing_inputs) {# Check if intactSource is unset or NULL
+      showModal(modalDialog(
+        title = "Missing input parameters",
+        "Please set input parameters prior to upload additional elements.",
+        easyClose = TRUE,
+        footer = modalButton("OK")
+      ))
+    }
+  })
   ################################################################################################
   ################################################################################################
   # Add display elements
