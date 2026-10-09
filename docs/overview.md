@@ -80,7 +80,7 @@ used to generate the undisturbed and disturbed areas.
   
 ### Disturbance Explorer workflow diagram
 
-The worflow diagram below provides an overview of the process.
+The workflow diagram below provides an overview of the process.
 
 <br><br>
 <center><img src="pics/workflow.png" width="800"></center>

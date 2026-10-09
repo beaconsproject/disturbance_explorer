@@ -396,8 +396,8 @@ genIntactServer <- function(input, output, session, project, map, rv){
     }
     
     colnames(all_wide) <- c("Area_km2", "Undisturbed_per", "Disturbed_per", "Lineardist_km", "Arealdist_km2",
-                            "otherLinear_km", "otherAreal_km2", "Fires_per", "Mines_per", "PA2021_per", "IntactFL2000_per",
-                            "IntactFL2020_per", "Name", "set_custom", "set_includeOthers", "set_mines", "set_fires")
+                            "otherLinear_km", "otherAreal_km2", "Fires_per", "Mines_per", "PAs_per", "IntactFL2000_per",
+                            "IntactFL2025_per", "Name", "set_custom", "set_includeOthers", "set_mines", "set_fires")
     
     all_wide$signature <- paste(
       all_wide$Area_km2,
@@ -426,7 +426,7 @@ genIntactServer <- function(input, output, session, project, map, rv){
   })
   
   
-  observeEvent(c(rv$sa(), rv$statslayers_rv$poly, rv$statslayers_rv$line, rv$layers_rv$firesf, rv$layers_rv$mines_all, rv$statslayers_rv$pa2021), {
+  observeEvent(c(rv$sa(), rv$statslayers_rv$poly, rv$statslayers_rv$line, rv$layers_rv$firesf, rv$layers_rv$mines_all, rv$statslayers_rv$pas), {
     rv$additionalAttributes(NULL)
   })
   

@@ -12,6 +12,7 @@ legend_items <- data.frame(
             "Linear disturbances", 
             "Other areal disturbances",
             "Other linear disturbances",
+            "Footprint 500m",
             "Fires (Lightning)", 
             "Fires (Human)", 
             "Fires (Unknown)",
@@ -19,8 +20,9 @@ legend_items <- data.frame(
             "Placer Claims", 
             "Mining Claims",
             "Protected areas", 
+            "Caribou herds",
             "Intact FL 2000", 
-            "Intact FL 2020"
+            "Intact FL 2025"
   ),
   color = c("#33663380", 
             "#333333", 
@@ -28,6 +30,7 @@ legend_items <- data.frame(
             "#CC3333", 
             "#FF9966",
             "#FF6600",
+            "#663399",
             "#996633", 
             "#663300", 
             "pink",
@@ -35,6 +38,7 @@ legend_items <- data.frame(
             "#666666", 
             "#999999",
             "#699999",
+            "#CC3399", 
             "#3366FF", 
             "#000066"
   ),
@@ -44,6 +48,8 @@ legend_items <- data.frame(
            "line", 
            "polygon", 
            "line",
+           "polygon", 
+           "polygon", 
            "polygon", 
            "polygon", 
            "polygon", 

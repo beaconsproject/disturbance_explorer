@@ -49,21 +49,24 @@ downloadServer <- function(input, output, session, project, rv){
                       otherAreal_km2  = rv$baseAttributes()[4,2],
                       Fires_per = rv$baseAttributes()[5,2],
                       Mine_per = rv$baseAttributes()[6,2],
-                      PA2021_per= rv$baseAttributes()[7,2],
+                      PAs_per= rv$baseAttributes()[7,2],
                       IntactFL2000_per = rv$baseAttributes()[8,2],
-                      IntactFL2020_per = rv$baseAttributes()[9,2])
-      colnames(x) <-c("Area_km2","Lineardist_km","Arealdist_km2","otherLinear_km","otherAreal_km2","Fires_per", "Mines_per", "PA2021_per","IntactFL2000_per","IntactFL2020_per")
+                      IntactFL2025_per = rv$baseAttributes()[9,2])
+      colnames(x) <-c("Area_km2","Lineardist_km","Arealdist_km2","otherLinear_km","otherAreal_km2","Fires_per", "Mines_per", "PAs_per","IntactFL2000_per","IntactFL2025_per")
       aoi <- cbind(st_union(rv$sa()), x)
       if (!is.null(rv$layers_rv$line)) st_write(rv$layers_rv$line, dsn=file, layer='linear_disturbances', append=TRUE)
       if (!is.null(rv$layers_rv$poly)) st_write(rv$layers_rv$poly, dsn=file, layer='areal_disturbances', append=TRUE)
       if (!is.null(rv$layers_rv$fires)) st_write(rv$layers_rv$fires, dsn=file, layer='fires', append=TRUE)
       if (!is.null(rv$other_linedist()) && !isFALSE(rv$other_linedist()))  st_write(rv$other_linedist(), dsn=file, layer='other_linear_disturbances', append=TRUE)
       if (!is.null(rv$other_polydist()) && !isFALSE(rv$other_polydist()))  st_write(rv$other_polydist(), dsn=file, layer='other_areal_disturbances', append=TRUE)
-      if (!is.null(rv$layers_rv$pa2021)) st_write(rv$layers_rv$pa2021, dsn=file, layer='protected_areas', append=TRUE)
+      if (!is.null(rv$layers_rv$pas)) st_write(rv$layers_rv$pas, dsn=file, layer='protected_areas', append=TRUE)
       if (!is.null(rv$layers_rv$placers)) st_write(rv$layers_rv$placers, dsn=file, layer='placer_claims', append=TRUE)
       if (!is.null(rv$layers_rv$quartz)) st_write(rv$layers_rv$quartz, dsn=file, layer='quartz_claims', append=TRUE)
+      if (!is.null(rv$layers_rv$ifl2000)) st_write(rv$layers_rv$ifl2000, dsn=file, layer='intact_fl_2000', append=TRUE)
+      if (!is.null(rv$layers_rv$ifl2025)) st_write(rv$layers_rv$ifl2025, dsn=file, layer='intact_fl_2025', append=TRUE)
       if (!is.null(rv$layers_rv$mines)) st_write(rv$layers_rv$mines, dsn=file, layer='mining_claims', append=TRUE)
       if (!is.null(rv$layers_rv$herds)) st_write(rv$layers_rv$herds, dsn=file, layer='caribou_herds', append=TRUE)
+      if (!is.null(rv$layers_rv$footprint500)) st_write(rv$layers_rv$footprint500, dsn=file, layer='footprint_500m', append=TRUE)
       if (!is.null(rv$display1_sf())) st_write(rv$display1_sf(), dsn=file, layer=rv$display1_name(), append=TRUE)
       if (!is.null(rv$display2_sf())) st_write(rv$display2_sf(), dsn=file, layer=rv$display2_name(), append=TRUE)
       if (!is.null(rv$display3_sf())) st_write(rv$display3_sf(), dsn=file, layer=rv$display3_name(), append=TRUE)

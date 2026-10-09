@@ -525,15 +525,15 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$ifl2000 <- NULL
       }
     }
-    if ("intact_fl_2020" %in% lyr_names()) {
-      la <-st_read(sourceData(), 'intact_fl_2020', quiet=T)
-      rv$layers_rv$ifl2020 <- la
+    if ("intact_fl_2025" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'intact_fl_2025', quiet=T)
+      rv$layers_rv$ifl2025 <- la
       li <- la %>%
         st_intersection(rv$sa())
       if(nrow(li)>0){
-        rv$statslayers_rv$ifl2020 <- li
+        rv$statslayers_rv$ifl2025 <- li
       }else{
-        rv$statslayers_rv$ifl2020 <- NULL
+        rv$statslayers_rv$ifl2025 <- NULL
       }
     }
     if ("footprint_500m" %in% lyr_names()) {
@@ -560,13 +560,13 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     }
     if ("protected_areas" %in% lyr_names()) {
       la <-st_read(sourceData(), 'protected_areas', quiet=T)
-      rv$layers_rv$pa2021 <- la
+      rv$layers_rv$pas <- la
       li <- la %>%
         st_intersection(rv$sa())
       if(nrow(li)>0){
-        rv$statslayers_rv$pa2021 <- li
+        rv$statslayers_rv$pas <- li
       }else{
-        rv$statslayers_rv$pa2021 <- NULL
+        rv$statslayers_rv$pas <- NULL
       }
     }
     if ("placer_claims" %in% lyr_names()) {
@@ -602,7 +602,17 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         rv$statslayers_rv$mines <- NULL
       }
     }
-    
+    if ("caribou_herds" %in% lyr_names()) {
+      la <-st_read(sourceData(), 'caribou_herds', quiet=T)
+      rv$layers_rv$herds <- la
+      li <- la %>%
+        st_intersection(rv$sa())
+      if(nrow(li)>0){
+        rv$statslayers_rv$herds <- li
+      }else{
+        rv$statslayers_rv$herds <- NULL
+      }
+    }
   })
   
   observeEvent(input$confClassify, {
@@ -848,7 +858,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       clearGroup("Fires") %>%
       clearGroup("Protected areas") %>%
       clearGroup("Intact FL 2000") %>%
-      clearGroup("Intact FL 2020") %>%
+      clearGroup("Intact FL 2025") %>%
       clearGroup("Mining claims") %>%
       clearGroup("Placer claims") %>%
       clearGroup("Quartz claims")
@@ -916,10 +926,10 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       leafletProxy("map") %>% addPolygons(data=fires, fill=T, stroke=F, fillColor=~pal(CAUSE_LABEL), fillOpacity=0.8, group="Fires", options = leafletOptions(pane = "top")) 
       dist_names_new <- c("Fires", dist_names_new)
     }
-    pa2021 <- isolate(rv$layers_rv$pa2021)
-    if(!is.null(pa2021)){
-      pa2021 <- st_transform(pa2021, 4326)
-      leafletProxy("map") %>% addPolygons(data=pa2021, fill=T, stroke=F, fillColor='#699999', fillOpacity=1,  group="Protected areas", options = leafletOptions(pane = "ground")) 
+    pas <- isolate(rv$layers_rv$pas)
+    if(!is.null(pas)){
+      pas <- st_transform(pas, 4326)
+      leafletProxy("map") %>% addPolygons(data=pas, fill=T, stroke=F, fillColor='#699999', fillOpacity=1,  group="Protected areas", options = leafletOptions(pane = "ground")) 
       add_names_new <- c(add_names_new, "Protected areas")
     }
     ifl2000 <- isolate(rv$layers_rv$ifl2000)
@@ -928,13 +938,24 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       leafletProxy("map") %>% addPolygons(data=ifl2000, fill=T, stroke=F, fillColor='#3366FF', fillOpacity=0.5, group="Intact FL 2000", options = leafletOptions(pane = "ground")) 
       add_names_new <- c(add_names_new, "Intact FL 2000")
     }
-    ifl2020 <- isolate(rv$layers_rv$ifl2020)
-    if(!is.null(ifl2020)){
-      ifl2020 <- st_transform(ifl2020, 4326)
-      leafletProxy("map") %>% addPolygons(data=ifl2020, fill=T, stroke=F, fillColor='#000066', fillOpacity=0.5, group="Intact FL 2020", options = leafletOptions(pane = "ground")) 
-      add_names_new <- c(add_names_new, "Intact FL 2020")
+    ifl2025 <- isolate(rv$layers_rv$ifl2025)
+    if(!is.null(ifl2025)){
+      ifl2025 <- st_transform(ifl2025, 4326)
+      leafletProxy("map") %>% addPolygons(data=ifl2025, fill=T, stroke=F, fillColor='#000066', fillOpacity=0.5, group="Intact FL 2025", options = leafletOptions(pane = "ground")) 
+      add_names_new <- c(add_names_new, "Intact FL 2025")
     }
-    
+    footprint500 <- isolate(rv$layers_rv$footprint500)
+    if(!is.null(footprint500)){
+      footprint500 <- st_transform(footprint500, 4326)
+      leafletProxy("map") %>% addPolygons(data=footprint500, fill=T, stroke=F, fillColor='#663399', fillOpacity=0.5, group="Footprint 500m", options = leafletOptions(pane = "ground")) 
+      add_names_new <- c(add_names_new, "Footprint 500m")
+    }
+    herds <- isolate(rv$layers_rv$herds)
+    if(!is.null(herds)){
+      herds <- st_transform(herds, 4326)
+      leafletProxy("map") %>% addPolygons(data=herds, fill=T, stroke=F, fillColor='#CC3399', fillOpacity=0.8, group="Caribou herds", options = leafletOptions(pane = "ground")) 
+      add_names_new <- c(add_names_new, "Caribou herds")
+    }
     leafletProxy("map") %>%
       addLayersControl(position = "topright",
                        baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
@@ -992,7 +1013,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
       ),
       tags$div(
         style = "font-size: 0.85em; color: grey;",
-        tags$em("**"), "Intact Forest Landscape 2020"
+        tags$em("**"), "Intact Forest Landscape 2025"
       )
     )
   })
@@ -1112,7 +1133,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         "Mining claims (%)",
         "Protected areas (%)",
         "Intact FL 2000 (%)*",
-        "Intact FL 2020 (%)**"
+        "Intact FL 2025 (%)**"
       ),
       Value = c(
         if (is.null(rv$statslayers_rv$line) || nrow(rv$statslayers_rv$line) == 0) 0 else as.numeric(round(st_length(st_union(rv$statslayers_rv$line)) / 1000, 1)),
@@ -1121,9 +1142,9 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         other_polyvalue,
         if (is.null(rv$statslayers_rv$fires) || nrow(rv$statslayers_rv$fires)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$fires)) / aoi * 100, 1)),
         if (is.null(mines_all()) || nrow(mines_all())== 0) 0 else as.numeric(round(st_area(st_union(mines_all())) / aoi * 100, 1)),
-        if (is.null(rv$statslayers_rv$pa2021) || nrow(rv$statslayers_rv$pa2021)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$pa2021)) / aoi * 100, 1)),
+        if (is.null(rv$statslayers_rv$pas) || nrow(rv$statslayers_rv$pas)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$pas)) / aoi * 100, 1)),
         if (is.null(rv$statslayers_rv$ifl2000) || nrow(rv$statslayers_rv$ifl2000)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$ifl2000)) / aoi * 100, 1)),
-        if (is.null(rv$statslayers_rv$ifl2020) || nrow(rv$statslayers_rv$ifl2020)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$ifl2020)) / aoi * 100, 1))
+        if (is.null(rv$statslayers_rv$ifl2025) || nrow(rv$statslayers_rv$ifl2025)== 0) 0 else as.numeric(round(st_area(st_union(rv$statslayers_rv$ifl2025)) / aoi * 100, 1))
       )
     )
     rv$baseAttributes(tbl)
