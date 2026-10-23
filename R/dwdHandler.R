@@ -41,6 +41,7 @@ downloadServer <- function(input, output, session, project, rv){
         ) 
         return()
       }
+    
       req(input$goButton >0)
       x <- data.frame(Area_km2 = rv$aoiAttributes()[1,2],
                       Lineardist_km  = rv$baseAttributes()[1,2],
