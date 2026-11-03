@@ -150,6 +150,7 @@ build_map <- function(rv){
   # start map
   map <- tm_shape(sa) +
     tm_polygons(
+      fill =  NA, 
       col = '#663399',
       lwd = 3
     ) +
