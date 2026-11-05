@@ -866,8 +866,8 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     sa <- st_transform(rv$sa(), 4326)
     map_bounds1 <- sa %>% st_bbox() %>% as.character()
     
-    dist_names_new <- c(rv$dist_names())
-    add_names_new <- c(rv$add_names())
+    dist_names_new <- character(0)
+    add_names_new <- character(0)
     
  
     leafletProxy("map") %>%
