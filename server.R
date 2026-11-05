@@ -139,7 +139,7 @@ server = function(input, output, session) {
       #addPolygons(data=lakes, color='#97FFFF', fill=F,  opacity = 1, weight=2, group="Lakes", options = leafletOptions(pane = "ground")) %>%
       #addPolylines(data=rivers, color='#97FFFF', opacity = 1, weight=2, group="Rivers", options = leafletOptions(pane = "ground")) %>%
       addLayersControl(position = "topright",
-                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery", "Blank Background"),
+                       baseGroups= base_groups,
                    options = layersControlOptions(collapsed = FALSE))
   })
   

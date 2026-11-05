@@ -314,7 +314,7 @@ genIntactServer <- function(input, output, session, project, map, rv){
     if (isMappable(intact_sf)) { 
       map <- map %>% addPolygons(data=intact_sf, color='#336633', stroke=F, fillOpacity=0.5, group='Undisturbed areas', options = leafletOptions(pane = "top")) %>%
         addLayersControl(position = "topright",
-                         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                         baseGroups= base_groups,
                          overlayGroups = c("Studyarea", "Undisturbed areas", rv$dist_names(), rv$add_names()),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         showGroup("Undisturbed areas") %>%
@@ -323,7 +323,7 @@ genIntactServer <- function(input, output, session, project, map, rv){
     if (isMappable(fp_sf)) { 
       map <- map %>% addPolygons(data=fp_sf, color='black', stroke=F, fillOpacity=0.5, group=rv$footprint_names_new(), options = leafletOptions(pane = "top")) %>%
         addLayersControl(position = "topright",
-                         baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                         baseGroups= base_groups,
                          overlayGroups = c("Studyarea", "Undisturbed areas",  rv$footprint_names_new(), rv$dist_names(), rv$add_names()),
                          options = layersControlOptions(collapsed = FALSE)) %>%
         hideGroup(c(rv$footprint_names_new(), rv$group_names(), rv$add_names()))

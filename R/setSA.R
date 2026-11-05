@@ -958,7 +958,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     }
     leafletProxy("map") %>%
       addLayersControl(position = "topright",
-                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                       baseGroups= base_groups,
                        overlayGroups = c("Studyarea", dist_names_new, add_names_new),
                        options = layersControlOptions(collapsed = FALSE)) %>%
       hideGroup(c(add_names_new))
@@ -1071,7 +1071,7 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     
     leafletProxy("map") %>%
       addLayersControl(position = "topright",
-                       baseGroups=c("Esri.WorldTopoMap", "Esri.WorldImagery"),
+                       baseGroups= base_groups,
                        overlayGroups = c("Studyarea", dist_names_new, rv$add_names()),
                        options = layersControlOptions(collapsed = FALSE)) %>%
       hideGroup(c(rv$add_names()))

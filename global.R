@@ -41,6 +41,8 @@ r_files <- list.files(
 
 invisible(lapply(r_files, source))
 
+base_groups <- c("Esri.WorldTopoMap", "Esri.WorldImagery", "Blank Background")
+
 isMappable <- function(x) {
   !is.null(x) && inherits(x, "sf") && nrow(x) > 0
 }
