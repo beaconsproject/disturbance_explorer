@@ -4,9 +4,7 @@ addDisplayServer <- function(input, output, session, project, map, rv){
     req(input$tabs == "addLayers")  # Trigger when "Select AOI" is active
     
     missing_inputs <- any(
-      is.null(rv$layers_rv$planreg_sf),
-      is.null(rv$layers_rv$streams_sf),
-      is.null(rv$layers_rv$catchments)
+      is.null(rv$sa())
     )
     
     if (missing_inputs) {# Check if intactSource is unset or NULL
