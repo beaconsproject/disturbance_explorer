@@ -166,14 +166,14 @@ genIntactServer <- function(input, output, session, project, map, rv){
         v4 <- NULL
       }
       
-      if(input$forceclaims & ('Quartz_Claims' %in% rv$lyr() | 'Placer_Claims' %in% rv$lyr() | 'Mining_Claims' %in% rv$lyr())) {
-        if ('Quartz_Claims' %in% rv$lyr() & !'Placer_Claims' %in% rv$lyr()) {
+      if(input$forceclaims & ('quartz_claims' %in% rv$lyr() | 'placer_claims' %in% rv$lyr() | 'mining_claims' %in% rv$lyr())) {
+        if ('quartz_claims' %in% rv$lyr() & !'placer_claims' %in% rv$lyr()) {
           v5 <- st_union(st_buffer(rv$layers_rv$quartz, input$minesize)) %>% 
             st_sf()
-        } else if ('Placer_Claims' %in% rv$lyr() & !'Quartz_Claims' %in% rv$lyr()) {
+        } else if ('placer_claims' %in% rv$lyr() & !'quartz_claims' %in% rv$lyr()) {
           v5 <- st_union(st_buffer(rv$layers_rv$placers, input$minesize)) %>% 
             st_sf()
-        } else if ('Mining_Claims' %in% rv$lyr()) {
+        } else if ('mining_claims' %in% rv$lyr()) {
           v5 <- st_union(st_buffer(rv$layers_rv$mines, input$minesize)) %>% 
             st_sf()
         } else {
