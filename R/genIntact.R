@@ -232,7 +232,8 @@ genIntactServer <- function(input, output, session, project, map, rv){
         footprint_names_init <- "Disturbed areas (human + fires)"
       }
     } else {
-      if(nrow(footprint_sf())==0){
+      
+      if(is.null(nrow(footprint_sf()))){
         ifl <- rv$sa()
         footprint_names_init <- "No disturbed areas"
       }else{
