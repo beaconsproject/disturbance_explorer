@@ -63,34 +63,8 @@ ui = dashboardPage(skin="black",
                        br(),
                        actionButton("confSA", "Confirm studyarea", class = "btn-warning", style='color: #000'),
                        hr(),
-                       div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Change disturbance layer classification"))),
-                       div(style = "margin-top: -10px;", checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)),
-                       conditionalPanel(
-                         condition="input.createMatrix==true",
-                         div(
-                           style = "margin-left: 10px; margin-top: 30px;",
-                           h5(strong("Classify Disturbance Layer"))
-                         ),
-                         div(
-                           style = "margin-left: 10px;",
-                           h5("Select linear disturbance attributes that describe:")
-                         ),
-                         uiOutput("lineIndustryUI"),
-                         uiOutput("lineDistTypeUI"),
-                         div(
-                           style = "margin-left: 10px;",
-                           h5("Select areal distrubance attributes that describe:")
-                         ),
-                         uiOutput("polyIndustryUI"),
-                         uiOutput("polyDistTypeUI")
-                       ),
-                       br(),
-                       actionButton("confClassify", "Submit & Continue", class = "btn-warning", style='color: #000'),
-                       hr(),
-                       div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Upload other disturbances"))),
-                       fileInput(inputId = "upload_lineothers", label = div(style = "font-size:12px","Linear disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
-                       div(style = "margin-top: -30px;", fileInput(inputId = "upload_polyothers", label = div(style = "font-size:12px","Areal disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"))),
-                       actionButton("confUpload", "Confirm upload", class = "btn-warning", style='color: #000'),
+                       uiOutput("confClass"),
+                       uiOutput("confOthers")
                      ),
                      # EXTRA LAYERS
                      conditionalPanel(

@@ -41,6 +41,14 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     updateSelectInput(session = getDefaultReactiveDomain(), "saLayer", choices = c("Select a layer", layers))
   })
   
+  observe({
+    req(input$saLayer)
+    if(input$saLayer != "Select a layer"){
+      enable("confSA")
+    }else{
+      disable("confSA")
+    }
+  })
   ################################################################################################
   # Observe on Others disturbances 
   observe({
@@ -54,7 +62,38 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     enable("confUpload")
   })
  
+  output$confClass <- renderUI({
+    req(input$confSA)
+    req(!is.null(rv$layers_rv$line) || !is.null(rv$layers_rv$poly))
+    tagList(
+      div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Change disturbance layer classification"))),
+      div(style = "margin-top: -10px;", checkboxInput("createMatrix", label = "Define classification per disturbance type", value = F)),
+      conditionalPanel(
+        condition="input.createMatrix==true",
+        div(
+          style = "margin-left: 10px; margin-top: 30px;",
+          h5(strong("Classify Disturbance Layer"))
+        ),
+        div(
+          style = "margin-left: 10px;",
+          h5("Select linear disturbance attributes that describe:")
+        ),
+        uiOutput("lineIndustryUI"),
+        uiOutput("lineDistTypeUI"),
+        div(
+          style = "margin-left: 10px;",
+          h5("Select areal distrubance attributes that describe:")
+        ),
+        uiOutput("polyIndustryUI"),
+        uiOutput("polyDistTypeUI")
+      ),
+      br(),
+      actionButton("confClassify", "Submit & Continue", class = "btn-warning", style='color: #000')
+    )
+  })
+  
   observe({
+    req(input$confSA)
     if(is.null(lyr_names())){
       disable("createMatrix")
     }else{
@@ -65,6 +104,28 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
         disable("createMatrix")
       }
     }
+  }) 
+  #observe({
+  #  req(input$confSA)
+  #  req(!is.null(rv$layers_rv$line) || !is.null(rv$layers_rv$poly))
+    
+  #  if(!is.null(input$createMatrix)){
+  #    if(input$createMatrix){
+   #     shinyjs::enable("confClassify")
+  #    } else{
+  #      shinyjs::disable("confClassify")
+   #   }
+   # }
+ # })
+  
+  output$confOthers <- renderUI({
+    req(input$confSA)
+    tagList(
+      div(style = "margin-left: 10px; margin-top: 30px;", h5(strong("OPTIONAL - Upload other disturbances"))),
+      fileInput(inputId = "upload_lineothers", label = div(style = "font-size:12px","Linear disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg")),
+      div(style = "margin-top: -30px;", fileInput(inputId = "upload_polyothers", label = div(style = "font-size:12px","Areal disturbances (shp):"), multiple = TRUE, accept = c(".shp", ".shx", ".dbf", ".prj", ".cpg"))),
+      actionButton("confUpload", "Confirm upload", class = "btn-warning", style='color: #000')
+    )
   })
   
   observe({
@@ -143,14 +204,6 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
   ################################################################################################
   # Render UI for the selection of column name for disturbances 
   ################################################################################################
-  observe({
-    if(input$createMatrix){
-      shinyjs::enable("confClassify")
-    } else{
-      shinyjs::disable("confClassify")
-    }
-  })
-  
   output$lineIndustryUI <- renderUI({
     req(input$createMatrix == TRUE)
     
@@ -972,10 +1025,11 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     if(!any(c('linear_disturbances', 'areal_disturbances', 'fires', 'placer_claims', 'quartz_claims', 'mining_claims') %in% lyr_names())){
       showModal(modalDialog(
         title = "No disturbance provided in the GPKG.",
-        "Please provide a GPKG that has either 'linear_disturbances', 'areal_disturbances', 'fires' or 'mining_claims' as a layer",
+        "Please provide a GPKG containing at least one of the following layers: linear_disturbances, areal_disturbances, fires, or mining_claims, or upload additional linear or areal disturbance layers.",
         easyClose = FALSE,
         footer = modalButton("OK")
       ))
+      disable("goButton")
       return()  # Stop further execution  
     }
     
@@ -1058,12 +1112,14 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
     
     other_polydist <- isolate(other_polydist())
     if(!is.null(other_polydist)){
+      enable("goButton")
       other_polydist <- st_transform(other_polydist, 4326)
       leafletProxy("map") %>% addPolylines(data = other_polydist, color = "#FF9966", fill=T, fillColor='#FF9966', fillOpacity=0.8, weight=1, group="Other areal disturbances")
       dist_names_new <- c(dist_names_new, "Other areal disturbances")
     }
     other_linedist <- isolate(other_linedist())
     if(!is.null(other_linedist)){
+      enable("goButton")
       other_linedist <- st_transform(other_linedist, 4326)
       leafletProxy("map") %>% addPolylines(data = other_linedist, color = "#FF6600",  weight=2 , group="Other linear disturbances")
       dist_names_new <- c(dist_names_new, "Other linear disturbances")
