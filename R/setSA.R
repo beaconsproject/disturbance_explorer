@@ -383,8 +383,161 @@ setStudyareaServer <- function(input, output, session, project, map, rv){
                   rows = list(names = FALSE, extend = TRUE),
                   cols = list(names = TRUE))
     }
-  })    
-  
+  })
+
+  ################################################################################################
+  # Render UI for the selection of column name for other (uploaded) disturbances
+  ################################################################################################
+  # Attribute columns of an uploaded layer, with a placeholder first
+  other_class_choices <- function(layer, placeholder) {
+    c(placeholder, setdiff(colnames(layer), attr(layer, "sf_column")))
+  }
+  # Preselect the column if the layer uses one of the default names (any case;
+  # shapefiles cut column names to 10 characters, e.g. TYPE_INDUSTRY -> TYPE_INDUS)
+  other_class_selected <- function(layer, defaults, placeholder) {
+    hit <- colnames(layer)[toupper(colnames(layer)) %in% toupper(defaults)]
+    if (length(hit) > 0) hit[1] else placeholder
+  }
+
+  output$otherLineClassUI <- renderUI({
+    # Read the upload directly, so it works even before "Confirm upload" is clicked
+    layer <- other_linedist()
+    req(layer)
+    tagList(
+      div(style = "margin-left: 10px;", h5("Select other linear disturbance attributes that describe:")),
+      div(style = "margin-top: -10px;",
+          selectInput("otherlineindustry", label = NULL,
+                      choices = other_class_choices(layer, "--industry type--"),
+                      selected = other_class_selected(layer, c("TYPE_INDUSTRY", "TYPE_INDUS"), "--industry type--"))),
+      div(style = "margin-top: -10px;",
+          selectInput("otherlinedisttype", label = NULL,
+                      choices = other_class_choices(layer, "--disturbance type--"),
+                      selected = other_class_selected(layer, c("TYPE_DISTURBANCE", "TYPE_DISTU"), "--disturbance type--")))
+    )
+  })
+
+  output$otherPolyClassUI <- renderUI({
+    layer <- other_polydist()
+    req(layer)
+    tagList(
+      div(style = "margin-left: 10px;", h5("Select other areal disturbance attributes that describe:")),
+      div(style = "margin-top: -10px;",
+          selectInput("otherpolyindustry", label = NULL,
+                      choices = other_class_choices(layer, "--industry type--"),
+                      selected = other_class_selected(layer, c("TYPE_INDUSTRY", "TYPE_INDUS"), "--industry type--"))),
+      div(style = "margin-top: -10px;",
+          selectInput("otherpolydisttype", label = NULL,
+                      choices = other_class_choices(layer, "--disturbance type--"),
+                      selected = other_class_selected(layer, c("TYPE_DISTURBANCE", "TYPE_DISTU"), "--disturbance type--")))
+    )
+  })
+
+  ########################################################
+  # Custom buffer matrices for other (uploaded) disturbances
+  output$linear_other_matrix_ui <- renderUI({
+    if (is.null(rv$other_linedist())) {
+      tags$p("NONE", style = "color: gray; font-style: italic;")
+    } else {
+      # Build matrix from the columns selected in otherLineClassUI
+      industry_line <- input$otherlineindustry
+      disttype_line <- input$otherlinedisttype
+
+      line_tibble <- rv$other_linedist() %>%
+        st_drop_geometry() %>%
+        {
+          data <- .
+          industry_col <- if (!is.null(industry_line) && industry_line %in% colnames(data)) data[[industry_line]] else "NONE"
+          dist_col <- if (!is.null(disttype_line) && disttype_line %in% colnames(data)) data[[disttype_line]] else "NONE"
+
+          data %>%
+            mutate(
+              TYPE_FEATURE = "Linear other",
+              BUFFER_SIZE_M = input$otherlinesize,
+              TYPE_INDUSTRY = industry_col,
+              TYPE_DISTURBANCE = dist_col
+            )
+        }
+
+      data <- rv$other_linedist()
+      line_summary <- data %>%
+        mutate(
+          length_km = st_length(data) / 1000,
+          TYPE_INDUSTRY = if (!is.null(industry_line) && industry_line %in% colnames(data)) data[[industry_line]] else "NONE",
+          TYPE_DISTURBANCE = if (!is.null(disttype_line) && disttype_line %in% colnames(data)) data[[disttype_line]] else "NONE"
+        ) %>%
+        st_drop_geometry() %>%
+        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+        summarize(LENGTH_KM = as.numeric(round(sum(length_km), 2)), .groups = "drop")
+
+      line_tibble <- line_tibble %>%
+        left_join(line_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+
+      mline_other <- line_tibble %>%
+        dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M", "LENGTH_KM"))) %>%
+        distinct() %>%
+        as.matrix()
+
+      rv$matrix_line_other(mline_other)
+
+      matrixInput("linear_buffers_other",
+                  value = mline_other,
+                  rows = list(names = FALSE, extend = TRUE),
+                  cols = list(names = TRUE))
+    }
+  })
+
+  output$areal_other_matrix_ui <- renderUI({
+    if (is.null(rv$other_polydist())) {
+      tags$p("NONE", style = "color: gray; font-style: italic;")
+    } else {
+      # Build matrix from the columns selected in otherPolyClassUI
+      industry_poly <- input$otherpolyindustry
+      disttype_poly <- input$otherpolydisttype
+
+      poly_tibble <- rv$other_polydist() %>%
+        st_drop_geometry() %>%
+        {
+          data <- .
+          industry_col <- if (!is.null(industry_poly) && industry_poly %in% colnames(data)) data[[industry_poly]] else "NONE"
+          dist_col <- if (!is.null(disttype_poly) && disttype_poly %in% colnames(data)) data[[disttype_poly]] else "NONE"
+
+          data %>%
+            mutate(
+              TYPE_FEATURE = "Areal other",
+              BUFFER_SIZE_M = input$otherpolysize,
+              TYPE_INDUSTRY = industry_col,
+              TYPE_DISTURBANCE = dist_col
+            )
+        }
+
+      data <- rv$other_polydist()
+      poly_summary <- data %>%
+        mutate(
+          area_km2 = as.numeric(st_area(data)) / 1e6,
+          TYPE_INDUSTRY = if (!is.null(industry_poly) && industry_poly %in% colnames(data)) data[[industry_poly]] else "NONE",
+          TYPE_DISTURBANCE = if (!is.null(disttype_poly) && disttype_poly %in% colnames(data)) data[[disttype_poly]] else "NONE"
+        ) %>%
+        st_drop_geometry() %>%
+        group_by(TYPE_INDUSTRY, TYPE_DISTURBANCE) %>%
+        summarize(AREA_KM2 = round(sum(area_km2, na.rm = TRUE), 5), .groups = "drop")
+
+      poly_tibble <- poly_tibble %>%
+        left_join(poly_summary, by = c("TYPE_INDUSTRY", "TYPE_DISTURBANCE"))
+
+      mpoly_other <- poly_tibble %>%
+        dplyr::select(any_of(c("TYPE_FEATURE", "TYPE_INDUSTRY", "TYPE_DISTURBANCE", "BUFFER_SIZE_M", "AREA_KM2"))) %>%
+        distinct() %>%
+        as.matrix()
+
+      rv$matrix_poly_other(mpoly_other)
+
+      matrixInput("areal_buffers_other",
+                  value = mpoly_other,
+                  rows = list(names = FALSE, extend = TRUE),
+                  cols = list(names = TRUE))
+    }
+  })
+
   
   ##############################################################################
   # Read input data - REQUIRED

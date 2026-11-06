@@ -8,7 +8,9 @@ downloadServer <- function(input, output, session, project, rv){
     content = function(file) {
       line <- as_tibble(input$linear_buffers)
       poly <- as_tibble(input$areal_buffers)
-      matrix <- dplyr::bind_rows(line, poly)
+      line_other <- as_tibble(input$linear_buffers_other)
+      poly_other <- as_tibble(input$areal_buffers_other)
+      matrix <- dplyr::bind_rows(line, poly, line_other, poly_other)
       
       write.csv(matrix, file, row.names = FALSE)
     }

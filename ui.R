@@ -121,9 +121,21 @@ ui = dashboardPage(skin="black",
                        checkboxInput("includeOthers", "Include other disturbances", value=FALSE),
                        conditionalPanel(
                          condition="input.includeOthers",
+                         div(style = "margin-right:10px;", radioButtons("selectBuffer_others", "Select buffer type for other disturbances:",
+                                      choices = list("Use custom buffers" = "custom_buffers_others",
+                                                     "Use overall buffers" = "slider_buffers_others"),
+                                      selected = "slider_buffers_others",
+                                      inline = FALSE))
+                       ),
+                       conditionalPanel(
+                         condition="input.includeOthers && input.selectBuffer_others == 'custom_buffers_others'",
+                         uiOutput("otherLineClassUI"),
+                         uiOutput("otherPolyClassUI")
+                       ),
+                       conditionalPanel(
+                         condition="input.includeOthers && input.selectBuffer_others == 'slider_buffers_others'",
                          sliderInput("otherlinesize", label="Set buffer size (m) on other linear disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE),
-                         sliderInput("otherpolysize", label="Set a buffer size (m)on other areal disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
-                         
+                         sliderInput("otherpolysize", label="Set a buffer size (m) on other areal disturbances:", min=0, max=2000, value = 500, step=50, ticks=FALSE)
                        ),
                        checkboxInput("forceclaims", "Include mining claims", value=FALSE),
                        conditionalPanel(
@@ -177,6 +189,10 @@ ui = dashboardPage(skin="black",
                                                  uiOutput("linear_matrix_ui"),
                                                  tags$h4("Define areal buffer sizes:"),
                                                  uiOutput("areal_matrix_ui"),
+                                                 tags$h4("Define linear buffer sizes for other disturbances:"),
+                                                 uiOutput("linear_other_matrix_ui"),
+                                                 tags$h4("Define areal buffer sizes for other disturbances:"),
+                                                 uiOutput("areal_other_matrix_ui"),
                                                  div(style="margin-right:10px;", downloadButton("downloadMatrix", "Download tables as csv", style='color: #000'))
                                         ),
                                         tabPanel("Summary statistics",

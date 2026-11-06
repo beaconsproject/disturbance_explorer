@@ -8,6 +8,8 @@ params:
   stats: NULL
   matrix_line: NULL
   matrix_poly: NULL
+  matrix_line_other: NULL
+  matrix_poly_other: NULL
   summaryStats: NULL
   map_path: NULL
   legend_path: NULL
@@ -19,6 +21,11 @@ params:
   arealbuff: NULL
   otherlinesize: NULL
   otherpolysize: NULL
+  hasOtherLine: FALSE
+  hasOtherPoly: FALSE
+  bufferTypeOthers: NULL
+  otherlineclass: NULL
+  otherpolyclass: NULL
   minebuff: NULL
   firesize: NULL
   fireyear: NULL
@@ -127,15 +134,37 @@ base_sentence <- if (params$bufferType == "custom_buffers") {
   paste0("To generate the disturbed areas layer, generic buffers of ", paste(parts, collapse = " and "), " were used.")
 }
 
+# Describe how an uploaded layer was buffered
+# feature: "linear" / "areal"; size: overall buffer (slider); m: custom matrix; cols: classification columns
+other_buffer_text <- function(feature, size, m, cols) {
+  custom <- identical(params$bufferTypeOthers, "custom_buffers_others")
+  if (!custom) {
+    return(sprintf("uploaded %s features buffered with a %s m distance", feature, size))
+  }
+  by_txt <- if (length(cols) > 0) sprintf(" classified by %s", paste(cols, collapse = " and ")) else ""
+  dists <- if (!is.null(m) && "BUFFER_SIZE_M" %in% colnames(m)) {
+    sort(unique(suppressWarnings(as.numeric(m[, "BUFFER_SIZE_M"]))))
+  } else numeric(0)
+  dists <- dists[!is.na(dists)]
+  dist_txt <- if (length(dists) == 1) {
+    sprintf("a custom %s m distance", dists)
+  } else if (length(dists) > 1) {
+    sprintf("custom distances ranging from %s to %s m", min(dists), max(dists))
+  } else {
+    "custom distances"
+  }
+  sprintf("uploaded %s features%s, buffered with %s (see table below)", feature, by_txt, dist_txt)
+}
+
 # Add uploaded and mines
 components <- c(
-  
-  # always possible extras
-  if (includeOthers && !is.na(params$otherlinesize))
-    sprintf("uploaded linear features which with a %s m distance", params$otherlinesize),
-  
-  if (includeOthers && !is.na(params$otherpolysize))
-    sprintf("uploaded areal features buffered with a %s m distance", params$otherpolysize),
+
+  # uploaded layers, only when uploaded and included
+  if (isTRUE(params$hasOtherLine))
+    other_buffer_text("linear", params$otherlinesize, params$matrix_line_other, params$otherlineclass),
+
+  if (isTRUE(params$hasOtherPoly))
+    other_buffer_text("areal", params$otherpolysize, params$matrix_poly_other, params$otherpolyclass),
   
   if (forceclaims &&!is.na(params$minebuff))
     sprintf("mining claims buffered with a %s m distance", params$minebuff),
@@ -312,24 +341,78 @@ This section describes the zone of influence assigned per disturbance industry/t
 
 #### Areal disturbances
 ```{r, echo=FALSE}
-knitr::kable(params$matrix_poly, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+if (!is.null(params$matrix_poly) && nrow(params$matrix_poly) > 0) {
+  knitr::kable(
+    params$matrix_poly,
+    row.names = FALSE,
+    format = "html",
+    table.attr = "style='width:100%;'"
+  ) %>%
     kableExtra::kable_styling(font_size = 13) %>%
-  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
-  kableExtra::row_spec(1:nrow(params$matrix_poly), extra_css = "padding-top: 2px; padding-bottom: 2px;")
-
+    kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+    kableExtra::row_spec(
+      1:nrow(params$matrix_poly),
+      extra_css = "padding-top: 2px; padding-bottom: 2px;"
+    )
+} else {
+  cat("No classified areal disturbance available.")
+}
 ```
 <p style="margin:20px 0;"></p>
 <div style="margin-bottom:30px;">
 #### Linear disturbances
 ```{r, echo=FALSE}
-knitr::kable(params$matrix_line, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+if (!is.null(params$matrix_line) && nrow(params$matrix_line) > 0) {
+  knitr::kable(
+    params$matrix_line,
+    row.names = FALSE,
+    format = "html",
+    table.attr = "style='width:100%;'"
+  ) %>%
     kableExtra::kable_styling(font_size = 13) %>%
-  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
-  kableExtra::row_spec(1:nrow(params$matrix_line), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+    kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+    kableExtra::row_spec(
+      1:nrow(params$matrix_line),
+      extra_css = "padding-top: 2px; padding-bottom: 2px;"
+    )
+} else {
+  cat("No classified linear disturbance available.")
+}
 ```
-
+</div>
 <div style="margin-bottom:30px;">
 
+</div>
+<div style="margin-bottom:30px;">
+#### Other areal disturbances
+```{r, echo=FALSE}
+if(!is.null(params$matrix_poly_other)){
+  knitr::kable(params$matrix_poly_other, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+    kableExtra::kable_styling(font_size = 13) %>%
+  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+  kableExtra::row_spec(1:nrow(params$matrix_poly_other), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+}else{
+  cat("No other areal disturbances were included in the analysis")
+}
+
+```
+</div>
+<p style="margin:20px 0;"></p>
+<div style="margin-bottom:30px;">
+#### Other linear disturbances
+```{r, echo=FALSE}
+if(!is.null(params$matrix_line_other)){
+  knitr::kable(params$matrix_line_other, row.names = FALSE, format = "html", table.attr = "style='width:100%;'") %>%
+    kableExtra::kable_styling(font_size = 13) %>%
+  kableExtra::row_spec(0, extra_css = "line-height: 1;") %>%
+  kableExtra::row_spec(1:nrow(params$matrix_line_other), extra_css = "padding-top: 2px; padding-bottom: 2px;")
+}else{
+    cat("No other linear disturbances were included in the analysis")
+
+}
+
+```
+</div>
 ```{r, echo=FALSE, results='asis'}
 
 sumStats <- params$summaryStats
@@ -409,7 +492,6 @@ if (!is.null(sumStats) && nrow(sumStats) > 0) {
 
 ```
 
-<div style="margin-bottom:30px;">
 <div style="margin-top:30px;">
 ### About this report
 
@@ -424,5 +506,5 @@ When using results or figures derived from this report in presentations, publica
 The application can be accessed here: https://beaconsproject.shinyapps.io/Disturbance_Explorer/
 
 ---
-  
+</div>  
   
